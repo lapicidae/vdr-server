@@ -1,0 +1,27 @@
+#!/usr/bin/with-contenv bash
+
+
+_isEnabled() {
+	plugin=$1;
+	enabled=$(vdrctl list --enabled | grep "^$1$")
+	if [[ "${enabled_arr[@]}" =~ "${plugin}" ]]; then
+		echo 0
+	else
+		echo 1
+	fi
+}
+
+
+# vdrmanager
+if [ $(_isEnabled "vdrmanager") == 1 ]; then
+	plug_dir="/var/lib/vdr/plugins/vdrmanager"
+	if [ ! -d $plug_dir ]; then
+		mkdir -p $plug_dir
+	fi
+	if [ ! -e $plug_dir/vdrmanager.pem ]; then
+		openssl req -new -x509 -keyout $plug_dir/vdrmanager.key -out $plug_dir/vdrmanager.crt -days 9999 -nodes -batch
+		cat $plug_dir/vdrmanager.key > $plug_dir/vdrmanager.pem
+		cat $plug_dir/vdrmanager.crt >> $plug_dir/vdrmanager.pem
+		rm -f $plug_dir/vdrmanager.key $plug_dir/vdrmanager.crt
+	fi
+fi

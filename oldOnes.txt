@@ -1,0 +1,84 @@
+    pacman -S --noconfirm \
+      tar \
+      ttf-vdrsymbols \
+      vdr \
+      vdr-dummydevice \
+      vdr-dvbapi \
+      vdr-epg2vdr \
+      vdr-epgsearch \
+      vdr-live \
+      vdr-markad \
+      vdr-streamdev-server \
+      vdr-vnsiserver
+
+
+    pacman -S --noconfirm --needed \
+      sudo \
+      git \
+      pacutils \
+      perl-libwww \
+      perl-term-ui \
+      perl-json \
+      perl-data-dump \
+      perl-lwp-protocol-https \
+      perl-term-readline-gnu \
+      base-devel && \
+    echo "**** install trizen ****" && \
+    cd /tmp && \
+    sudo -u builduser bash -c 'git clone https://aur.archlinux.org/trizen.git && cd trizen && makepkg -s' && \
+    pacman -U /tmp/trizen/trizen-*-any.pkg.tar.zst --noconfirm && \
+    echo "**** install from aur ****" && \
+    #sudo -u builduser bash -c 'trizen -S vdr-ddci2 --noedit --noconfirm' && \
+    pacman -Rsu --noconfirm \
+      trizen \
+      sudo \
+      git && \
+
+
+    echo "**** install ciplus ****" && \
+    sudo -u builduser bash -c ' \
+      git clone https://github.com/lmaresch/vdr-ciplus.git && \
+      cd vdr-ciplus && \
+      sed -i "s/vdr-api=/vdr-api>=/g" PKGBUILD && \
+      makepkg -s' && \
+    pacman -U /tmp/vdr-ciplus/vdr-ciplus*.pkg.tar.zst --noconfirm && \
+    echo "**** install libciplusprivate ****" && \
+    git clone https://github.com/ciminus/vdr-plugin-ciplus.git && \
+    cd vdr-plugin-ciplus && \
+    sed -i '/MAKE_CIPLUS_PRIVATE/s/^# *//' Makefile && \
+    make && \
+    ls -la && \
+
+
+
+git init vdr-ddci2
+cd vdr-ddci2
+git remote add origin https://github.com/VDR4Arch/vdr4arch.git
+git config core.sparsecheckout true
+echo "plugins/vdr-ddci2/*" >> .git/info/sparse-checkout
+git pull origin master
+cd plugins/vdr-ddci2
+
+
+/srv/dev-disk-by-label-NAS01/Daten/VDR/channellogos
+
+docker run \
+    --device=/dev/dvb:/dev/dvb \
+    -e PUID=666 -e PGID=65534 \
+    -e PLUGINS="ciplus ddci2 dvbapi epg2vdr epgsearch live streamdev-server vdrmanager vnsiserver" \
+    -v /srv/dev-disk-by-label-NAS01/Multimedia/Aufnahmen:/vdr/recordings \
+    -v /srv/dev-disk-by-label-NAS01/Daten/VDR/config:/vdr/config \
+    -v /srv/dev-disk-by-label-NAS01/Daten/VDR/epgimages:/vdr/epgimages \
+    -p 2004:2004 -p 3000:3000 -p 6419:6419 -p 6419:6419/udp -p 6420:6420 -p 8008:8008 -p 8009:8009 -p 34890:34890 \
+    --name vdr-server --net=bridge --hostname=vdr-server test:latest
+
+
+
+2004		streamdev VDR-to-VDR Server
+3000		streamdev HTTP Server
+6419		SVDRP (Simple VDR Protokoll)
+6419/udp	VDR Peering
+6420		VDR-Manager
+8008		live HTTP
+8009		live HTTPS
+34890		VNSI (VDR-Network-Streaming-Interface)

@@ -1,0 +1,10 @@
+#!/usr/bin/with-contenv bash
+
+# set timezone
+if [ -d "/usr/share/zoneinfo/$TZ" ]; then
+	CURRENT_TZ=$(readlink /etc/localtime)
+	if [[ ! $CURRENT_TZ =~ $TZ ]]; then
+		timedatectl set-timezone $TZ
+		echo "New timezone $TZ set!"
+	fi
+fi 

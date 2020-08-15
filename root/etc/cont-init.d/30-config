@@ -1,0 +1,17 @@
+#!/usr/bin/with-contenv bash
+
+conf_dir="/vdr/config"
+
+# make folder
+if [ ! -d $conf_dir ]; then
+	mkdir -p $conf_dir
+fi
+
+if [ -d $conf_dir ]; then
+	# copy defaults
+	cp --no-clobber --recursive /defaults/config/. $conf_dir/
+	# sync configs
+	unison /etc/vdr/ $conf_dir/etc/ -batch -times -prefer newer -silent
+	unison /var/cache/vdr/ /vdr/config/cache/ -ignore "Path epgimages" -batch -times -prefer newer -silent
+	unison /var/lib/vdr/ $conf_dir/lib/ -batch -times -prefer newer -silent
+fi

@@ -1,0 +1,79 @@
+#!/usr/bin/with-contenv bash
+
+if [ -z "$PLUGINS" ]; then
+	PLUGINS="epgsearch live streamdev-server vnsiserver"
+fi
+
+if [ -z "$UNINSTALL_PLUGINS" ]; then
+	UNINSTALL_PLUGINS="no"
+fi
+
+
+readarray -t enabled_arr < <(vdrctl list --enabled)
+plug_arr=($PLUGINS)
+
+
+_isAvailable() {
+	plugin=$1;
+	avail=$(pacman -Ssq $plugin | grep "^$plugin$")
+	if [ ! -z "$avail" ]; then
+		echo 0
+	else
+		echo 1
+	fi
+}
+
+_isInstalled() {
+	package=$1
+	pacman -Qi "${package}" &> /dev/null
+	echo $?
+}
+
+_isEnabled() {
+	plugin=$1;
+	enabled=$(vdrctl list --enabled | grep "^$1$")
+	if [[ "${enabled_arr[@]}" =~ "${plugin}" ]]; then
+		echo 0
+	else
+		echo 1
+	fi
+}
+
+
+typeset -i h=0 max_h=${#enabled_arr[*]};
+while (( h < max_h )); do
+	plug=${enabled_arr[$h]}
+	pacname="vdr-$plug"
+
+	# Plugin not in list
+	if [[ ! "${plug_arr[@]}" =~ "${plug}" ]]; then
+		vdrctl disable "${plug}"
+		echo "Plugin ${plug} disabled."
+		if [ $UNINSTALL_PLUGINS == "yes" ]; then
+			echo "Plugin ${plug} uninstalled."
+		fi
+	fi
+
+	h=h+1
+done
+
+
+typeset -i i=0 max_i=${#plug_arr[*]};
+while (( i < max_i )); do
+	plug=${plug_arr[$i]}
+	pacname="vdr-$plug"
+
+	# Plugin not installed
+	if [ $(_isInstalled "${pacname}") == 1 ] && [ $(_isAvailable "${pacname}") == 0 ]; then
+		echo "Plugin ${plug} is not installed."
+		pacman -S --noconfirm ${pacname}
+	fi
+
+	# Plugin installed
+	if [ $(_isInstalled "${pacname}") == 0 ] && [ $(_isEnabled "${plug}") == 1 ]; then
+		vdrctl enable "${plug}"
+		echo "Plugin ${plug} enabled."
+	fi
+
+	i=i+1
+done
