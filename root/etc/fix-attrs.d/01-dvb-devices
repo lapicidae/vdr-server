@@ -1,0 +1,2 @@
+/dev/dri true root:video 0660 0755
+/dev/dvb true root:video 0660 0755

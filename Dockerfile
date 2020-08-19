@@ -32,6 +32,7 @@ RUN echo "**** add the vdr4arch repository ****" && \
       binutils \
       gawk \
       grep \
+      msmtp-mta \
       tar \
       ttf-vdrsymbols \
       unison \
@@ -80,16 +81,19 @@ RUN echo "**** add the vdr4arch repository ****" && \
     tar xzf /tmp/s6-overlay-amd64.tar.gz -C / --exclude='./bin' && tar xzf /tmp/s6-overlay-amd64.tar.gz -C /usr ./bin && \
     tar xzf /tmp/socklog-overlay-amd64.tar.gz -C / && \
     echo "**** folders and symlinks ****" && \
-    mkdir -p /vdr && \
+    ln -s /home/vdr /vdr && \
+    ln -s /var/cache/vdr/epgimages /vdr/epgimages && \
+    ln -s /srv/vdr/video /vdr/recordings && \
     mkdir -p /vdr/config/cache && \
     mkdir -p /vdr/config/etc && \
     mkdir -p /vdr/config/lib && \
-    ln -s /var/cache/vdr/epgimages /vdr/epgimages && \
-    ln -s /srv/vdr/video /vdr/recordings && \
     echo "**** vdr config ****" && \
     mv /etc/vdr/conf.avail/50-ddci2.conf /etc/vdr/conf.avail/10-ddci2.conf && \
     mv /etc/vdr/conf.avail/50-dvbapi.conf /etc/vdr/conf.avail/20-dvbapi.conf && \
     mv /etc/vdr/conf.avail/50-ciplus.conf /etc/vdr/conf.avail/30-ciplus.conf && \
+    echo "**** SMTP client config ****" && \
+    cp /usr/share/doc/msmtp/msmtprc-system.example /etc/msmtprc && \
+    chmod 600 /etc/msmtprc && \
     echo "**** cleanup ****" && \
     userdel -r -f builduser && \
     pacman -Rsu --noconfirm \

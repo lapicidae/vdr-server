@@ -1,4 +1,11 @@
 #!/usr/bin/with-contenv bash
 
-chown -R vdr:vdr /defaults /etc/vdr /srv/vdr /var/cache/vdr /var/lib/vdr /vdr
-chmod -R g+w /vdr
+chown -R vdr:vdr \
+	/defaults \
+	/etc/vdr \
+	/home/vdr \
+	/srv/vdr \
+	/var/cache/vdr \
+	/var/lib/vdr \
+	/vdr
+chmod -R g+w /home/vdr
