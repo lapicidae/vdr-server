@@ -19,6 +19,6 @@ if [ -d $conf_dir ]; then
 		msmtp_conf="/etc/msmtprc"
 		cp -f $conf_dir/eMail.conf $msmtp_conf
 		chown root:root $msmtp_conf
-		chmod 600 $msmtp_conf
+		chmod 640 $msmtp_conf
 	fi
 fi
