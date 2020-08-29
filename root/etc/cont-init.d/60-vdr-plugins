@@ -66,7 +66,7 @@ while (( i < max_i )); do
 	# Plugin not installed
 	if [ $(_isInstalled "${pacname}") == 1 ] && [ $(_isAvailable "${pacname}") == 0 ]; then
 		echo "Plugin ${plug} is not installed."
-		pacman -S --noconfirm ${pacname}
+		pacman -S --overwrite "/usr/bin/*" --noconfirm ${pacname}	## use "overwrite" because of busybox
 	fi
 
 	# Plugin installed

@@ -1,0 +1,25 @@
+#!/usr/bin/with-contenv bash
+
+## set timezone
+if [ -d "/usr/share/zoneinfo/$TZ" ]; then
+	current_tz=$(readlink /etc/localtime)
+	if [[ ! $current_tz =~ $TZ ]]; then
+		timedatectl set-timezone $TZ
+		echo "New timezone $TZ set!"
+	fi
+fi
+
+
+## set locale
+loc_file="/etc/locale.gen"
+
+if [ -f "$loc_file" ]; then
+	loc_active=($(grep -v "^#" $loc_file | grep -v "^$" | cut -d " " -f1))
+	if [[ ! "${loc_active[@]}" =~ "$LANG" ]]; then
+		sed -i '/^[a-zA-Z0-9]/ s/^/#/' $loc_file
+		sed -i "/$LANG/s/^# *//" $loc_file
+		echo "LANG="$LANG > /etc/locale.conf
+		locale-gen
+		echo "New locale $LANG set!"
+	fi
+fi

@@ -1,12 +1,12 @@
-FROM archlinux/base:latest
+FROM archlinux:latest
 
 LABEL maintainer="lapicidae"
 
 WORKDIR /tmp
 
-ENV LANG="de_DE.UTF-8" \
-    LANGUAGE="de_DE:de" \
-    TZ="Europe/Berlin"
+ENV LANG="en_US.UTF-8" \
+    LANGUAGE="en_US:en_GB:en" \
+    TZ="Europe/London"
 
 ADD https://github.com/just-containers/s6-overlay/releases/download/v2.0.0.1/s6-overlay-amd64.tar.gz /tmp/
 
@@ -14,37 +14,50 @@ ADD https://github.com/just-containers/socklog-overlay/releases/download/v3.1.0-
 
 COPY build/ /
 
-RUN echo "**** add the vdr4arch repository ****" && \
+RUN echo "**** configure pacman ****" && \
+    sed -i 's/.*NoExtract.*/NoExtract   = usr\/share\/doc\/* usr\/share\/help\/* usr\/share\/info\/* usr\/share\/man\/*/' /etc/pacman.conf && \
+    echo "**** add the vdr4arch repository ****" && \
     echo -e "[vdr4arch]\nServer = https://vdr4arch.github.io/\$arch\nSigLevel = Never" >> /etc/pacman.conf && \
     pacman -Sy && \
+    #echo "**** rebuild trust database (keyring update error workaround) ****" && \#
+    #rm -fr /etc/pacman.d/gnupg && \#
+    #pacman-key --init && \#
+    #pacman-key --populate archlinux && \#
+    #echo "**** update ****" && \#
+    #pacman -Su --noconfirm && \#
     echo "**** timezone and locale ****" && \
     rm -f /etc/locale.gen && \
     pacman -S glibc --overwrite=* --noconfirm && \
     rm -f /etc/localtime && \
     ln -s /usr/share/zoneinfo/$TZ /etc/localtime && \
     echo $TZ > /etc/timezone && \
+    sed -i '/#  /d' /etc/locale.gen && \
     sed -i '/en_US.UTF-8/s/^# *//' /etc/locale.gen && \
     sed -i "/$LANG/s/^# *//" /etc/locale.gen && \
-    locale-gen && \
     echo 'LANG='$LANG > /etc/locale.conf && \
+    locale-gen && \
     echo "**** install runtime packages ****" && \
     pacman -S --noconfirm \
       binutils \
-      gawk \
-      grep \
+      busybox \
       msmtp-mta \
-      tar \
+      naludump \
       ttf-vdrsymbols \
       unison \
       vdr \
       vdr-dvbapi \
       vdr-streamdev-server \
       vdr-vnsiserver && \
+    pacman -D --asexplicit \
+      shadow && \
     echo "**** install build packages ****" && \
     pacman -S --noconfirm --needed \
       base-devel \
+      gawk \
       git \
-      sudo && \
+      procps-ng \
+      sudo \
+      tar && \
     echo "**** add builduser ****" && \
     useradd -m -d /build -s /bin/bash builduser && \
     echo -e "root ALL=(ALL) ALL\nbuilduser ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers && \
@@ -84,6 +97,8 @@ RUN echo "**** add the vdr4arch repository ****" && \
     ln -s /home/vdr /vdr && \
     ln -s /var/cache/vdr/epgimages /vdr/epgimages && \
     ln -s /srv/vdr/video /vdr/recordings && \
+    ln -s /usr/lib/vdr/bin/shutdown-wrapper /usr/bin/shutdown-wrapper && \
+    ln -s /usr/lib/vdr/bin/vdr-recordingaction /usr/bin/vdr-recordingaction && \
     mkdir -p /vdr/config/cache && \
     mkdir -p /vdr/config/etc && \
     mkdir -p /vdr/config/lib && \
@@ -92,7 +107,7 @@ RUN echo "**** add the vdr4arch repository ****" && \
     mv /etc/vdr/conf.avail/50-dvbapi.conf /etc/vdr/conf.avail/20-dvbapi.conf && \
     mv /etc/vdr/conf.avail/50-ciplus.conf /etc/vdr/conf.avail/30-ciplus.conf && \
     echo "**** SMTP client config ****" && \
-    cp /usr/share/doc/msmtp/msmtprc-system.example /etc/msmtprc && \
+    curl -o /etc/msmtprc "https://git.marlam.de/gitweb/?p=msmtp.git;a=blob_plain;f=doc/msmtprc-system.example" && \
     chmod 600 /etc/msmtprc && \
     echo "**** cleanup ****" && \
     userdel -r -f builduser && \
@@ -103,39 +118,61 @@ RUN echo "**** add the vdr4arch repository ****" && \
       fakeroot \
       file \
       flex \
+      gawk \
       gcc \
       gettext \
       git \
+      grep \
       groff \
+      gzip \
       libtool \
       m4 \
       make \
       patch \
-      pkgconf \
+      procps-ng \
+      sed \
       sudo \
+      tar \
       texinfo \
       which && \
     pacman -R --noconfirm \
       argon2 \
       cryptsetup \
+      dbus \
       device-mapper \
       hwids \
       iptables \
       json-c \
       kbd \
       kmod \
+      libmnl \
       libnetfilter_conntrack \
+      libnfnetlink \
       libnftnl \
+      libnl \
       libpcap \
-      libseccomp \
+      libusb \
       pcre2 \
       popt \
-      util-linux \
-      systemd && \
+      systemd \
+      util-linux && \
     pacman -Scc --noconfirm && \
-    rm -rf /tmp/* /var/tmp/* /etc/sudoers* && \
+    rm -rf \
+      /etc/pacman.d/gnupg/pubring.gpg~ \
+      /etc/sudoers* \
+      /tmp/* \
+      /usr/include/* \
+      /usr/share/doc/* \
+      /usr/share/help/* \
+      /usr/share/info/* \
+      /usr/share/man/* \
+      /var/tmp/* && \
+    find /etc -type f -name "*.pacnew" -delete && \
+    find /etc -type f -name "*.pacsave" -delete && \
     echo "**** refresh package databases ****" && \
-    pacman -Sy
+    pacman -Sy && \
+    echo "**** install busybox ****" && \
+    busybox --install -s
 
 COPY root/ /
 
