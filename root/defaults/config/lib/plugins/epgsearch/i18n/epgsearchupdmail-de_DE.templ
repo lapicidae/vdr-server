@@ -1,0 +1,98 @@
+#########################################################################
+# This is the german template for email notifications about timer changes
+# and/or events announcements
+# (NOTE: This is for a text mail, but you could use HTML as well)
+#
+# There are 3 sections that have to be defined:
+#  - "subject" to be used as mail subject
+#  - "mailbody" the body of the mail:
+#    put %update.newtimers% in the place where the list of new timers should
+#    appear. The same for %update.modtimers%, %update.deltimers% and
+#    %update.newevents& for the list of changed or deleted timers and event
+#    announcements.
+#  - "timer" the description of one timer and "event" with the description of
+#    one event. This section is used to display one timer within a timer list,
+#    e.g. in %update.newtimers%. The same for "event".
+#
+# All sections are optional, e.g. if you don't use event announcements you
+# can drop "%update.newevents%" in the mailbody and the "event" section. But
+# of course you should have at least a mailbody ;-)
+#
+# close each section with the correspondig end tag!
+# Please have a look at the MANUAL for the available variables.
+#########################################################################
+
+
+#########################################################################
+# here's the mail's subject definition (no CR!)
+#########################################################################
+<subject>[epgsearch] Update Info: %update.countnewtimers% neu / %update.countmodtimers% modifiziert / %update.countdeltimers% gelöscht / %update.countnewevents% neue Events</subject>
+
+
+#########################################################################
+# here's the mail's body definition
+#########################################################################
+<mailbody>Informationen zur Aktualisierung der Suchtimer
+----------------------------------------------------------------------
+
+   aktualisiert am: %datenow% %timenow%
+        neue Timer: %update.countnewtimers%
+modifizierte Timer: %update.countmodtimers%
+   gelöschte Timer: %update.countdeltimers%
+       neue Events: %update.countnewevents%
+
+Die folgenden Timer wurden hinzugefügt:
+----------------------------------------------------------------------
+%update.newtimers%
+
+Die folgenden Timer wurden modifiziert:
+----------------------------------------------------------------------
+%update.modtimers%
+
+Die folgenden Timer wurden gelöscht:
+----------------------------------------------------------------------
+%update.deltimers%
+
+Die folgenden Events wurden gefunden:
+----------------------------------------------------------------------
+%update.newevents%
+
+Viel Spaß!</mailbody>
+
+##############################################################################
+# here's the timer definition, which is used to display information about
+# a timer within one of the timer lists. You can use any variables that refer
+# to an event or timer. (Please note, that a timer may have no event assigned
+# to it, resulting in an empty variable substitution!). You can also use 'user
+# defined' variables from epgsearchuservars.conf.
+##############################################################################
+<timer>
+     Titel: %title% ~ %subtitle%
+Start/Ende: %time_w% %date% %time%-%timeend% (Timer: %timer.start%-%timer.stop%)
+    Sender: %timer.chlng% (%timer.chnr%)
+     Datei: %timer.file%
+  Änderung: %timer.modreason%
+     Suche: %timer.search% (%timer.searchid%)
+
+
+Zusammenfassung:
+%summary%
+----------------------------------------------------------------------
+</timer>
+
+##############################################################################
+# here's the event definition, which is used to display information about
+# an event within the list of event announcements. You can use any variables
+# that refer to an event. You can also use 'user defined' variables from
+# epgsearchuservars.conf.
+##############################################################################
+<event>
+     Titel: %title% ~ %subtitle%
+Start/Ende: %time_w% %date% %time%-%timeend%
+    Sender: %chlng% (%chnr%)
+     Suche: %search% (%searchid%)
+
+Zusammenfassung:
+%summary%
+----------------------------------------------------------------------
+</event>

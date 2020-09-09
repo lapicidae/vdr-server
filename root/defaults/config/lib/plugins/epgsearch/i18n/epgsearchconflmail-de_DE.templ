@@ -1,0 +1,58 @@
+#########################################################################
+# This is the german template for email notifications about timer conflicts.
+#
+# There are 4 sections to be defined:
+#  - "subject" to be used as mail subject
+#  - "mailbody" the body of the mail (put %conflicts% in the place where the
+#           list of conflicts should appear!)
+#  - "conflictsat" the description of one time where one or more conflicts
+#           exists (put %confltimers% in the place where the list of conflict
+#          timers should appear!)
+#  - "confltimer" the description of one conflicting timer
+#
+# close each section with the correspondig end tag!
+#########################################################################
+
+
+#########################################################################
+# here's the subject definition (no CR!)
+#########################################################################
+<subject>[epgsearch] Timer Konfliktinfo: %conflict.count% Timer-Konflikte!</subject>
+
+
+#########################################################################
+# here's the body definition
+#########################################################################
+<mailbody>Informationen zu Timer-Konflikten
+----------------------------------------------------------------------
+
+geprüft am: %datenow% %timenow%
+ Konflikte: %conflict.count%
+
+----------------------------------------------------------------------
+%conflict.conflicts%
+
+
+Viel Spaß!</mailbody>
+
+#########################################################################
+# here's the conflictsat definition
+#########################################################################
+<conflictsat>
+Die folgenden Timer haben einen Konflikt: %conflict.date% %conflict.time%
+%conflict.confltimers%
+
+</conflictsat>
+
+
+#########################################################################
+# here's the definition of a conflict timer
+#########################################################################
+<conflicttimer>
+     Titel: %title% ~ %subtitle%
+Start/Ende: %time_w% %date% %time%-%timeend% (Timer: %timer.start%-%timer.stop%)
+    Sender: %chlng% (%chnr%)
+     Datei: %timer.file%
+     Suche: %timer.search% (%timer.searchid%)
+----------------------------------------------------------------------
+</conflicttimer>

@@ -125,6 +125,7 @@ RUN echo "**** configure pacman ****" && \
       grep \
       groff \
       gzip \
+      libseccomp \
       libtool \
       m4 \
       make \
