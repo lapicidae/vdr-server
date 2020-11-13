@@ -144,6 +144,7 @@ RUN echo "**** configure pacman ****" && \
       device-mapper \
       hwids \
       iptables \
+      iproute2 \
       json-c \
       kbd \
       kmod \
@@ -155,7 +156,9 @@ RUN echo "**** configure pacman ****" && \
       libpcap \
       pcre2 \
       popt \
+      pciutils \
       systemd \
+      systemd-sysvcompat \
       util-linux && \
     pacman -Scc --noconfirm && \
     rm -rf \
