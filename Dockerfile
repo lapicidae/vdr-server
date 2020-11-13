@@ -138,6 +138,7 @@ RUN echo "**** configure pacman ****" && \
       which && \
     pacman -R --noconfirm \
       argon2 \
+      base \
       cryptsetup \
       dbus \
       device-mapper \
