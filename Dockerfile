@@ -8,7 +8,7 @@ ENV LANG="en_US.UTF-8" \
     LANGUAGE="en_US:en_GB:en" \
     TZ="Europe/London"
 
-ADD https://github.com/just-containers/s6-overlay/releases/download/v2.0.0.1/s6-overlay-amd64.tar.gz /tmp/
+ADD https://github.com/just-containers/s6-overlay/releases/download/v2.1.0.2/s6-overlay-amd64-installer /tmp/
 
 ADD https://github.com/just-containers/socklog-overlay/releases/download/v3.1.0-2/socklog-overlay-amd64.tar.gz /tmp/
 
@@ -91,7 +91,7 @@ RUN echo "**** configure pacman ****" && \
       makepkg -s' && \
     pacman -U /tmp/vdr-ciplus/vdr-ciplus*.pkg.tar.zst --noconfirm && \
     echo "**** install s6-overlay ****" && \
-    tar xzf /tmp/s6-overlay-amd64.tar.gz -C / --exclude='./bin' && tar xzf /tmp/s6-overlay-amd64.tar.gz -C /usr ./bin && \
+    chmod +x /tmp/s6-overlay-amd64-installer && /tmp/s6-overlay-amd64-installer / && \
     tar xzf /tmp/socklog-overlay-amd64.tar.gz -C / && \
     echo "**** folders and symlinks ****" && \
     ln -s /home/vdr /vdr && \
