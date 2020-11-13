@@ -152,7 +152,6 @@ RUN echo "**** configure pacman ****" && \
       libnftnl \
       libnl \
       libpcap \
-      libusb \
       pcre2 \
       popt \
       systemd \
