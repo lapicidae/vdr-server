@@ -1,0 +1,30 @@
+#!/usr/bin/awk -f
+# Name : ChannelID
+
+BEGIN	{ print "//\t\t###### VDR Channel-IDs ######" }
+	{ FS=":" }	# Input Field Separator Variable
+	{
+		if ($0 ~ /^(#|$)/) { next }	# Skip Comments
+		#if ($0 ~ /^(:|$)/ ) { next; }	# Skip Groups
+		if ($0 ~ /^(:|$)/)	# Groups
+		{
+			grp=substr($0,2)
+			print "// Group:\t" grp
+			next
+		}
+		name=gensub("[;,].*$","","g",$1);
+		freq=$2; parms=$3; src=$4
+		sid=$10; nid=$11; tid=$12; rid=$13
+		if (nid=="0" && tid=="0")
+		{
+			tid = freq
+			if (index(parms,"H")>0)      tid += 100000
+			else if (index(parms,"V")>0) tid += 200000
+			else if (index(parms,"L")>0) tid += 300000
+			else if (index(parms,"R")>0) tid += 400000
+		}
+		if (rid!="0") sid=sid "-" rid
+		id=src "-" nid "-" tid "-" sid
+		print id "\t\t//\t" name
+	}
+END	{ print "//\t\t############ END ############" }
