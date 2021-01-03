@@ -49,11 +49,3 @@ if [ $(_isEnabled "vdrmanager") == 1 ]; then
 		rm -f $plug_dir/vdrmanager.key $plug_dir/vdrmanager.crt
 	fi
 fi
-
-
-# libpython
-PYNEW="/usr/lib/libpython3.9.so.1.0"
-PYOLD="/usr/lib/libpython3.8.so.1.0"
-if [ -f $PYNEW ] && [ ! -f $PYOLD ]; then
-	ln -s $PYNEW $PYOLD
-fi
