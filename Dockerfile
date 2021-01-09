@@ -94,15 +94,13 @@ RUN echo "**** configure pacman ****" && \
     chmod +x /tmp/s6-overlay-amd64-installer && /tmp/s6-overlay-amd64-installer / && \
     tar xzf /tmp/socklog-overlay-amd64.tar.gz -C / && \
     echo "**** folders and symlinks ****" && \
-    mkdir -p /home/vdr && \
     mkdir -p /vdr/config && \
-    ln -s /home/vdr /vdr && \
-    [ ! -f /var/cache/vdr/epgimages ] || mv /var/cache/vdr/epgimages /vdr/epgimages && \
-    [ ! -f /var/cache/vdr ] || mv /var/cache/vdr /vdr/config/cache && \
-    [ ! -f /srv/vdr/video ] || mv /srv/vdr/video /vdr/recordings && \
-    [ ! -f /srv/vdr/video ] || mv /srv/vdr/video /vdr/recordings && \
-    [ ! -f /etc/vdr ] || mv /etc/vdr /vdr/config/etc && \
-    [ ! -f /var/lib/vdr ] || mv /var/lib/vdr /vdr/config/lib && \
+    ln -s /vdr /home/vdr && \
+    [ -d /var/cache/vdr/epgimages ] || mv /var/cache/vdr/epgimages /vdr/epgimages && \
+    [ -d /var/cache/vdr ] || mv /var/cache/vdr /vdr/config/cache && \
+    [ -d /srv/vdr/video ] || mv /srv/vdr/video /vdr/recordings && \
+    [ -d /etc/vdr ] || mv /etc/vdr /vdr/config/etc && \
+    [ -d /var/lib/vdr ] && mv /var/lib/vdr /vdr/config/lib && \
     ln -s /vdr/epgimages /var/cache/vdr/epgimages && \
     ln -s /vdr/recordings /srv/vdr/video  && \
     ln -s /vdr/config/cache /var/cache/vdr && \
