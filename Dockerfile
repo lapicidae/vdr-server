@@ -96,16 +96,11 @@ RUN echo "**** configure pacman ****" && \
     mkdir -p /vdr/config && \
     rm -rf /home/vdr && \
     ln -s /vdr /home/vdr && \
-    [ ! -d /var/cache/vdr/epgimages ] || mv /var/cache/vdr/epgimages /vdr/epgimages && \
-    [ ! -d /var/cache/vdr ] || mv /var/cache/vdr /vdr/config/cache && \
-    [ ! -d /srv/vdr/video ] || mv /srv/vdr/video /vdr/recordings && \
-    [ ! -d /etc/vdr ] || mv /etc/vdr /vdr/config/etc && \
-    [ ! -d /var/lib/vdr ] || mv /var/lib/vdr /vdr/config/lib && \
-    ln -s /vdr/recordings /srv/vdr/video  && \
-    ln -s /vdr/config/cache /var/cache/vdr && \
-    ln -s /vdr/epgimages /var/cache/vdr/epgimages && \
-    ln -s /vdr/config/etc /etc/vdr && \
-    ln -s /vdr/config/lib /var/lib/vdr && \
+    ln -s /srv/vdr/video /vdr/recordings && \
+    ln -s /var/cache/vdr /vdr/config/cache && \
+    ln -s /var/cache/vdr/epgimages /vdr/epgimages && \
+    ln -s /etc/vdr /vdr/config/etc && \
+    ln -s /var/lib/vdr /vdr/config/lib && \
     ln -s /usr/lib/vdr/bin/shutdown-wrapper /usr/bin/shutdown-wrapper && \
     ln -s /usr/lib/vdr/bin/vdr-recordingaction /usr/bin/vdr-recordingaction && \
     echo "**** vdr config ****" && \
