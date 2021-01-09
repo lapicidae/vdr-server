@@ -96,11 +96,9 @@ RUN echo "**** configure pacman ****" && \
     mkdir -p /vdr/config && \
     rm -rf /home/vdr && \
     ln -s /vdr /home/vdr && \
+    rm -rf /var/cache/vdr && \
+    ln -s /vdr/config/cache /var/cache/vdr && \
     ln -s /srv/vdr/video /vdr/recordings && \
-    ln -s /var/cache/vdr /vdr/config/cache && \
-    ln -s /var/cache/vdr/epgimages /vdr/epgimages && \
-    ln -s /etc/vdr /vdr/config/etc && \
-    ln -s /var/lib/vdr /vdr/config/lib && \
     ln -s /usr/lib/vdr/bin/shutdown-wrapper /usr/bin/shutdown-wrapper && \
     ln -s /usr/lib/vdr/bin/vdr-recordingaction /usr/bin/vdr-recordingaction && \
     echo "**** vdr config ****" && \
@@ -185,6 +183,6 @@ WORKDIR /vdr
 
 EXPOSE 2004 3000 6419 6419/udp 8008 8009 34890
 
-VOLUME ["/vdr/config/cache", "/vdr/config/etc", "/vdr/config/lib", "/vdr/epgimages", "/vdr/recordings"]
+VOLUME ["/vdr/config", "/vdr/recordings"]
 
 ENTRYPOINT ["/init"]

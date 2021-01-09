@@ -1,1 +1,16 @@
-../cont-init.d/30-config
+#!/usr/bin/with-contenv bash
+
+conf_dir="/vdr/config"
+
+# make folder
+if [ ! -d $conf_dir ]; then
+	mkdir -p $conf_dir
+fi
+
+if [ -d $conf_dir ]; then
+	# copy configs
+	cp --archive --recursive --no-dereference --update /etc/vdr/ $conf_dir/etc/
+	cp --archive --recursive --no-dereference --update /var/lib/vdr/ $conf_dir/lib/
+	#cp --archive --recursive --no-dereference $conf_dir/etc/ /etc/vdr/
+	#cp --archive --recursive --no-dereference $conf_dir/lib/ /var/lib/vdr/
+fi
