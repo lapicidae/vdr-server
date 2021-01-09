@@ -185,6 +185,6 @@ WORKDIR /vdr
 
 EXPOSE 2004 3000 6419 6419/udp 8008 8009 34890
 
-VOLUME ["/vdr/config", "/vdr/epgimages", "/vdr/recordings"]
+VOLUME ["/vdr/config/cache", "/vdr/config/etc", "/vdr/config/lib", "/vdr/epgimages", "/vdr/recordings"]
 
 ENTRYPOINT ["/init"]
