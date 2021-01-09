@@ -99,9 +99,10 @@ RUN echo "**** configure pacman ****" && \
     ln -s /srv/vdr/video /vdr/recordings && \
     ln -s /usr/lib/vdr/bin/shutdown-wrapper /usr/bin/shutdown-wrapper && \
     ln -s /usr/lib/vdr/bin/vdr-recordingaction /usr/bin/vdr-recordingaction && \
-    mkdir -p /vdr/config/cache && \
-    mkdir -p /vdr/config/etc && \
-    mkdir -p /vdr/config/lib && \
+    mkdir -p /vdr/config && \
+    ln -s /var/cache/vdr /vdr/config/cache && \
+    ln -s /etc/vdr /vdr/config/etc && \
+    ln -s /var/lib/vdr /vdr/config/lib && \
     echo "**** vdr config ****" && \
     mv /etc/vdr/conf.avail/50-ddci2.conf /etc/vdr/conf.avail/10-ddci2.conf && \
     mv /etc/vdr/conf.avail/50-dvbapi.conf /etc/vdr/conf.avail/20-dvbapi.conf && \

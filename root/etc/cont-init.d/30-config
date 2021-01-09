@@ -11,9 +11,9 @@ if [ -d $conf_dir ]; then
 	# copy defaults
 	cp --no-clobber --recursive /defaults/config/. $conf_dir/
 	# sync configs
-	unison /etc/vdr/ $conf_dir/etc/ -batch -times -prefer newer -silent
-	unison /var/cache/vdr/ $conf_dir/cache/ -ignore "Path epgimages" -batch -times -prefer newer -silent
-	unison /var/lib/vdr/ $conf_dir/lib/ -batch -times -prefer newer -silent
+	#unison /etc/vdr/ $conf_dir/etc/ -batch -times -prefer newer -silent
+	#unison /var/cache/vdr/ $conf_dir/cache/ -ignore "Path epgimages" -batch -times -prefer newer -silent
+	#unison /var/lib/vdr/ $conf_dir/lib/ -batch -times -prefer newer -silent
 	# eMail config (msmtp)
 	if [ -f "$conf_dir/eMail.conf" ]; then
 		msmtp_conf="/etc/msmtprc"
