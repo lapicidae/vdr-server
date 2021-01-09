@@ -43,7 +43,6 @@ RUN echo "**** configure pacman ****" && \
       msmtp-mta \
       naludump \
       ttf-vdrsymbols \
-      unison \
       vdr \
       vdr-dvbapi \
       vdr-streamdev-server \
