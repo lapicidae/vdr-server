@@ -101,9 +101,9 @@ RUN echo "**** configure pacman ****" && \
     [ -d /srv/vdr/video ] || mv /srv/vdr/video /vdr/recordings && \
     [ -d /etc/vdr ] || mv /etc/vdr /vdr/config/etc && \
     [ -d /var/lib/vdr ] && mv /var/lib/vdr /vdr/config/lib && \
-    ln -s /vdr/epgimages /var/cache/vdr/epgimages && \
     ln -s /vdr/recordings /srv/vdr/video  && \
     ln -s /vdr/config/cache /var/cache/vdr && \
+    ln -s /vdr/epgimages /var/cache/vdr/epgimages && \
     ln -s /vdr/config/etc /etc/vdr && \
     ln -s /vdr/config/lib /var/lib/vdr && \
     ln -s /usr/lib/vdr/bin/shutdown-wrapper /usr/bin/shutdown-wrapper && \
