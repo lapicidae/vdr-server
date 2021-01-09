@@ -93,8 +93,4 @@ case $1 in
 		# do here whatever you would like to do right AFTER
 		# the recording $2 has been DELETED
 		;;
-	*)
-		echo "Script needs two parameters. See example inside the script."
-		exit 0
-		;;
 esac
