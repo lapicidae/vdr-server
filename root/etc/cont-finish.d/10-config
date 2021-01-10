@@ -10,6 +10,6 @@ fi
 # copy files
 if [ -d $conf_dir ]; then
 	# copy configs
-	cp --archive --recursive --no-dereference --no-clobber /etc/vdr/* $conf_dir/etc
-	cp --archive --recursive --no-dereference --no-clobber /var/lib/vdr/* $conf_dir/lib
+	cp --recursive --no-dereference --no-clobber /etc/vdr/* $conf_dir/etc
+	cp --recursive --no-dereference --no-clobber /var/lib/vdr/* $conf_dir/lib
 fi
