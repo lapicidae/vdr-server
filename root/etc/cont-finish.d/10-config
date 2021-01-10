@@ -8,6 +8,6 @@ if [ ! -d $sys_dir ]; then
 fi
 
 # copy files
-if [ -d $sys_dir ]; then
+#if [ -d $sys_dir ]; then
 	#cp --recursive --no-dereference --no-clobber /etc/vdr/* $sys_dir
-fi
+#fi

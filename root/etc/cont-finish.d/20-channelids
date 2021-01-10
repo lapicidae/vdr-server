@@ -3,6 +3,6 @@
 input="/vdr/config/channels.conf"
 output="/vdr/cache/channelids.conf"
 
-if [ ! -f $input ]; then
+if [ -f $input ]; then
 	/usr/bin/vdr-channelids $input > $output
 fi

@@ -93,10 +93,10 @@ RUN echo "**** configure pacman ****" && \
     chmod +x /tmp/s6-overlay-amd64-installer && /tmp/s6-overlay-amd64-installer / && \
     tar xzf /tmp/socklog-overlay-amd64.tar.gz -C / && \
     echo "**** folders and symlinks ****" && \
-    mkdir -p /vdr/config && \
-    mkdir -p /vdr/system && \
-    rm -rf /var/cache/vdr && \
-    ln -s /vdr/cache /var/cache/vdr && \
+    mkdir -p /vdr && \
+    ln -s /var/lib/vdr /vdr/config && \
+    ln -s /etc/vdr /vdr/system && \
+    ln -s /var/cache/vdr /vdr/cache && \
     ln -s /srv/vdr/video /vdr/recordings && \
     ln -s /usr/lib/vdr/bin/shutdown-wrapper /usr/bin/shutdown-wrapper && \
     ln -s /usr/lib/vdr/bin/vdr-recordingaction /usr/bin/vdr-recordingaction && \
