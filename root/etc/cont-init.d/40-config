@@ -2,12 +2,14 @@
 
 
 main_dir="/vdr"
+conf_dir="$main_dir/config"	# /var/lib/vdr
 sys_dir="$main_dir/system"	# /etc/vdr
 
 
 # defaults
 if [ -d $main_dir ]; then
-	cp -rn /defaults/config/* /vdr
+	cp -RPpn /defaults/config* $conf_dir
+	cp -RPpn /defaults/system* $sys_dir
 fi
 
 

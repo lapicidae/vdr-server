@@ -107,6 +107,9 @@ RUN echo "**** configure pacman ****" && \
     echo "**** SMTP client config ****" && \
     curl -o /etc/msmtprc "https://git.marlam.de/gitweb/?p=msmtp.git;a=blob_plain;f=doc/msmtprc-system.example" && \
     chmod 600 /etc/msmtprc && \
+    echo "**** backup default files ****" && \
+    cp -Ran /etc/vdr/* /defaults/system && \
+    cp -Ran /var/lib/vdr/* /defaults/config && \
     echo "**** cleanup ****" && \
     userdel -r -f builduser && \
     pacman -Rsu --noconfirm \
