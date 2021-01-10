@@ -1,0 +1,3 @@
+/usr/lib/vdr/bin true root:video 2775 4754
+/etc/vdr false vdr:vdr 2775 4754
+/var/lib/vdr false vdr:vdr 2775 4754
