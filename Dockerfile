@@ -13,7 +13,6 @@ ADD https://github.com/just-containers/s6-overlay/releases/download/v2.1.0.2/s6-
 ADD https://github.com/just-containers/socklog-overlay/releases/download/v3.1.0-2/socklog-overlay-amd64.tar.gz /tmp/
 
 COPY build/ /
-COPY root/ /
 
 RUN echo "**** configure pacman ****" && \
     sed -i 's/.*NoExtract.*/NoExtract   = usr\/share\/doc\/* usr\/share\/help\/* usr\/share\/info\/* usr\/share\/man\/*/' /etc/pacman.conf && \
@@ -181,6 +180,8 @@ RUN echo "**** configure pacman ****" && \
     pacman -Sy && \
     echo "**** install busybox ****" && \
     busybox --install -s
+
+COPY root/ /
 
 WORKDIR /vdr
 
