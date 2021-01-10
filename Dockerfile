@@ -94,8 +94,6 @@ RUN echo "**** configure pacman ****" && \
     tar xzf /tmp/socklog-overlay-amd64.tar.gz -C / && \
     echo "**** folders and symlinks ****" && \
     mkdir -p /vdr/config && \
-    rm -rf /home/vdr && \
-    ln -s /vdr /home/vdr && \
     rm -rf /var/cache/vdr && \
     ln -s /vdr/config/cache /var/cache/vdr && \
     ln -s /srv/vdr/video /vdr/recordings && \
