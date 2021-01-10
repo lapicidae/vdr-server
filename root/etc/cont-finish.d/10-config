@@ -1,15 +1,13 @@
 #!/usr/bin/with-contenv bash
 
-conf_dir="/vdr/config"
+sys_dir="/vdr/system"	# /etc/vdr
 
-# make folders if missing
-if [ ! -d $conf_dir/cache ]; then
-	mkdir -p $conf_dir/cache
+# make folder if missing
+if [ ! -d $sys_dir ]; then
+	mkdir -p $sys_dir
 fi
 
 # copy files
-if [ -d $conf_dir ]; then
-	# copy configs
-	cp --recursive --no-dereference /etc/vdr/* $conf_dir/etc
-	cp --recursive --no-dereference /var/lib/vdr/* $conf_dir/lib
+if [ -d $sys_dir ]; then
+	#cp --recursive --no-dereference --no-clobber /etc/vdr/* $sys_dir
 fi

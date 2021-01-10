@@ -1,6 +1,8 @@
 #!/usr/bin/with-contenv bash
 
-input="/var/lib/vdr/channels.conf"
-output="/vdr/config/cache/channelids.conf"
+input="/vdr/config/channels.conf"
+output="/vdr/cache/channelids.conf"
 
-/usr/bin/vdr-channelids $input > $output
+if [ ! -f $input ]; then
+	/usr/bin/vdr-channelids $input > $output
+fi

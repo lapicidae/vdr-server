@@ -39,7 +39,7 @@
 # $3 <path to old .rec> /srv/vdr/video/hitec/Doku/Die_stille_Revolution_der_Mechatronik/2004-04-23.15\:25.50.99.rec
 #
 # epg definitions
-EPGIMAGESPATH="/var/cache/vdr/epgimages"
+EPGIMAGESPATH="/vdr/cache/epgimages"
 EPGIMAGESFORMAT="jpg"
 
 # eventid for recording

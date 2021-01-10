@@ -1,0 +1,57 @@
+#!/usr/bin/with-contenv bash
+
+
+main_dir="/vdr"
+cache_dir="$main_dir/cache"	# /var/cache/vdr
+conf_dir="$main_dir/config"	# /var/lib/vdr
+sys_dir="$main_dir/system"	# /etc/vdr
+
+
+# make folders if missing
+if [ ! -d $cache_dir ]; then
+	mkdir -p $cache_dir
+fi
+if [ ! -d $conf_dir ]; then
+	mkdir -p $conf_dir
+fi
+if [ ! -d $sys_dir ]; then
+	mkdir -p $sys_dir
+fi
+
+
+# defaults
+if [ -d $main_dir ]; then
+	cp --recursive --no-clobber /defaults/config/* /vdr
+fi
+
+
+# config
+if [ -d $conf_dir ]; then
+	cp --recursive --no-dereference --no-clobber /var/lib/vdr/* $conf_dir
+fi
+
+
+# system
+if [ -d $sys_dir ]; then
+	if [ ! -f $sys_dir/.firstrun ]; then
+		if [ -d $sys_dir/.backup ]; then
+			cp --recursive --archive --no-clobber $sys_dir/.backup/* /etc/vdr
+		else
+			cp --recursive --archive /etc/vdr $sys_dir/.backup
+		fi
+		cp --recursive --no-dereference --no-clobber /etc/vdr/* $sys_dir
+		cp --recursive --no-dereference $sys_dir/* /etc/vdr
+		touch $sys_dir/.firstrun
+	else
+		rm -rf /etc/vdr/{,.[!.],..?}*
+		cp --recursive --no-dereference $sys_dir/* /etc/vdr
+	fi
+
+	# eMail config (msmtp)
+	msmtp_conf="/etc/msmtprc"
+	if [ -f "$sys_dir/eMail.conf" ]; then
+		cp -f $sys_dir/eMail.conf $msmtp_conf
+		chown root:root $msmtp_conf
+		chmod 640 $msmtp_conf
+	fi
+fi

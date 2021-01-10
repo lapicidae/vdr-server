@@ -94,8 +94,9 @@ RUN echo "**** configure pacman ****" && \
     tar xzf /tmp/socklog-overlay-amd64.tar.gz -C / && \
     echo "**** folders and symlinks ****" && \
     mkdir -p /vdr/config && \
+    mkdir -p /vdr/system && \
     rm -rf /var/cache/vdr && \
-    ln -s /vdr/config/cache /var/cache/vdr && \
+    ln -s /vdr/cache /var/cache/vdr && \
     ln -s /srv/vdr/video /vdr/recordings && \
     ln -s /usr/lib/vdr/bin/shutdown-wrapper /usr/bin/shutdown-wrapper && \
     ln -s /usr/lib/vdr/bin/vdr-recordingaction /usr/bin/vdr-recordingaction && \
@@ -181,6 +182,6 @@ WORKDIR /vdr
 
 EXPOSE 2004 3000 6419 6419/udp 8008 8009 34890
 
-VOLUME ["/vdr/config", "/vdr/recordings"]
+VOLUME ["/vdr/cache", "/vdr/config", "/vdr/recordings", "/vdr/system"]
 
 ENTRYPOINT ["/init"]
