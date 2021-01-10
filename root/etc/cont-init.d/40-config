@@ -8,8 +8,8 @@ sys_dir="$main_dir/system"	# /etc/vdr
 
 # defaults
 if [ -d $main_dir ]; then
-	cp -RPpn /defaults/config* $conf_dir
-	cp -RPpn /defaults/system* $sys_dir
+	cp -RPpn /defaults/config/* $conf_dir
+	cp -RPpn /defaults/system/* $sys_dir
 fi
 
 

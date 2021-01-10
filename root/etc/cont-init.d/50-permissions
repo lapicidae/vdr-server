@@ -1,5 +1,6 @@
 #!/usr/bin/with-contenv bash
 
+## Folders
 chown -R vdr:vdr \
 	/defaults \
 	/etc/vdr/* \
@@ -11,3 +12,10 @@ chown -R vdr:vdr \
 
 chmod -R g+w /home/vdr
 chmod -R ug+rw /etc/vdr/*
+
+
+## Plugins
+# live
+if [ -f "/vdr/config/plugins/live/live-key.pem" ]; then
+	chmod ug+r /vdr/config/plugins/live/live-key.pem
+fi
