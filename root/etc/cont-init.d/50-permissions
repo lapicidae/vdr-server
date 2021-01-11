@@ -1,5 +1,8 @@
 #!/usr/bin/with-contenv bash
 
+### this is also called at finish
+
+
 ## Folders
 chown -R vdr:vdr \
 	/defaults \
@@ -10,6 +13,10 @@ chown -R vdr:vdr \
 	/var/lib/vdr \
 	/vdr
 
+chmod 755 \
+	/etc/vdr \
+	/var/lib/vdr
+
 chmod -R g+w /home/vdr
 chmod -R ug+rw /etc/vdr/*
 
@@ -18,4 +25,10 @@ chmod -R ug+rw /etc/vdr/*
 # live
 if [ -f "/vdr/config/plugins/live/live-key.pem" ]; then
 	chmod ug+r /vdr/config/plugins/live/live-key.pem
+fi
+
+# ciplus
+ci_plus="/vdr/cache/plugins/ciplus/"
+if [ -d $ci_plus ] && [ ! -z "$(ls -A $ci_plus)" ]; then
+	chmod -f ug+rw *.auth || true
 fi
