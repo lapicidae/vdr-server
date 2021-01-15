@@ -93,7 +93,7 @@ RUN echo "**** configure pacman ****" && \
     chmod +x /tmp/s6-overlay-amd64-installer && /tmp/s6-overlay-amd64-installer / && \
     tar xzf /tmp/socklog-overlay-amd64.tar.gz -C / && \
     echo "**** folders and symlinks ****" && \
-    mkdir -p /vdr && \
+    mkdir -p /vdr/timeshift && \
     ln -s /var/lib/vdr /vdr/config && \
     ln -s /etc/vdr /vdr/system && \
     ln -s /var/cache/vdr /vdr/cache && \
@@ -187,6 +187,6 @@ WORKDIR /vdr
 
 EXPOSE 2004 3000 6419 6419/udp 8008 8009 34890
 
-VOLUME ["/vdr/cache", "/vdr/config", "/vdr/recordings", "/vdr/system"]
+VOLUME ["/vdr/cache", "/vdr/config", "/vdr/recordings", "/vdr/system", "/vdr/timeshift"]
 
 ENTRYPOINT ["/init"]
