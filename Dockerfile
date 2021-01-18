@@ -62,6 +62,7 @@ RUN echo "**** configure pacman ****" && \
     useradd -m -d /build -s /bin/bash builduser && \
     echo -e "root ALL=(ALL) ALL\nbuilduser ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers && \
     echo "**** install ddci2 ****" && \
+    cd /tmp && \
     sudo -u builduser bash -c ' \
       git init vdr-ddci2 && \
       cd vdr-ddci2 && \
@@ -75,6 +76,7 @@ RUN echo "**** configure pacman ****" && \
       makepkg -s' && \
     pacman -U /tmp/vdr-ddci2/plugins/vdr-ddci2/vdr-ddci2*.pkg.tar.zst --noconfirm && \
     echo "**** install ciplus ****" && \
+    cd /tmp && \
     git clone https://github.com/lmaresch/vdr-ciplus.git && \
     cd vdr-ciplus && \
     sed -i "s/vdr-api=/vdr-api>=/g" PKGBUILD && \
@@ -84,12 +86,14 @@ RUN echo "**** configure pacman ****" && \
       makepkg -s' && \
     pacman -U /tmp/vdr-ciplus/vdr-ciplus*.pkg.tar.zst --noconfirm && \
     echo "**** install libva-headless ****" && \
+    cd /tmp && \
     sudo -u builduser bash -c ' \
       git clone https://aur.archlinux.org/libva-headless.git && \
       cd libva-headless && \
       makepkg -s --noconfirm' && \
     pacman -U /tmp/libva-headless/libva-headless-*.pkg.tar.zst --noconfirm && \
     echo "**** install ffmpeg-headless ****" && \
+    cd /tmp && \
     sudo -u builduser bash -c ' \
       git clone https://aur.archlinux.org/ffmpeg-headless.git && \
       cd ffmpeg-headless && \
