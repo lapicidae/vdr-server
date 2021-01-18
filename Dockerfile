@@ -46,7 +46,8 @@ RUN echo "**** configure pacman ****" && \
       vdr \
       vdr-dvbapi \
       vdr-streamdev-server \
-      vdr-vnsiserver && \
+      vdr-vnsiserver \
+      vdrctl && \
     pacman -D --asexplicit \
       shadow && \
     echo "**** install build packages ****" && \
@@ -60,13 +61,6 @@ RUN echo "**** configure pacman ****" && \
     echo "**** add builduser ****" && \
     useradd -m -d /build -s /bin/bash builduser && \
     echo -e "root ALL=(ALL) ALL\nbuilduser ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers && \
-    echo "**** install vdrctl ****" && \
-    pacman -S --noconfirm perl-pod-parser && \
-    sudo -u builduser bash -c ' \
-      git clone https://aur.archlinux.org/vdrctl.git && \
-      cd vdrctl && \
-      makepkg -s' && \
-    pacman -U /tmp/vdrctl/vdrctl*.pkg.tar.zst --noconfirm && \
     echo "**** install ddci2 ****" && \
     sudo -u builduser bash -c ' \
       git init vdr-ddci2 && \
@@ -89,6 +83,18 @@ RUN echo "**** configure pacman ****" && \
     sudo -u builduser bash -c ' \
       makepkg -s' && \
     pacman -U /tmp/vdr-ciplus/vdr-ciplus*.pkg.tar.zst --noconfirm && \
+    echo "**** install libva-headless ****" && \
+    sudo -u builduser bash -c ' \
+      git clone https://aur.archlinux.org/libva-headless.git && \
+      cd libva-headless && \
+      makepkg -s --noconfirm' && \
+    pacman -U /tmp/libva-headless/libva-headless-*.pkg.tar.zst --noconfirm && \
+    echo "**** install ffmpeg-headless ****" && \
+    sudo -u builduser bash -c ' \
+      git clone https://aur.archlinux.org/ffmpeg-headless.git && \
+      cd ffmpeg-headless && \
+      makepkg -s --noconfirm' && \
+    pacman -U /tmp/ffmpeg-headless/ffmpeg-headless-*.pkg.tar.zst --noconfirm && \
     echo "**** install s6-overlay ****" && \
     chmod +x /tmp/s6-overlay-amd64-installer && /tmp/s6-overlay-amd64-installer / && \
     tar xzf /tmp/socklog-overlay-amd64.tar.gz -C / && \
