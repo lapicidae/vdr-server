@@ -14,8 +14,16 @@ ADD https://github.com/just-containers/socklog-overlay/releases/download/v3.1.0-
 
 COPY build/ /
 
-RUN echo "**** configure pacman ****" && \
+RUN echo "**** WORKAROUND for glibc 2.33 and old Docker ****" && \
+    # See https://github.com/actions/virtual-environments/issues/2658
+    # Thanks to https://github.com/lxqt/lxqt-panel/pull/1562
+    patched_glibc=glibc-linux4-2.33-4-x86_64.pkg.tar.zst && \
+    curl -LO "https://repo.archlinuxcn.org/x86_64/$patched_glibc" && \
+    bsdtar -C / -xvf "$patched_glibc" && \
+    echo "**** configure pacman ****" && \
     sed -i 's/.*NoExtract.*/NoExtract   = usr\/share\/doc\/* usr\/share\/help\/* usr\/share\/info\/* usr\/share\/man\/*/' /etc/pacman.conf && \
+    touch  /var/lib/pacman/TEST && \
+    ls -la /var/lib/pacman && \
     echo "**** add the vdr4arch repository ****" && \
     echo -e "[vdr4arch]\nServer = https://vdr4arch.github.io/\$arch\nSigLevel = Never" >> /etc/pacman.conf && \
     pacman -Sy && \
@@ -27,7 +35,8 @@ RUN echo "**** configure pacman ****" && \
     #pacman -Su --noconfirm && \#
     echo "**** timezone and locale ****" && \
     rm -f /etc/locale.gen && \
-    pacman -S glibc --overwrite=* --noconfirm && \
+    curl -o /etc/locale.gen "https://sourceware.org/git/?p=glibc.git;a=blob_plain;f=localedata/SUPPORTED;hb=HEAD" && \
+    sed -i -e '1,3d' -e 's|/| |g' -e 's|\\| |g' -e 's|^|#|g' /etc/locale.gen && \
     rm -f /etc/localtime && \
     ln -s /usr/share/zoneinfo/$TZ /etc/localtime && \
     echo $TZ > /etc/timezone && \
