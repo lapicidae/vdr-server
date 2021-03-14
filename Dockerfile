@@ -8,9 +8,9 @@ ENV LANG="en_US.UTF-8" \
     LANGUAGE="en_US:en_GB:en" \
     TZ="Europe/London"
 
-ADD https://github.com/just-containers/s6-overlay/releases/download/v2.1.0.2/s6-overlay-amd64-installer /tmp/
+ADD https://github.com/just-containers/s6-overlay/releases/download/v2.2.0.3/s6-overlay-amd64-installer /tmp/
 
-ADD https://github.com/just-containers/socklog-overlay/releases/download/v3.1.0-2/socklog-overlay-amd64.tar.gz /tmp/
+ADD https://github.com/just-containers/socklog-overlay/releases/download/v3.1.1-1/socklog-overlay-amd64.tar.gz /tmp/
 
 COPY build/ /
 
@@ -22,17 +22,9 @@ RUN echo "**** WORKAROUND for glibc 2.33 and old Docker ****" && \
     bsdtar -C / -xvf "$patched_glibc" && \
     echo "**** configure pacman ****" && \
     sed -i 's/.*NoExtract.*/NoExtract   = usr\/share\/doc\/* usr\/share\/help\/* usr\/share\/info\/* usr\/share\/man\/*/' /etc/pacman.conf && \
-    touch  /var/lib/pacman/TEST && \
-    ls -la /var/lib/pacman && \
     echo "**** add the vdr4arch repository ****" && \
     echo -e "[vdr4arch]\nServer = https://vdr4arch.github.io/\$arch\nSigLevel = Never" >> /etc/pacman.conf && \
     pacman -Sy && \
-    #echo "**** rebuild trust database (keyring update error workaround) ****" && \#
-    #rm -fr /etc/pacman.d/gnupg && \#
-    #pacman-key --init && \#
-    #pacman-key --populate archlinux && \#
-    #echo "**** update ****" && \#
-    #pacman -Su --noconfirm && \#
     echo "**** timezone and locale ****" && \
     rm -f /etc/locale.gen && \
     curl -o /etc/locale.gen "https://sourceware.org/git/?p=glibc.git;a=blob_plain;f=localedata/SUPPORTED;hb=HEAD" && \
