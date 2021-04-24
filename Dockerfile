@@ -168,7 +168,6 @@ RUN echo "**** WORKAROUND for glibc 2.33 and old Docker ****" && \
       libnftnl \
       libnl \
       libpcap \
-      pcre2 \
       popt \
       pciutils \
       systemd \
