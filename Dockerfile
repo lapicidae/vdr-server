@@ -14,13 +14,7 @@ ADD https://github.com/just-containers/socklog-overlay/releases/download/v3.1.1-
 
 COPY build/ /
 
-RUN echo "**** WORKAROUND for glibc 2.33 and old Docker ****" && \
-    # See https://github.com/actions/virtual-environments/issues/2658
-    # Thanks to https://github.com/lxqt/lxqt-panel/pull/1562
-    patched_glibc=glibc-linux4-2.33-4-x86_64.pkg.tar.zst && \
-    curl -LO "https://repo.archlinuxcn.org/x86_64/$patched_glibc" && \
-    bsdtar -C / -xvf "$patched_glibc" && \
-    echo "**** configure pacman ****" && \
+RUN echo "**** configure pacman ****" && \
     sed -i 's/.*NoExtract.*/NoExtract   = usr\/share\/doc\/* usr\/share\/help\/* usr\/share\/info\/* usr\/share\/man\/*/' /etc/pacman.conf && \
     echo "**** add the vdr4arch repository ****" && \
     echo -e "[vdr4arch]\nServer = https://vdr4arch.github.io/\$arch\nSigLevel = Never" >> /etc/pacman.conf && \

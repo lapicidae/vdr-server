@@ -20,6 +20,12 @@ Image based on [Arch Linux](https://hub.docker.com/_/archlinux), [VDR4Arch](http
 * plugin [ciplus](https://github.com/ciminus/vdr-plugin-ciplus) and [ddci2](https://github.com/jasmin-j/vdr-plugin-ddci2) support
 * msmtprc - a very simple and easy to use SMTP client with fairly complete sendmail compatibility
 
+### Note
+The image is automatically rebuilt when any of the following sources receive an update:
+
+* [Arch Linux](https://hub.docker.com/_/archlinux) Official Docker Image - latest
+* [VDR4Arch](https://github.com/VDR4Arch) GitHub repository
+
 
 ## Application Setup
 
