@@ -13,18 +13,15 @@ chown -R vdr:vdr \
 	/var/lib/vdr \
 	/vdr
 
-chmod 755 \
-	/etc/vdr \
-	/var/lib/vdr
-
-chmod -R g+w /home/vdr
-chmod -R ug+rw /etc/vdr/*
-
 
 ## Plugins
 # live
-if [ -f "/vdr/config/plugins/live/live-key.pem" ]; then
-	chmod ug+r /vdr/config/plugins/live/live-key.pem
+live_dir="/vdr/config/plugins/live"
+if [ -f "$live_dir/live.pem" ]; then
+	chmod ug+r $live_dir/live.pem
+fi
+if [ -f "$live_dir/live-key.pem" ]; then
+	chmod ug+r $live_dir/live-key.pem
 fi
 
 # ciplus
