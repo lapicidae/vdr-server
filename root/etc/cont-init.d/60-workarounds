@@ -15,6 +15,13 @@ _isEnabled() {
 # "vdr: OS does not support cap_sys_time" in bash
 alias vdr="s6-setuidgid vdr $(which vdr)"
 
+# libtinyxml2
+tinyxml2_NEW="/usr/lib/libtinyxml2.so"
+tinyxml2_OLD="/usr/lib/libtinyxml2.so.7"
+if [ -f $tinyxml2_NEW ] && [ ! -f $tinyxml2_OLD ]; then
+	ln -s $tinyxml2_NEW $tinyxml2_OLD
+fi
+
 
 ## VDR Plugins ##
 
