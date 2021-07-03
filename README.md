@@ -111,6 +111,7 @@ For example, `-p 8080:80` would expose port `80` from inside the container to be
 | `-e PGID=1000` | for GroupID - see below for explanation |
 | `-e TZ=Europe/Berlin` | Specify a timezone to use (e.g. Europe/Berlin). |
 | `-e PLUGINS=epgsearch live streamdev-server vnsiserver` | Optional - **Space separated** list of [VDR Plugins](https://github.com/VDR4Arch/vdr4arch/tree/master/plugins) (default: `epgsearch live streamdev-server vnsiserver`). |
+| `-e PROTECT_CAMDATA=true` | Optional - Write protect `cam.data` to avoid unwanted changes. |
 | `-v /vdr/system` | Start parameters, recording hooks and msmtprc config. |
 | `-v /vdr/config` | Config files (e.g. `setup.conf` or `channels.conf`) |
 | `-v /vdr/recordings` | Recording directory (aka video directory). |
