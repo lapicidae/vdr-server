@@ -1,0 +1,7 @@
+# /etc/bash.aliases
+
+alias tailf='tail -f'
+alias la='ls -lah --color=auto'
+
+# Workaround "vdr: OS does not support cap_sys_time" in bash
+alias vdr='s6-setuidgid vdr $(which vdr)'

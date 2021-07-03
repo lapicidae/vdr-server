@@ -37,6 +37,8 @@ RUN echo "**** WORKAROUND for glibc 2.33 and old Docker ****" && \
     sed -i "/$LANG/s/^# *//" /etc/locale.gen && \
     echo 'LANG='$LANG > /etc/locale.conf && \
     locale-gen && \
+    echo "**** bash aliases ****" && \
+    echo -e "\nif [ -f /etc/bash.aliases ]; then\n  . /etc/bash.aliases\nfi" >> /etc/bash.bashrc && \
     echo "**** install runtime packages ****" && \
     pacman -S --noconfirm \
       binutils \
