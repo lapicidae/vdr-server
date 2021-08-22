@@ -14,7 +14,7 @@ ADD https://github.com/just-containers/socklog-overlay/releases/download/v3.1.1-
 
 COPY build/ /
 
-RUN echo "**** WORKAROUND for glibc 2.33 and old Docker ****" && \
+RUN echo "**** WORKAROUND for glibc 2.33+ and old Docker ****" && \
     # See https://github.com/actions/virtual-environments/issues/2658
     # Thanks to https://github.com/lxqt/lxqt-panel/pull/1562
     patched_glibc=glibc-linux4-2.33-4-x86_64.pkg.tar.zst && \
@@ -186,13 +186,16 @@ RUN echo "**** WORKAROUND for glibc 2.33 and old Docker ****" && \
       /usr/share/info/* \
       /usr/share/man/* \
       /var/tmp/* && \
-    find /etc -type f -name "*.pacnew" -delete && \
-    find /etc -type f -name "*.pacsave" -delete && \
     echo "**** refresh package databases ****" && \
     pacman -Sy && \
+    pacman-key --init && \
     echo "**** install busybox ****" && \
-    busybox --install -s
-
+    busybox --install -s && \
+    echo "**** system update ****" && \
+    pacman -Su --noconfirm && \
+    echo "**** remove pacnew & pacsave ****" && \
+    find /etc -type f -name "*.pacnew" -delete && \
+    find /etc -type f -name "*.pacsave" -delete
 COPY root/ /
 
 WORKDIR /vdr
