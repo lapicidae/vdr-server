@@ -102,7 +102,7 @@ RUN echo "**** WORKAROUND for glibc 2.33+ and old Docker ****" && \
       cd ffmpeg-headless && \
       makepkg -s --noconfirm' && \
     pacman -U /tmp/ffmpeg-headless/ffmpeg-headless-*.pkg.tar.zst --noconfirm && \
-    echo "**** install s6-overlay ****" && \
+    echo "**** install s6-overlay & socklog-overlay ****" && \
     chmod +x /tmp/s6-overlay-amd64-installer && /tmp/s6-overlay-amd64-installer / && \
     tar xzf /tmp/socklog-overlay-amd64.tar.gz -C / && \
     echo "**** folders and symlinks ****" && \
@@ -125,6 +125,8 @@ RUN echo "**** WORKAROUND for glibc 2.33+ and old Docker ****" && \
     mkdir -p /defaults/system && \
     cp -Ran /var/lib/vdr/* /defaults/config && \
     cp -Ran /etc/vdr/* /defaults/system && \
+    echo "**** system update ****" && \
+    pacman -Su --noconfirm && \
     echo "**** cleanup ****" && \
     userdel -r -f builduser && \
     pacman -Rsu --noconfirm \
@@ -186,16 +188,10 @@ RUN echo "**** WORKAROUND for glibc 2.33+ and old Docker ****" && \
       /usr/share/info/* \
       /usr/share/man/* \
       /var/tmp/* && \
-    echo "**** refresh package databases ****" && \
-    pacman -Sy && \
-    pacman-key --init && \
-    echo "**** install busybox ****" && \
-    busybox --install -s && \
-    echo "**** system update ****" && \
-    pacman -Su --noconfirm && \
-    echo "**** remove pacnew & pacsave ****" && \
     find /etc -type f -name "*.pacnew" -delete && \
-    find /etc -type f -name "*.pacsave" -delete
+    find /etc -type f -name "*.pacsave" -delete && \
+    echo "**** install busybox ****" && \
+    busybox --install -s
 COPY root/ /
 
 WORKDIR /vdr
