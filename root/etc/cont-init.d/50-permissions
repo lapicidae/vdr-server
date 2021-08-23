@@ -14,16 +14,6 @@ chown -R vdr:vdr \
 	/vdr
 
 
-## protect cam.data
-cam_data="/var/cache/vdr/cam.data"
-if $PROTECT_CAMDATA; then
-	chmod ug-w $cam_data
-	echo "$cam_data is now write protected!"
-else
-	chmod ug+w $cam_data
-fi
-
-
 ## Plugins
 # live
 live_dir="/vdr/config/plugins/live"
