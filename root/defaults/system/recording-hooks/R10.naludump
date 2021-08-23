@@ -1,28 +1,39 @@
 #!/bin/sh
 # naludump recording hook script
 
-if [ "$1" = "after" ]; then
-  if grep -q "^X 5 0B*" "$2/info" ; then
-  MAINDIR="$2"
-    for tsfile in $2/?????.ts; do
-	if [ -L "$tsfile" ]; then 
-		tsfile=$(readlink $tsfile)
+
+# Enable recordingaction
+ENABLED=false
+
+
+if $ENABLED; then
+	if [ "$1" = "after" ]; then
+		if grep -q "^X 5 0B*" "$2/info"; then
+		MAINDIR="$2"
+		for tsfile in $2/?????.ts; do
+			if [ -L "$tsfile" ]; then 
+				tsfile=$(readlink $tsfile)
+			fi
+			DIR=$(dirname $tsfile)
+			FILE=$(basename $tsfile)
+			
+			mv "$DIR/$FILE" "$DIR/_$FILE"
+			nice -n 19 naludump "$DIR/_$FILE" "$DIR/$FILE" >> $MAINDIR/naludump.log 2>&1
+			if [ "$?" = "0" ]; then 
+				if [ -e "$DIR/$FILE" ]; then 
+					rm "$DIR/_$FILE"
+				fi 
+			else
+				mv "$DIR/_$FILE" "$DIR/$FILE"
+				logger -t recordingaction "ERROR stripping NALUs from recording $(basename $MAINDIR)"
+				echo "##########naludump finished unsuccessfull." >> $MAINDIR/naludump.log
+			fi
+		done
+		nice -n 19 vdr --genindex="$2" >> "$2"/naludump.log 2>&1
+		logger -t recordingaction "Finished stripping NALUs from recording $(basename $MAINDIR)"
+		#svdrpsend MESG \"Finished stripping NALUs from recording "$(basename $MAINDIR)"\"
+		fi
 	fi
-        DIR=$(dirname $tsfile)
-	FILE=$(basename $tsfile)
-	
-        mv "$DIR/$FILE" "$DIR/_$FILE"
-        nice -n 19 naludump "$DIR/_$FILE" "$DIR/$FILE" >> $MAINDIR/naludump.log 2>&1
-        if [ "$?" = "0" ]; then 
-	     if [ -e "$DIR/$FILE" ]; then 
-        	rm "$DIR/_$FILE"
-	     fi 
-	else
-		mv "$DIR/_$FILE" "$DIR/$FILE"
-		echo "##########naludump finished unsuccessfull." >> $MAINDIR/naludump.log
-	fi
-    done
-    nice -n 19 vdr --genindex="$2" >> "$2"/naludump.log 2>&1
-    #svdrpsend MESG \"Finished stripping NALUs from recording "$(basename $MAINDIR)"\"
-  fi
+else
+	logger -t recordingaction "naludump is disabled"
 fi
