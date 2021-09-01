@@ -36,8 +36,8 @@ pipeline {
 		stage('Clean') {
 			steps{
 				echo 'Cleaning....'
-				sh "docker rmi $registry:$BUILD_NUMBER"
-				sh "docker rmi $registry:$registryTag"
+				sh "docker rmi $registry:$BUILD_NUMBER || echo Failed to remove image $registry:$BUILD_NUMBER."
+				sh "docker rmi $registry:$registryTag || echo Failed to remove image $registry:$BUILD_NUMBER."
 			}
 		}
 	}
