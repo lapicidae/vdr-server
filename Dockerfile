@@ -10,7 +10,7 @@ ENV LANG="en_US.UTF-8" \
 
 ADD https://github.com/just-containers/s6-overlay/releases/download/v2.2.0.3/s6-overlay-amd64-installer /tmp/
 
-ADD https://github.com/just-containers/socklog-overlay/releases/download/v3.1.1-1/socklog-overlay-amd64.tar.gz /tmp/
+ADD https://github.com/just-containers/socklog-overlay/releases/download/v3.1.2-0/socklog-overlay-amd64.tar.gz /tmp/
 
 COPY build/ /
 
