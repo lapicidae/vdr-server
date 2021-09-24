@@ -9,6 +9,8 @@ pipeline {
 		registryCredential = 'dockerhub'
 		registryTag = 'latest'
 		//gitURL = 'https://github.com/lapicidae/vdr-server.git'
+		currTime = sh(returnStdout: true, script: 'date +"%H:%M"').trim()
+		currDate = sh(returnStdout: true, script: 'date +"%m.%d.%Y"').trim()
 		dockerImage = ''
 		email = ''
 	}
