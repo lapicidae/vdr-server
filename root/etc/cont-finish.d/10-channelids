@@ -2,7 +2,10 @@
 
 input="/vdr/config/channels.conf"
 output="/vdr/cache/channelids.conf"
+tmp="/tmp/chid.tmp"
 
 if [ -f $input ]; then
-	/usr/bin/vdr-channelids $input > $output
+	/usr/bin/vdr-channelids $input > $tmp
+	iconv -sc -f UTF-8 -t UTF-8 -o $output $tmp
+	rm -f $tmp
 fi
