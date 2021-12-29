@@ -3,6 +3,19 @@
 // Set "Manage Jenkins -> Configure System -> Global properties" "DEFAULT_EMAIL" Environment variable for users without email address!
 //
 
+
+// github commit status
+void setBuildStatus(String message, String state) {
+	step([
+		$class: 'GitHubCommitStatusSetter',
+		reposSource: [$class: 'ManuallyEnteredRepositorySource', url: 'https://github.com/lapicidae/vdr-server'],
+		contextSource: [$class: 'ManuallyEnteredCommitContextSource', context: 'ci/jenkins/build-status'],
+		errorHandlers: [[$class: 'ChangingBuildStatusErrorHandler', result: 'UNSTABLE']],
+		statusResultSource: [ $class: 'ConditionalStatusResultSource', results: [[$class: 'AnyBuildResult', message: message, state: state]] ]
+	]);
+}
+
+
 pipeline {
 	environment {
 		registry = "lapicidae/vdr-server"
@@ -27,12 +40,7 @@ pipeline {
 						email = "${DEFAULT_EMAIL}"
 					}
 				}
-				echo "--- User Info ---"
-				echo "User:\t\t$user"
-				echo "User ID:\t$user_id"
-				echo "eMail:\t\t$email"
-				echo "Time:\t\t$currTime"
-				echo "Date:\t\t$currDate"
+				echo "--- User Info ---\nUser:\t\t$user\nUser ID:\t$user_id\neMail:\t\t$email\nTime:\t\t$currTime\nDate:\t\t$currDate"
 			}
 		}
 		stage('Clone') {
@@ -76,6 +84,12 @@ pipeline {
 			  charset: 'UTF-8',
 			  mimeType: 'text/html',
 			  body: "<b>${env.JOB_NAME} - Build #${env.BUILD_NUMBER} - <em>${currentBuild.result}</em></b><br/><br/>Job started by user ${user_id} (${user}) at ${currTime} on ${currDate}.<br/>Build took ${currentBuild.durationString}.<br/><br/>Check console <a href='${env.BUILD_URL}console'>output</a> to view full results.<br/><br/>Your faithful employee<br/><em>Node</em> ${env.NODE_NAME}"
+		}
+		success {
+			setBuildStatus('Build succeeded', 'SUCCESS');
+		}
+		failure {
+			setBuildStatus('Build failed', 'FAILURE');
 		}
 	}
 }
