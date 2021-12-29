@@ -2,12 +2,22 @@
 
 if [ -z "$PLUGINS" ]; then
 	PLUGINS="epgsearch live streamdev-server vnsiserver"
+	echo "Using default plugins: $PLUGINS"
 fi
 
 if [ -z "$UNINSTALL_PLUGINS" ]; then
-	UNINSTALL_PLUGINS="no"
+	UNINSTALL_PLUGINS="false"
 fi
 
+if [ "$AUR" = "false" ]; then
+	pac_man="pacman"
+	installer=$pac_man
+elif [ -z "$AUR" ] || [ "$AUR" != "false" ]; then
+	AUR="true"
+	bUser="builduser"
+	pac_man="paru"
+	installer="sudo -u $bUser $pac_man --nouseask --removemake --cleanafter"
+fi
 
 readarray -t enabled_arr < <(vdrctl list --enabled)
 plug_arr=($PLUGINS)
@@ -15,7 +25,7 @@ plug_arr=($PLUGINS)
 
 _isAvailable() {
 	plugin=$1;
-	avail=$(pacman -Ssq $plugin | grep "^$plugin$")
+	avail=$($pac_man -Ssq $plugin | grep "^$plugin$")
 	if [ ! -z "$avail" ]; then
 		echo 0
 	else
@@ -25,7 +35,7 @@ _isAvailable() {
 
 _isInstalled() {
 	package=$1
-	pacman -Qi "${package}" &> /dev/null
+	$pac_man -Qi "${package}" &> /dev/null
 	echo $?
 }
 
@@ -49,8 +59,9 @@ while (( h < max_h )); do
 	if [[ ! "${plug_arr[@]}" =~ "${plug}" ]]; then
 		vdrctl disable "${plug}"
 		echo "Plugin ${plug} disabled."
-		if [ $UNINSTALL_PLUGINS == "yes" ]; then
+		if [ "$UNINSTALL_PLUGINS" = "true" ]; then
 			echo "Plugin ${plug} uninstalled."
+			echo -e "Uninstalling VDR plugins is currently not supported.\nPlease rebuild the container instead."
 		fi
 	fi
 
@@ -64,13 +75,13 @@ while (( i < max_i )); do
 	pacname="vdr-$plug"
 
 	# Plugin not installed
-	if [ $(_isInstalled "${pacname}") == 1 ] && [ $(_isAvailable "${pacname}") == 0 ]; then
+	if [ $(_isInstalled "${pacname}") = "1" ] && [ $(_isAvailable "${pacname}") = "0" ]; then
 		echo "Plugin ${plug} is not installed."
-		pacman -S --overwrite "/usr/bin/*" --noconfirm ${pacname}	## use "overwrite" because of busybox
+		$installer -S --overwrite "/usr/bin/*" --noconfirm ${pacname}	## use "overwrite" because of busybox
 	fi
 
 	# Plugin installed
-	if [ $(_isInstalled "${pacname}") == 0 ] && [ $(_isEnabled "${plug}") == 1 ]; then
+	if [ $(_isInstalled "${pacname}") = "0" ] && [ $(_isEnabled "${plug}") = "1" ]; then
 		vdrctl enable "${plug}"
 		echo "Plugin ${plug} enabled."
 	fi

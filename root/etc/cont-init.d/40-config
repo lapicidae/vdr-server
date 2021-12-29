@@ -2,19 +2,19 @@
 
 
 main_dir="/vdr"
-conf_dir="$main_dir/config"	# /var/lib/vdr
-sys_dir="$main_dir/system"	# /etc/vdr
+conf_dir="$main_dir/config"	# "/var/lib/vdr" equivalent
+sys_dir="$main_dir/system"	# "/etc/vdr" equivalent
 
 
 # defaults
-if [ -d $main_dir ]; then
+if [ -d "$main_dir" ]; then
 	cp -RPpn /defaults/config/* $conf_dir
 	cp -RPpn /defaults/system/* $sys_dir
 fi
 
 
 # system
-if [ -d $sys_dir ]; then
+if [ -d "$sys_dir" ]; then
 	# eMail config (msmtp)
 	msmtp_conf="/etc/msmtprc"
 	if [ -f "$sys_dir/eMail.conf" ]; then
@@ -28,7 +28,7 @@ fi
 # protect cam.data
 cam_data="/var/cache/vdr/cam.data"
 if [ -f "$cam_data" ]; then
-	if $PROTECT_CAMDATA; then
+	if [ "$PROTECT_CAMDATA" == "true" ]; then
 		chmod ug-w $cam_data
 		echo "$cam_data is now write protected!"
 	else

@@ -5,33 +5,36 @@ _isEnabled() {
 	plugin=$1;
 	enabled=$(vdrctl list --enabled | grep "^$1$")
 	if [[ "${enabled_arr[@]}" =~ "${plugin}" ]]; then
-		echo 0
+		echo "0"
 	else
-		echo 1
+		echo "1"
 	fi
 }
 
 
-# libtinyxml2
-tinyxml2_NEW="/usr/lib/libtinyxml2.so"
-tinyxml2_OLD="/usr/lib/libtinyxml2.so.7"
-if [ -f $tinyxml2_NEW ] && [ ! -f $tinyxml2_OLD ]; then
-	ln -s $tinyxml2_NEW $tinyxml2_OLD
-fi
+## Missing Libraries ##
+if [ "$AUR" = "false" ]; then
+	# libtinyxml2
+	tinyxml2_NEW="/usr/lib/libtinyxml2.so"
+	tinyxml2_OLD="/usr/lib/libtinyxml2.so.7"
+	if [ -f "$tinyxml2_NEW" ] && [ ! -f "$tinyxml2_OLD" ]; then
+		ln -s $tinyxml2_NEW $tinyxml2_OLD
+	fi
 
 
-# libpython3
-libpython3_NEW="/usr/lib/libpython3.10.so.1.0"
-libpython3_OLD="/usr/lib/libpython3.9.so.1.0"
-if [ -f $libpython3_NEW ] && [ ! -f $libpython3_OLD ]; then
-	ln -s $libpython3_NEW $libpython3_OLD
+	# libpython3
+	libpython3_NEW="/usr/lib/libpython3.10.so.1.0"
+	libpython3_OLD="/usr/lib/libpython3.9.so.1.0"
+	if [ -f "$libpython3_NEW" ] && [ ! -f "$libpython3_OLD" ]; then
+		ln -s $libpython3_NEW $libpython3_OLD
+	fi
 fi
 
 
 ## VDR Plugins ##
 
 # epgsearch
-if [ $(_isEnabled "epgsearch") == 1 ]; then
+if [ $(_isEnabled "epgsearch") == "1" ]; then
 	plug_dir="/vdr/config/plugins/epgsearch"
 	loc=$(echo $LANG | cut -d "." -f 1)
 	confl_templ="$plug_dir/epgsearchconflmail.templ"
@@ -40,7 +43,7 @@ if [ $(_isEnabled "epgsearch") == 1 ]; then
 	if [ ! -d $plug_dir ]; then
 		mkdir -p $plug_dir
 	fi
-	if [ -f $confl_templ ] && [ ! -L $confl_templ ]; then
+	if [ -f "$confl_templ" ] && [ ! -L "$confl_templ" ]; then
 		tmp_templ="/tmp/epgsearchconflmail.templ"
 		curl -s -o $tmp_templ https://projects.vdr-developer.org/git/vdr-plugin-epgsearch.git/plain/conf/epgsearchconflmail.templ
 		if cmp -s "$confl_templ" "$tmp_templ"; then
@@ -54,12 +57,12 @@ if [ $(_isEnabled "epgsearch") == 1 ]; then
 fi
 
 # vdrmanager
-if [ $(_isEnabled "vdrmanager") == 1 ]; then
+if [ $(_isEnabled "vdrmanager") == "1" ]; then
 	plug_dir="/vdr/config/plugins/vdrmanager"
-	if [ ! -d $plug_dir ]; then
+	if [ ! -d "$plug_dir" ]; then
 		mkdir -p $plug_dir
 	fi
-	if [ ! -e $plug_dir/vdrmanager.pem ]; then
+	if [ ! -e "$plug_dir/vdrmanager.pem" ]; then
 		openssl req -new -x509 -keyout $plug_dir/vdrmanager.key -out $plug_dir/vdrmanager.crt -days 9999 -nodes -batch
 		cat $plug_dir/vdrmanager.key > $plug_dir/vdrmanager.pem
 		cat $plug_dir/vdrmanager.crt >> $plug_dir/vdrmanager.pem

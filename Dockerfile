@@ -8,6 +8,10 @@ ENV LANG="en_US.UTF-8" \
     LANGUAGE="en_US:en_GB:en" \
     TZ="Europe/London"
 
+ARG pacinst="sudo -u builduser paru --nouseask --removemake --cleanafter --noconfirm -S" \
+    pacdown="sudo -u builduser paru --getpkgbuild" \
+    pacbuild="sudo -u builduser paru --nouseask --removemake --cleanafter --noconfirm -Ui"
+
 ADD https://github.com/just-containers/s6-overlay/releases/download/v2.2.0.3/s6-overlay-amd64-installer /tmp/
 
 ADD https://github.com/just-containers/socklog-overlay/releases/download/v3.1.2-0/socklog-overlay-amd64.tar.gz /tmp/
@@ -16,8 +20,6 @@ COPY build/ /
 
 RUN echo "**** configure pacman ****" && \
     sed -i 's/.*NoExtract.*/NoExtract   = usr\/share\/doc\/* usr\/share\/help\/* usr\/share\/info\/* usr\/share\/man\/*/' /etc/pacman.conf && \
-    echo "**** add the vdr4arch repository ****" && \
-    echo -e "[vdr4arch]\nServer = https://vdr4arch.github.io/\$arch\nSigLevel = Never" >> /etc/pacman.conf && \
     pacman -Sy && \
     echo "**** timezone and locale ****" && \
     rm -f /etc/locale.gen && \
@@ -30,77 +32,63 @@ RUN echo "**** configure pacman ****" && \
     sed -i '/#  /d' /etc/locale.gen && \
     sed -i '/en_US.UTF-8/s/^# *//' /etc/locale.gen && \
     sed -i "/$LANG/s/^# *//" /etc/locale.gen && \
-    echo 'LANG='$LANG > /etc/locale.conf && \
+    echo "LANG=$LANG" > /etc/locale.conf && \
     locale-gen && \
     echo "**** bash aliases ****" && \
     echo -e "\nif [ -f /etc/bash.aliases ]; then\n  . /etc/bash.aliases\nfi" >> /etc/bash.bashrc && \
-    echo "**** install runtime packages ****" && \
-    pacman -S --noconfirm \
-      binutils \
-      busybox \
-      msmtp-mta \
-      naludump \
-      ttf-vdrsymbols \
-      vdr \
-      vdr-dvbapi \
-      vdr-streamdev-server \
-      vdr-vnsiserver \
-      vdrctl && \
-    pacman -D --asexplicit \
-      shadow && \
+    echo "**** system update ****" && \
+    pacman -Su --noconfirm && \
     echo "**** install build packages ****" && \
     pacman -S --noconfirm --needed \
       base-devel \
-      gawk \
       git \
-      procps-ng \
-      sudo \
-      tar && \
+      sudo && \
     echo "**** add builduser ****" && \
     useradd -m -d /build -s /bin/bash builduser && \
     echo -e "root ALL=(ALL) ALL\nbuilduser ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers && \
-    echo "**** install ddci2 ****" && \
+    echo "**** install paru-bin ****" && \
+    export buildDir="/tmp/paru" && \
+    mkdir -p $buildDir && \
+    cd $buildDir && \
+    git clone https://aur.archlinux.org/paru-bin.git && \
+    cd paru-bin && \
+    chown -R builduser $buildDir/paru-bin && \
+    sudo -u builduser makepkg -s --noconfirm && \
+    cd $buildDir && \
+    pacman --noconfirm -U */*.pkg.tar.zst && \
+    rm -rf $buildDir && \
+    sed -i "/CleanAfter/s/^# *//" /etc/paru.conf && \
+    sed -i "/RemoveMake/s/^# *//" /etc/paru.conf && \
+    unset buildDir && \
     cd /tmp && \
-    sudo -u builduser bash -c ' \
-      git init vdr-ddci2 && \
-      cd vdr-ddci2 && \
-      git remote add origin https://github.com/VDR4Arch/vdr4arch.git && \
-      git config core.sparsecheckout true && \
-      git config pull.rebase false && \
-      echo "plugins/vdr-ddci2/*" >> .git/info/sparse-checkout && \
-      git pull origin master && \
-      cd plugins/vdr-ddci2 && \
-      sed -i "s/vdr-api=/vdr-api>=/g" PKGBUILD && \
-      makepkg -s' && \
-    pacman -U /tmp/vdr-ddci2/plugins/vdr-ddci2/vdr-ddci2*.pkg.tar.zst --noconfirm && \
-    echo "**** install ciplus ****" && \
+    echo "**** install s6-overlay & socklog-overlay ****" && \
+    chmod +x /tmp/s6-overlay-amd64-installer && /tmp/s6-overlay-amd64-installer / && \
+    tar xzf /tmp/socklog-overlay-amd64.tar.gz -C /
+
+RUN echo "**** install dependencies & tools ****" && \
+    $pacinst busybox libdvbcsa ttf-vdrsymbols naludump libva-headless ffmpeg-headless
+
+RUN echo "**** install VDR ****" && \
+    $pacinst vdr vdr-api vdrctl && \
+    echo "**** install VDR plugins ****" && \
+    $pacinst --batchinstall vdr-dvbapi vdr-vnsiserver vdr-streamdev-server && \
+    echo "**** install VDR plugin ddci2 ****" && \
+    cd /tmp && \
+    $pacdown vdr-ddci2 && \
+    cd vdr-ddci2 && \
+    sed -i "s/vdr-api=/vdr-api>=/g" PKGBUILD && \
+    $pacbuild && \
+    echo "**** install VDR plugin ciplus ****" && \
     cd /tmp && \
     git clone https://github.com/lmaresch/vdr-ciplus.git && \
     cd vdr-ciplus && \
     sed -i "s/vdr-api=/vdr-api>=/g" PKGBUILD && \
     awk '1;/prepare()/{c=2}c&&!--c{print "  patch -p1 < /tmp/addlib.patch"}' PKGBUILD > tmp && mv tmp PKGBUILD && \
     chown -R builduser /tmp/vdr-ciplus && \
-    sudo -u builduser bash -c ' \
-      makepkg -s' && \
-    pacman -U /tmp/vdr-ciplus/vdr-ciplus*.pkg.tar.zst --noconfirm && \
-    echo "**** install libva-headless ****" && \
-    cd /tmp && \
-    sudo -u builduser bash -c ' \
-      git clone https://aur.archlinux.org/libva-headless.git && \
-      cd libva-headless && \
-      makepkg -s --noconfirm' && \
-    pacman -U /tmp/libva-headless/libva-headless-*.pkg.tar.zst --noconfirm && \
-    echo "**** install ffmpeg-headless ****" && \
-    cd /tmp && \
-    sudo -u builduser bash -c ' \
-      git clone https://aur.archlinux.org/ffmpeg-headless.git && \
-      cd ffmpeg-headless && \
-      makepkg -s --noconfirm' && \
-    pacman -U /tmp/ffmpeg-headless/ffmpeg-headless-*.pkg.tar.zst --noconfirm && \
-    echo "**** install s6-overlay & socklog-overlay ****" && \
-    chmod +x /tmp/s6-overlay-amd64-installer && /tmp/s6-overlay-amd64-installer / && \
-    tar xzf /tmp/socklog-overlay-amd64.tar.gz -C / && \
-    echo "**** folders and symlinks ****" && \
+    $pacbuild && \
+    cd /tmp
+
+RUN echo "**** folders and symlinks ****" && \
     mkdir -p /vdr/timeshift && \
     ln -s /var/lib/vdr /vdr/config && \
     ln -s /etc/vdr /vdr/system && \
@@ -112,7 +100,8 @@ RUN echo "**** configure pacman ****" && \
     mv /etc/vdr/conf.avail/50-ddci2.conf /etc/vdr/conf.avail/10-ddci2.conf && \
     mv /etc/vdr/conf.avail/50-dvbapi.conf /etc/vdr/conf.avail/20-dvbapi.conf && \
     mv /etc/vdr/conf.avail/50-ciplus.conf /etc/vdr/conf.avail/30-ciplus.conf && \
-    echo "**** SMTP client config ****" && \
+    echo "**** SMTP client ****" && \
+    $pacinst msmtp-mta && \
     curl -o /etc/msmtprc "https://git.marlam.de/gitweb/?p=msmtp.git;a=blob_plain;f=doc/msmtprc-system.example" && \
     chmod 600 /etc/msmtprc && \
     echo "**** backup default files ****" && \
@@ -120,35 +109,16 @@ RUN echo "**** configure pacman ****" && \
     mkdir -p /defaults/system && \
     cp -Ran /var/lib/vdr/* /defaults/config && \
     cp -Ran /etc/vdr/* /defaults/system && \
-    echo "**** system update ****" && \
-    pacman -Su --noconfirm && \
-    echo "**** cleanup ****" && \
-    userdel -r -f builduser && \
-    pacman -Rsu --noconfirm \
-      autoconf \
-      automake \
-      bison \
-      fakeroot \
-      file \
-      flex \
-      gawk \
-      gcc \
-      gettext \
-      git \
-      grep \
-      groff \
-      gzip \
-      libseccomp \
-      libtool \
-      m4 \
-      make \
-      patch \
-      procps-ng \
-      sed \
-      sudo \
-      tar \
-      texinfo \
-      which && \
+    echo "**** mark essential packages ****" && \
+    pacman -D --asexplicit \
+      vdr \
+      vdr-api \
+      shadow
+
+RUN echo "**** CleanUp ****" && \
+    rm -rf \
+      /tmp/* \
+      /var/tmp/* && \
     pacman -R --noconfirm \
       argon2 \
       base \
@@ -170,29 +140,19 @@ RUN echo "**** configure pacman ****" && \
       popt \
       pciutils \
       systemd \
-      systemd-sysvcompat \
-      util-linux && \
-    pacman -Scc --noconfirm && \
-    rm -rf \
-      /etc/pacman.d/gnupg/pubring.gpg~ \
-      /etc/sudoers* \
-      /tmp/* \
-      /usr/include/* \
-      /usr/share/doc/* \
-      /usr/share/help/* \
-      /usr/share/info/* \
-      /usr/share/man/* \
-      /var/tmp/* && \
+      systemd-sysvcompat && \
+    pacman --noconfirm -Scc && \
     find /etc -type f -name "*.pacnew" -delete && \
     find /etc -type f -name "*.pacsave" -delete && \
     echo "**** install busybox ****" && \
     busybox --install -s
+
 COPY root/ /
 
 WORKDIR /vdr
 
 EXPOSE 2004 3000 6419 6419/udp 8008 8009 34890
 
-VOLUME ["/vdr/cache", "/vdr/config", "/vdr/recordings", "/vdr/system", "/vdr/timeshift"]
+VOLUME ["/vdr/cache", "/vdr/config", "/vdr/recordings", "/vdr/system"]
 
 ENTRYPOINT ["/init"]

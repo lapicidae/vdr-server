@@ -3,10 +3,12 @@
 ## set timezone
 if [ -d "/usr/share/zoneinfo/$TZ" ]; then
 	current_tz=$(readlink /etc/localtime)
-	if [[ ! $current_tz =~ $TZ ]]; then
+	if [[ ! "$current_tz" =~ "$TZ" ]]; then
 		timedatectl set-timezone $TZ
-		echo "New timezone $TZ set!"
+		echo "Timezone set to: $TZ"
 	fi
+else
+	echo "Cannot set timezone: $TZ"
 fi
 
 
@@ -14,12 +16,14 @@ fi
 loc_file="/etc/locale.gen"
 
 if [ -f "$loc_file" ]; then
-	loc_active=($(grep -v "^#" $loc_file | grep -v "^$" | cut -d " " -f1))
+	default_loc="en_US.UTF-8 UTF-8"
+	loc_active=($(grep -v "^#" "$loc_file" | grep -v "^$" | grep -v "$default_loc" | cut -d " " -f1 ))
 	if [[ ! "${loc_active[@]}" =~ "$LANG" ]]; then
 		sed -i '/^[a-zA-Z0-9]/ s/^/#/' $loc_file
 		sed -i "/$LANG/s/^# *//" $loc_file
-		echo "LANG="$LANG > /etc/locale.conf
+		sed -i "/$default_loc/s/^# *//" $loc_file
+		echo "LANG=$LANG" > /etc/locale.conf
 		locale-gen
-		echo "New locale $LANG set!"
+		echo "Locale set to: $LANG"
 	fi
 fi

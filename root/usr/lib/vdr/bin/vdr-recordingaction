@@ -25,9 +25,9 @@
 # doesn't exist before the recording starts.
 #
 
-REC_HOOKS_DIR=/etc/vdr/recording-hooks
+REC_HOOKS_DIR="/etc/vdr/recording-hooks"
 
-recordinghooks=`find $REC_HOOKS_DIR -maxdepth 1 -xtype f | sort`
+recordinghooks=`find "$REC_HOOKS_DIR" -maxdepth 1 -xtype f | sort`
 
 for recordinghook in $recordinghooks; do
     case $1 in

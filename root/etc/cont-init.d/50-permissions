@@ -26,6 +26,6 @@ fi
 
 # ciplus
 ci_plus="/vdr/cache/plugins/ciplus/"
-if [ -d $ci_plus ] && [ ! -z "$(ls -A $ci_plus)" ]; then
+if [ -d "$ci_plus" ] && [ ! -z "$(ls -A $ci_plus)" ]; then
 	chmod -f ug+rw *.auth || true
 fi
