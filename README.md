@@ -8,6 +8,8 @@ The Video Disk Recorder ([VDR](http://www.tvdr.de/)) is a free, non-commercial p
 [![GitHub Stars](https://img.shields.io/github/stars/lapicidae/vdr-server.svg?color=3c0e7b&labelColor=555555&logoColor=ffffff&style=for-the-badge&logo=github)](https://github.com/lapicidae/vdr-server)
 [![Docker Pulls](https://img.shields.io/docker/pulls/lapicidae/vdr-server.svg?color=3c0e7b&labelColor=555555&logoColor=ffffff&style=for-the-badge&label=pulls&logo=docker)](https://hub.docker.com/r/lapicidae/vdr-server)
 [![Docker Stars](https://img.shields.io/docker/stars/lapicidae/vdr-server.svg?color=3c0e7b&labelColor=555555&logoColor=ffffff&style=for-the-badge&label=stars&logo=docker)](https://hub.docker.com/r/lapicidae/vdr-server)
+[![GitHub Checks](https://img.shields.io/github/checks-status/lapicidae/vdr-server/master?label=build%20check&color=3c0e7b&labelColor=555555&logoColor=ffffff&style=for-the-badge&logo=jenkins)](https://github.com/lapicidae/vdr-server/commits)
+
 
 Image based on [Arch Linux](https://hub.docker.com/_/archlinux), [VDR4Arch](https://github.com/VDR4Arch/vdr4arch), [s6-overlay](https://github.com/just-containers/s6-overlay) and [socklog-overlay](https://github.com/just-containers/socklog-overlay).
 
@@ -65,6 +67,8 @@ services:
       - 34890:34890 #optional
     devices:
       - /dev/dvb:/dev/dvb #optional
+    cap_add:
+      - SYS_TIME #optional: read hint!
     restart: unless-stopped
 ```
 
@@ -88,6 +92,7 @@ docker run -d \
   -v /opt/vc/lib:/vdr/timeshift `#optional` \
   --device /dev/dvb:/dev/dvb `#optional` \
   --restart unless-stopped \
+  --cap-add=SYS_TIME `#optional: read hint!` \
   lapicidae/vdr-server
 ```
 
@@ -118,6 +123,9 @@ For example, `-p 8080:80` would expose port `80` from inside the container to be
 | `-v /vdr/cache` | Cache files (e.g. `epgimages` or `cam.data`) |
 | `-v /vdr/timeshift` | VNSI Time-Shift Buffer Directory. |
 | `--device /dev/dvb` | Only needed if you want to pass through a DVB card to the container. |
+
+### Hint
+If you want to use VDRs `"SetSystemTime = 1"` use parameter `"--cap-add=SYS_TIME"` **(untested)**
 
 
 ## User / Group Identifiers
