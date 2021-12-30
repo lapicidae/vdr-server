@@ -1,0 +1,5 @@
+/etc false root 0664 0755
+/usr false root 0664 0755
+/usr/bin false root 0664 0755
+/usr/lib false root 0664 0755
+/usr/lib/vdr false root 0664 0755

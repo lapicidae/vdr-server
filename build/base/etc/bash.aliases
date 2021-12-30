@@ -5,3 +5,6 @@ alias la='ls -lah --color=auto'
 
 # Workaround "vdr: OS does not support cap_sys_time" in bash
 alias vdr='s6-setuidgid vdr $(which vdr)'
+
+# start paru as user "builduser"
+alias paru='sudo -u builduser $(which paru)'

@@ -69,9 +69,15 @@ RUN echo "**** install dependencies & tools ****" && \
     $pacinst busybox libdvbcsa ttf-vdrsymbols naludump libva-headless ffmpeg-headless
 
 RUN echo "**** install VDR ****" && \
-    $pacinst vdr vdr-api vdrctl && \
+    $pacinst \
+      vdr \
+      vdr-api \
+      vdrctl && \
     echo "**** install VDR plugins ****" && \
-    $pacinst --batchinstall vdr-dvbapi vdr-vnsiserver vdr-streamdev-server && \
+    $pacinst --batchinstall \
+      vdr-dvbapi \
+      vdr-streamdev-server \
+      vdr-vnsiserver && \
     echo "**** install VDR plugin ddci2 ****" && \
     cd /tmp && \
     $pacdown vdr-ddci2 && \
@@ -147,7 +153,10 @@ RUN echo "**** CleanUp ****" && \
     echo "**** install busybox ****" && \
     busybox --install -s
 
-COPY root/ /
+RUN echo "**** move sysfiles ****" && \
+    find /base -type d -exec chmod 755 {} +  && \
+    cp -Rlf /base/* /  && \
+    rm -rf /base
 
 WORKDIR /vdr
 
