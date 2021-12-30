@@ -28,7 +28,7 @@ fi
 # protect cam.data
 cam_data="/var/cache/vdr/cam.data"
 if [ -f "$cam_data" ]; then
-	if [ "$PROTECT_CAMDATA" == "true" ]; then
+	if [ "$PROTECT_CAMDATA" = "true" ]; then
 		chmod ug-w $cam_data
 		echo "$cam_data is now write protected!"
 	else

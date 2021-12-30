@@ -6,7 +6,7 @@
 ## Folders
 chown -R vdr:vdr \
 	/defaults \
-	/etc/vdr/* \
+	/etc/vdr \
 	/home/vdr \
 	/srv/vdr \
 	/var/cache/vdr \
