@@ -7,7 +7,7 @@ if [ -d "/usr/share/zoneinfo/$TZ" ]; then
 		timedatectl set-timezone $TZ
 		echo "Timezone set to: $TZ"
 	fi
-else
+elif [ ! -d "/usr/share/zoneinfo/$TZ" ]; then
 	echo "Cannot set timezone: $TZ"
 fi
 

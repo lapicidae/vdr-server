@@ -34,7 +34,7 @@ fi
 ## VDR Plugins ##
 
 # epgsearch
-if [ $(_isEnabled "epgsearch") == "1" ]; then
+if [ $(_isEnabled "epgsearch") = "1" ]; then
 	plug_dir="/vdr/config/plugins/epgsearch"
 	loc=$(echo $LANG | cut -d "." -f 1)
 	confl_templ="$plug_dir/epgsearchconflmail.templ"
@@ -57,7 +57,7 @@ if [ $(_isEnabled "epgsearch") == "1" ]; then
 fi
 
 # vdrmanager
-if [ $(_isEnabled "vdrmanager") == "1" ]; then
+if [ $(_isEnabled "vdrmanager") = "1" ]; then
 	plug_dir="/vdr/config/plugins/vdrmanager"
 	if [ ! -d "$plug_dir" ]; then
 		mkdir -p $plug_dir

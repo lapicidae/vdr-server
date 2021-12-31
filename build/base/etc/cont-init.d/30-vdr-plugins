@@ -77,7 +77,8 @@ while (( i < max_i )); do
 	# Plugin not installed
 	if [ $(_isInstalled "${pacname}") = "1" ] && [ $(_isAvailable "${pacname}") = "0" ]; then
 		echo "Plugin ${plug} is not installed."
-		$installer -S --overwrite "/usr/bin/*" --noconfirm ${pacname}	## use "overwrite" because of busybox
+		## use "overwrite" because of busybox
+		$installer -S --overwrite "/usr/bin/*" --noconfirm ${pacname} |& grep -iv -e "directory permissions differ" -e "filesystem: 775"	## <- Ugly but unavoidable to prevent error requests.
 	fi
 
 	# Plugin installed
