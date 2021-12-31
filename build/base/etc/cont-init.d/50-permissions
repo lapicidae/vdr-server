@@ -1,17 +1,23 @@
 #!/usr/bin/with-contenv bash
 
-### this is also called at finish
+### User and group assignments should be in "/etc/fix-attrs.d/"
+### !!! this file is also called at finish !!!
 
 
-## Folders
-chown -R vdr:vdr \
-	/defaults \
-	/etc/vdr \
-	/home/vdr \
-	/srv/vdr \
-	/var/cache/vdr \
-	/var/lib/vdr \
-	/vdr
+## default mount points (docker volumes)
+declare -a chmown=("/etc/vdr"
+		   "/srv/vdr/video"
+		   "/var/cache/vdr"
+		   "/var/lib/vdr"
+		  )
+
+for f in "${chmown[@]}"
+do
+	echo "Reassign permissions: $f"
+	chown -R vdr:vdr "$f"
+	find "$f" -mindepth 1 -type d -exec chmod 775 {} \;
+	find "$f" -mindepth 1 -type f -exec chmod 664 {} \;
+done
 
 
 ## Plugins

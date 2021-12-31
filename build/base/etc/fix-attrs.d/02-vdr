@@ -1,4 +1,10 @@
-/usr/lib/vdr/bin true root:video 2775 4754
-/etc/vdr true vdr:vdr 0664 0755
-/home/vdr true vdr:vdr 0664 0755
-/var/lib/vdr true vdr:vdr 0664 0755
+/defaults true vdr:vdr 0664 0775
+/etc/vdr true vdr:vdr 0664 0775
+/home/vdr true vdr:vdr 0664 0775
+/srv/vdr/video true vdr:vdr 0664 2775
+/usr/lib/vdr/bin/shutdown-wrapper false root:vdr 2775 4754
+/usr/lib/vdr/bin/vdr-recordingaction false vdr:vdr 2775 4754
+/var/cache/vdr true vdr:vdr 0664 0775
+/var/lib/vdr true vdr:vdr 0664 0775
+/vdr false vdr:vdr 0664 0775
+/vdr/timeshift true vdr:vdr 0664 0775

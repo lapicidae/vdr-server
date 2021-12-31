@@ -154,8 +154,8 @@ RUN echo "**** CleanUp ****" && \
     busybox --install -s
 
 RUN echo "**** move sysfiles ****" && \
-    find /base -type d -exec chmod 755 {} +  && \
-    cp -Rlf /base/* /  && \
+    find /base -type d -exec chmod 775 {} \; && \
+    cp -Rlf /base/* / && \
     rm -rf /base
 
 WORKDIR /vdr
