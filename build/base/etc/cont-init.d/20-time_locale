@@ -1,13 +1,13 @@
 #!/usr/bin/with-contenv bash
 
 ## set timezone
-if [ -d "/usr/share/zoneinfo/$TZ" ]; then
+if [ -f "/usr/share/zoneinfo/$TZ" ]; then
 	current_tz=$(readlink /etc/localtime)
 	if [[ ! "$current_tz" =~ "$TZ" ]]; then
 		timedatectl set-timezone $TZ
 		echo "Timezone set to: $TZ"
 	fi
-elif [ ! -d "/usr/share/zoneinfo/$TZ" ]; then
+elif [ ! -f "/usr/share/zoneinfo/$TZ" ]; then
 	echo "Cannot set timezone: $TZ"
 fi
 
