@@ -52,7 +52,7 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Europe/Berlin
+      - TZ=Europe/London
       - PLUGINS=epgsearch live streamdev-server vnsiserver #optional
     volumes:
       - /path/to/system:/vdr/system
@@ -79,7 +79,7 @@ docker run -d \
   --name=vdr-server \
   -e PUID=1000 \
   -e PGID=1000 \
-  -e TZ=Europe/Berlin \
+  -e TZ=Europe/London \
   -e PLUGINS=epgsearch live streamdev-server vnsiserver `#optional` \
   -p 8008:8008 \
   -p 6419:6419 `#optional` \
@@ -114,7 +114,8 @@ For example, `-p 8080:80` would expose port `80` from inside the container to be
 | `-p 34890` | Optional - VDR-Network-Streaming-Interface (VNSI). |
 | `-e PUID=1000` | for UserID - see below for explanation |
 | `-e PGID=1000` | for GroupID - see below for explanation |
-| `-e TZ=Europe/Berlin` | Specify a timezone to use (e.g. Europe/Berlin). |
+| `-e TZ=Europe/London` | Specify a [timezone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List) to use (e.g. Europe/London). |
+| `-e LANG=en_US.UTF-8` | Default locale; see [list](https://sourceware.org/git/?p=glibc.git;a=blob_plain;f=localedata/SUPPORTED;hb=HEAD) (e.g. en_US.UTF-8) |
 | `-e PLUGINS=epgsearch live streamdev-server vnsiserver` | Optional - **Space separated** list of [VDR Plugins](https://github.com/VDR4Arch/vdr4arch/tree/master/plugins) (default: `epgsearch live streamdev-server vnsiserver`). |
 | `-e PROTECT_CAMDATA=true` | Optional - Write protect `cam.data` to avoid unwanted changes. |
 | `-v /vdr/system` | Start parameters, recording hooks and msmtprc config. |

@@ -5,10 +5,10 @@ LABEL maintainer="lapicidae"
 WORKDIR /tmp
 
 ENV LANG="en_US.UTF-8" \
-    LANGUAGE="en_US:en_GB:en" \
     TZ="Europe/London"
 
-ARG pacinst="sudo -u builduser paru --nouseask --removemake --cleanafter --noconfirm -S" \
+ARG LANGUAGE="en_US:en_GB:en" \
+    pacinst="sudo -u builduser paru --nouseask --removemake --cleanafter --noconfirm -S" \
     pacdown="sudo -u builduser paru --getpkgbuild" \
     pacbuild="sudo -u builduser paru --nouseask --removemake --cleanafter --noconfirm -Ui"
 
