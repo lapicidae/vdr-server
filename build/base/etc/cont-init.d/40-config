@@ -16,7 +16,7 @@ fi
 # system
 if [ -d "$sys_dir" ]; then
 	# delete orphaned plugin links
-	find "$main_dir/conf.d" -xtype l -delete
+	find "$sys_dir/conf.d" -xtype l -delete
 
 	# eMail config (msmtp)
 	msmtp_conf="/etc/msmtprc"
