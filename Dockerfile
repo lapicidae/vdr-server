@@ -8,8 +8,8 @@ ENV LANG="en_US.UTF-8" \
     TZ="Europe/London"
 
 ARG LANGUAGE="en_US:en_GB:en" \
-    pacinst="sudo -u builduser paru --nouseask --removemake --cleanafter --noconfirm -S" \
-    pacdown="sudo -u builduser paru --getpkgbuild" \
+    pacinst="sudo -u builduser paru --nouseask --removemake --cleanafter --noconfirm --clonedir /var/cache/paru -S" \
+    pacdown="sudo -u builduser paru --getpkgbuild --clonedir /var/cache/paru" \
     pacbuild="sudo -u builduser paru --nouseask --removemake --cleanafter --noconfirm -Ui"
 
 ADD https://github.com/just-containers/s6-overlay/releases/download/v2.2.0.3/s6-overlay-amd64-installer /tmp/
@@ -44,7 +44,7 @@ RUN echo "**** configure pacman ****" && \
       git \
       sudo && \
     echo "**** add builduser ****" && \
-    useradd -m -d /build -s /bin/bash builduser && \
+    useradd --system --create-home --no-user-group --home-dir /var/cache/paru/.user builduser && \
     echo -e "root ALL=(ALL) ALL\nbuilduser ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers && \
     echo "**** install paru-bin ****" && \
     export buildDir="/tmp/paru" && \
@@ -57,8 +57,12 @@ RUN echo "**** configure pacman ****" && \
     cd $buildDir && \
     pacman --noconfirm -U */*.pkg.tar.zst && \
     rm -rf $buildDir && \
+    sed -i "/^\[options\].*/a CloneDir = /var/cache/paru" /etc/paru.conf && \
     sed -i "/CleanAfter/s/^# *//" /etc/paru.conf && \
     sed -i "/RemoveMake/s/^# *//" /etc/paru.conf && \
+    mkdir -p /var/cache/paru && \
+    chmod 775 /var/cache/paru && \
+    chgrp users /var/cache/paru && \
     unset buildDir && \
     cd /tmp && \
     echo "**** install s6-overlay & socklog-overlay ****" && \
@@ -71,7 +75,6 @@ RUN echo "**** install dependencies & tools ****" && \
 RUN echo "**** install VDR ****" && \
     $pacinst \
       vdr \
-      vdr-api \
       vdrctl && \
     echo "**** install VDR plugins ****" && \
     $pacinst --batchinstall \
@@ -118,7 +121,6 @@ RUN echo "**** folders and symlinks ****" && \
     echo "**** mark essential packages ****" && \
     pacman -D --asexplicit \
       vdr \
-      vdr-api \
       shadow
 
 RUN echo "**** CleanUp ****" && \
