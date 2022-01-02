@@ -35,3 +35,14 @@ ci_plus="/vdr/cache/plugins/ciplus/"
 if [ -d "$ci_plus" ] && [ ! -z "$(ls -A $ci_plus)" ]; then
 	chmod -f ug+rw *.auth || true
 fi
+
+
+## protect cam.data
+cam_data="/var/cache/vdr/cam.data"
+if [ -f "$cam_data" ]; then
+	if [ "$PROTECT_CAMDATA" = "true" ]; then
+		chmod ug-w $cam_data
+	else
+		chmod ug+w $cam_data
+	fi
+fi

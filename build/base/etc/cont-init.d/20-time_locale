@@ -4,7 +4,8 @@
 if [ -f "/usr/share/zoneinfo/$TZ" ]; then
 	current_tz=$(readlink /etc/localtime)
 	if [[ ! "$current_tz" =~ "$TZ" ]]; then
-		timedatectl set-timezone $TZ
+		rm -rf "/etc/localtime"
+		ln -s "/usr/share/zoneinfo/$TZ" "/etc/localtime"
 		echo "Timezone set to: $TZ"
 	fi
 elif [ ! -f "/usr/share/zoneinfo/$TZ" ]; then

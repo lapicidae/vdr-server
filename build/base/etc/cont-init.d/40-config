@@ -26,15 +26,3 @@ if [ -d "$sys_dir" ]; then
 		chmod 640 $msmtp_conf
 	fi
 fi
-
-
-# protect cam.data
-cam_data="/var/cache/vdr/cam.data"
-if [ -f "$cam_data" ]; then
-	if [ "$PROTECT_CAMDATA" = "true" ]; then
-		chmod ug-w $cam_data
-		echo "$cam_data is now write protected!"
-	else
-		chmod ug+w $cam_data
-	fi
-fi
