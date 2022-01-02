@@ -6,6 +6,7 @@ if [ -f "/usr/share/zoneinfo/$TZ" ]; then
 	if [[ ! "$current_tz" =~ "$TZ" ]]; then
 		rm -rf "/etc/localtime"
 		ln -s "/usr/share/zoneinfo/$TZ" "/etc/localtime"
+		echo $TZ > "/etc/timezone"
 		echo "Timezone set to: $TZ"
 	fi
 elif [ ! -f "/usr/share/zoneinfo/$TZ" ]; then
