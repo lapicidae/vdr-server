@@ -34,8 +34,9 @@ RUN echo "**** configure pacman ****" && \
     sed -i "/$LANG/s/^# *//" /etc/locale.gen && \
     echo "LANG=$LANG" > /etc/locale.conf && \
     locale-gen && \
-    echo "**** bash aliases ****" && \
-    echo -e "\nif [ -f /etc/bash.aliases ]; then\n  . /etc/bash.aliases\nfi" >> /etc/bash.bashrc && \
+    echo "**** bash tweaks ****" && \
+    echo -e "\n[ -r /usr/bin/contenv2env ] && . /usr/bin/contenv2env" >> /etc/bash.bashrc && \
+    echo -e "\n[ -r /etc/bash.aliases ] && . /etc/bash.aliases" >> /etc/bash.bashrc && \
     echo "**** system update ****" && \
     pacman -Su --noconfirm && \
     echo "**** install build packages ****" && \

@@ -26,7 +26,9 @@ if [ -f "$loc_file" ]; then
 		locale-gen
 		echo "Locale set to: $LANG"
 	fi
-	if [ ! -z "$LANGUAGE" ]; then
-		export LANGUAGE=$(echo "$LANG" | cut -d "." -f 1):$(echo "$LANG" | cut -d "_" -f 1)
+	if [ -z "$LANGUAGE" ]; then
+		export LANGUAGE="$(echo "$LANG" | cut -d "." -f 1):$(echo "$LANG" | cut -d "_" -f 1)"
+		printf "%s" "${LANGUAGE}" > /var/run/s6/container_environment/LANGUAGE
+		echo "LANGUAGE variable not found, setting generated one: $LANGUAGE"
 	fi
 fi

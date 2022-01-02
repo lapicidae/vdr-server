@@ -1,0 +1,17 @@
+#!/bin/bash
+#/usr/bin/contenv2env
+
+## Workaround:
+## Making subsequently defined container variables available in bash.
+## in bashrc: [ -r /usr/bin/contenv2env ] && . /usr/bin/contenv2env
+
+ENVDIR="/var/run/s6/container_environment"
+
+if [ -d "$ENVDIR" ]; then
+	for f in $ENVDIR/*; do
+		CONTVAR=$(basename "$f")
+		if [ -z "${!CONTVAR}" ] && [ $CONTVAR != "CWD" ]; then
+			export $CONTVAR=$(redirfd -r 0 "$f" cat)
+		fi
+	done
+fi
