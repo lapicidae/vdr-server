@@ -19,7 +19,8 @@ ADD https://github.com/just-containers/socklog-overlay/releases/download/v3.1.2-
 COPY build/ /
 
 RUN echo "**** configure pacman ****" && \
-    sed -i 's/.*NoExtract.*/NoExtract   = usr\/share\/doc\/* usr\/share\/help\/* usr\/share\/info\/* usr\/share\/man\/*/' /etc/pacman.conf && \
+    sed -i '/NoExtract.*=.*[^\n]*/,$!b;//{x;//p;g};//!H;$!d;x;s//&\nNoExtract   = !usr\/share\/locale\/*\/LC_MESSAGES\/vdr*/' /etc/pacman.conf && \
+    sed -i 's|!usr/share/\*locales/en_??|!usr/share/\*locales/*|g' /etc/pacman.conf && \
     pacman -Sy && \
     echo "**** timezone and locale ****" && \
     rm -f /etc/locale.gen && \

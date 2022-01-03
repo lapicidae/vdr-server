@@ -1,0 +1,10 @@
+[Trigger]
+Operation = Upgrade
+Operation = Remove
+Type = Package
+Target = *
+[Action]
+Description = Keep BusyBox's symlinks up to date...
+Depends = busybox
+When = PostTransaction
+Exec = /usr/sbin/busybox --install -s
