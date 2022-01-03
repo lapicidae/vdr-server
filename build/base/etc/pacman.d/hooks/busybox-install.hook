@@ -1,8 +1,10 @@
 [Trigger]
 Operation = Upgrade
 Operation = Remove
-Type = Package
-Target = *
+Type = Path
+Target = bin/*
+Target = usr/bin/*
+Target = usr/sbin/*
 [Action]
 Description = Keep BusyBox's symlinks up to date...
 Depends = busybox
