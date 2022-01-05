@@ -114,7 +114,7 @@ RUN echo "**** folders and symlinks ****" && \
     echo "**** SMTP client ****" && \
     $pacinst msmtp-mta && \
     curl -o /etc/msmtprc "https://git.marlam.de/gitweb/?p=msmtp.git;a=blob_plain;f=doc/msmtprc-system.example" && \
-    chmod 600 /etc/msmtprc && \
+    chmod 640 /etc/msmtprc && \
     echo "**** backup default files ****" && \
     mkdir -p /defaults/config && \
     mkdir -p /defaults/system && \
