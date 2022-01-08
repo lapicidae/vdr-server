@@ -72,7 +72,13 @@ RUN echo "**** configure pacman ****" && \
     tar xzf /tmp/socklog-overlay-amd64.tar.gz -C /
 
 RUN echo "**** install dependencies & tools ****" && \
-    $pacinst busybox libdvbcsa ttf-vdrsymbols naludump libva-headless ffmpeg-headless
+    $pacinst \
+      busybox \
+      libdvbcsa \
+      ttf-vdrsymbols \
+      naludump \
+      libva-headless \
+      ffmpeg-headless
 
 RUN echo "**** install VDR ****" && \
     $pacinst \
@@ -157,8 +163,8 @@ RUN echo "**** CleanUp ****" && \
     echo "**** install busybox ****" && \
     busybox --install -s
 
-RUN echo "**** move sysfiles ****" && \
-    find /base -type d -exec chmod 775 {} \; && \
+RUN echo "**** move provided files ****" && \
+    find /base -type d -exec chmod 755 {} \; && \
     cp -Rlf /base/* / && \
     rm -rf /base
 
