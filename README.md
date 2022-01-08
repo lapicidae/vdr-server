@@ -8,7 +8,7 @@ The Video Disk Recorder ([VDR](http://www.tvdr.de/)) is a free, non-commercial p
 [![GitHub Stars](https://img.shields.io/github/stars/lapicidae/vdr-server.svg?color=3c0e7b&labelColor=555555&logoColor=ffffff&style=for-the-badge&logo=github)](https://github.com/lapicidae/vdr-server)
 [![Docker Pulls](https://img.shields.io/docker/pulls/lapicidae/vdr-server.svg?color=3c0e7b&labelColor=555555&logoColor=ffffff&style=for-the-badge&label=pulls&logo=docker)](https://hub.docker.com/r/lapicidae/vdr-server)
 [![Docker Stars](https://img.shields.io/docker/stars/lapicidae/vdr-server.svg?color=3c0e7b&labelColor=555555&logoColor=ffffff&style=for-the-badge&label=stars&logo=docker)](https://hub.docker.com/r/lapicidae/vdr-server)
-[![GitHub Checks](https://img.shields.io/github/checks-status/lapicidae/vdr-server/master?label=build%20check&color=3c0e7b&labelColor=555555&logoColor=ffffff&style=for-the-badge&logo=jenkins)](https://github.com/lapicidae/vdr-server/commits)
+[![GitHub Checks](https://img.shields.io/github/checks-status/lapicidae/vdr-server/master?label=build%20check&labelColor=555555&logoColor=ffffff&style=for-the-badge&logo=jenkins)](https://github.com/lapicidae/vdr-server/commits)
 
 
 Image based on [Arch Linux](https://hub.docker.com/_/archlinux), [VDR4Arch](https://github.com/VDR4Arch/vdr4arch), [s6-overlay](https://github.com/just-containers/s6-overlay) and [socklog-overlay](https://github.com/just-containers/socklog-overlay).
@@ -19,10 +19,10 @@ Image based on [Arch Linux](https://hub.docker.com/_/archlinux), [VDR4Arch](http
 * regular and timely application updates
 * easy user mappings (PGID, PUID)
 * regular security updates
-* plugin [ciplus](https://github.com/ciminus/vdr-plugin-ciplus) and [ddci2](https://github.com/jasmin-j/vdr-plugin-ddci2) support
-* msmtprc - a very simple and easy to use SMTP client with fairly complete sendmail compatibility
+* plugin [ciplus](https://github.com/ciminus/vdr-plugin-ciplus), [ddci2](https://github.com/jasmin-j/vdr-plugin-ddci2) and [dvbapi](https://github.com/manio/vdr-plugin-dvbapi) support
+* eMail notifications via [msmtprc](https://marlam.de/msmtp/) - a very simple and easy to use SMTP client
 
-### Note
+### *Note*
 The image is automatically rebuilt when any of the following sources receive an update:
 
 * [Arch Linux](https://hub.docker.com/_/archlinux) Official Docker Image - latest
@@ -33,14 +33,17 @@ The image is automatically rebuilt when any of the following sources receive an 
 
 Please read the [VDR Wiki](http://www.vdr-wiki.de/).
 
-Webui can be found at `http://<your-ip>:8008`.  
+Webui ([live plugin](https://github.com/MarkusEh/vdr-plugin-live)) can be found at `http://<your-ip>:8008`.  
 Most VDR settings can be edited via the webui remote.
 
 
 ## Usage
 Here are some example snippets to help you get started creating a container.
 
-### docker-compose (recommended)
+> :warning: **WARNING: The first start might be slow.**  
+> The first start can take longer, as non-integrated plugins are built from the AUR.
+
+### *docker-compose (recommended)*
 
 Compatible with docker-compose v2 schemas.
 ```yaml
@@ -72,7 +75,7 @@ services:
     restart: unless-stopped
 ```
 
-### docker cli
+### *docker cli*
 
 ```bash
 docker run -d \
@@ -125,7 +128,7 @@ For example, `-p 8080:80` would expose port `80` from inside the container to be
 | `-v /vdr/timeshift` | VNSI Time-Shift Buffer Directory. |
 | `--device /dev/dvb` | Only needed if you want to pass through a DVB card to the container. |
 
-### Hint
+### *Hint*
 If you want to use VDRs `"SetSystemTime = 1"` use parameter `"--cap-add=SYS_TIME"` **(untested)**
 
 
@@ -135,11 +138,11 @@ When using volumes (`-v` flags) permissions issues can arise between the host OS
 
 Ensure any volume directories on the host are owned by the same user you specify and any permissions issues will vanish like magic.
 
-In this instance `PUID=1000` and `PGID=1000`, to find yours use `id user` as below:
+In this instance `PUID=1234` and `PGID=4321`, to find yours use `id user` as below:
 
 ```bash
   $ id username
-    uid=1000(dockeruser) gid=1000(dockergroup) groups=1000(dockergroup)
+    uid=1234(dockeruser) gid=4321(dockergroup) groups=4321(dockergroup)
 ```
 
 
