@@ -8,6 +8,7 @@ declare -a chmown=("/etc/vdr"
 		   "/srv/vdr/video"
 		   "/var/cache/vdr"
 		   "/var/lib/vdr"
+		   "/vdr/timeshift"
 		  )
 
 for f in "${chmown[@]}"

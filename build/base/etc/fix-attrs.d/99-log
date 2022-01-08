@@ -1,1 +1,1 @@
-/vdr/log true nobody:nogroup 0664 0755
+/vdr/log true nobody:nobody 0664 0755
