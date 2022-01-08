@@ -66,18 +66,16 @@ RUN echo "**** configure pacman ****" && \
     cd /tmp && \
     echo "**** install s6-overlay & socklog-overlay ****" && \
     chmod +x /tmp/s6-overlay-amd64-installer && /tmp/s6-overlay-amd64-installer / && \
-    tar xzf /tmp/socklog-overlay-amd64.tar.gz -C /
-
-RUN echo "**** install dependencies & tools ****" && \
+    tar xzf /tmp/socklog-overlay-amd64.tar.gz -C / && \
+    echo "**** install dependencies & tools ****" && \
     $pacinst \
       busybox \
       libdvbcsa \
       ttf-vdrsymbols \
       naludump \
       libva-headless \
-      ffmpeg-headless
-
-RUN echo "**** install VDR ****" && \
+      ffmpeg-headless && \
+    echo "**** install VDR ****" && \
     $pacinst \
       vdr \
       vdrctl && \
@@ -115,9 +113,8 @@ RUN echo "**** install VDR ****" && \
     $pacinst \
       tntnet \
       vdr-live && \
-    cd /tmp
-
-RUN echo "**** folders and symlinks ****" && \
+    cd /tmp && \
+    echo "**** folders and symlinks ****" && \
     mkdir -p /vdr/timeshift && \
     ln -s /var/lib/vdr /vdr/config && \
     ln -s /etc/vdr /vdr/system && \
@@ -141,9 +138,8 @@ RUN echo "**** folders and symlinks ****" && \
     echo "**** mark essential packages ****" && \
     pacman -D --asexplicit \
       vdr \
-      shadow
-
-RUN echo "**** CleanUp ****" && \
+      shadow && \
+    echo "**** CleanUp ****" && \
     rm -rf \
       /tmp/* \
       /var/tmp/* && \
