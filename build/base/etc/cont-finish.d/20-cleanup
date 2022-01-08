@@ -1,0 +1,7 @@
+#!/usr/bin/with-contenv bash
+
+echo "clean paru/pacman cache directorys..."
+paru --noconfirm -Sccd 1>/dev/null
+
+echo "clean paru build directory..."
+find "/var/cache/paru" -mindepth 1 -maxdepth 1 -type d -not -path '*/\.*' -exec rm -rf {} \;
