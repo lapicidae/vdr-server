@@ -20,9 +20,14 @@ if [ -d "$sys_dir" ]; then
 
 	# eMail config (msmtp)
 	msmtp_conf="/etc/msmtprc"
-	if [ -f "$sys_dir/eMail.conf" ]; then
-		cp -f $sys_dir/eMail.conf $msmtp_conf
-		chown root:root $msmtp_conf
-		chmod 640 $msmtp_conf
+	msmtp_conf_new="$sys_dir/eMail.conf"
+	if [ -f "$msmtp_conf_new" ]; then
+		CONF_COMP="$(cmp --silent $msmtp_conf $msmtp_conf_new; echo $?)"
+		if [ $CONF_COMP != "0" ]; then	# only if files are not the same
+			echo "Copy new eMail config"
+			cp -f "$msmtp_conf_new" "$msmtp_conf"
+			chown root:root $msmtp_conf
+			chmod 640 $msmtp_conf
+		fi
 	fi
 fi
