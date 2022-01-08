@@ -18,8 +18,10 @@ echo '
 echo '
 GID/UID
 --------------------------------------------------------------'
-echo "
-User uid:    $(id -u vdr)
-User gid:    $(id -g vdr)
+echo -e "
+User uid:\t$(id -u vdr)
+User gid:\t$(id -g vdr)\n
+Language:\t$LANG
+Timezone:\t$TZ
 --------------------------------------------------------------
 "

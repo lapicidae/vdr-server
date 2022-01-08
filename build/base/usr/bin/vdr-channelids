@@ -6,7 +6,7 @@ BEGIN	{ print "//\t\t###### VDR Channel-IDs ######" }
 	{
 		if ($0 ~ /^(#|$)/) { next }	# Skip Comments
 		#if ($0 ~ /^(:|$)/ ) { next; }	# Skip Groups
-		if ($0 ~ /^(:|$)/)	# Groups
+		if ($0 ~ /^(:|$)/)		# Groups
 		{
 			grp=substr($0,2)
 			print "// Group:\t" grp
