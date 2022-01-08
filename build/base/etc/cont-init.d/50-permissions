@@ -1,6 +1,5 @@
 #!/usr/bin/with-contenv bash
 
-### User and group assignments should be in "/etc/fix-attrs.d/"
 ### !!! this file is also called at finish !!!
 
 

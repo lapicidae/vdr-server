@@ -56,6 +56,7 @@ RUN echo "**** configure pacman ****" && \
     sudo -u builduser makepkg -s --noconfirm && \
     cd $buildDir && \
     pacman --noconfirm -U */*.pkg.tar.zst && \
+    sed -i "/^\[options\].*/a SkipReview" /etc/paru.conf && \
     sed -i "/^\[options\].*/a CloneDir = /var/cache/paru" /etc/paru.conf && \
     sed -i "/CleanAfter/s/^# *//" /etc/paru.conf && \
     sed -i "/RemoveMake/s/^# *//" /etc/paru.conf && \
