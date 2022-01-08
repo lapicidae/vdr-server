@@ -15,7 +15,7 @@ fi
 
 # system
 if [ -d "$sys_dir" ]; then
-	# delete orphaned plugin links
+	# delete orphaned vdr plugin links
 	find "$sys_dir/conf.d" -xtype l -delete
 
 	# eMail config (msmtp)
