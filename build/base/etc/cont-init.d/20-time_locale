@@ -37,9 +37,4 @@ if [ ! -z "$LANG" ] && [ -f "$loc_file" ]; then
 		printf "%s" "${LANGUAGE}" > /var/run/s6/container_environment/LANGUAGE
 		echo -e "LANGUAGE set to: $LANGUAGE"
 	fi
-	if [ -z "$LC_ALL" ]; then
-		export LC_ALL="$LANG"
-		printf "%s" "${LC_ALL}" > /var/run/s6/container_environment/LC_ALL
-		echo "LC_ALL set to: $LC_ALL"
-	fi
 fi

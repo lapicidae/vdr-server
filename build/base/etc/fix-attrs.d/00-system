@@ -1,6 +1,6 @@
-/etc false root 0664 0755
-/usr false root 0664 0755
-/usr/bin false root 0664 0755
-/usr/lib false root 0664 0755
-/usr/lib/vdr false root 0664 0755
+/etc false root 0644 0755
+/usr false root 0644 0755
+/usr/bin false root 0644 0755
+/usr/lib false root 0644 0755
+/usr/lib/vdr false root 0644 0755
 /var/cache/paru false root:users 0664 0775
