@@ -62,8 +62,8 @@ services:
       - /path/to/config:/vdr/config
       - /path/to/recordings:/vdr/recordings
       - /path/to/cache:/vdr/cache
-      - /path/to/timeshift:/vdr/timeshift #optional
       - /path/to/log:/vdr/log #optional
+      - /path/to/timeshift:/vdr/timeshift #optional
     ports:
       - 8008:8008
       - 6419:6419 #optional
@@ -93,8 +93,8 @@ docker run -d \
   -v /path/to/config:/vdr/config \
   -v /path/to/recordings:/vdr/recordings \
   -v /path/to/cache:/vdr/cache \
-  -v /path/to/timeshift:/vdr/timeshift `#optional` \
   -v /path/to/log:/vdr/log `#optional` \
+  -v /path/to/timeshift:/vdr/timeshift `#optional` \
   --device /dev/dvb:/dev/dvb `#optional` \
   --restart unless-stopped \
   --cap-add=SYS_TIME `#optional: read hint!` \
@@ -129,6 +129,7 @@ For example, `-p 8080:80` would expose port `80` from inside the container to be
 | `-v /vdr/config` | Config files (e.g. `setup.conf` or `channels.conf`) |
 | `-v /vdr/recordings` | Recording directory (aka video directory). |
 | `-v /vdr/cache` | Cache files (e.g. `epgimages` or `cam.data`) |
+| `-v /vdr/log` | Logfiles if `LOG2FILE=true` |
 | `-v /vdr/timeshift` | VNSI Time-Shift Buffer Directory. |
 | `--device /dev/dvb` | Only needed if you want to pass through a DVB card to the container. |
 
