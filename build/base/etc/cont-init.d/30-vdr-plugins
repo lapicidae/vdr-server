@@ -23,6 +23,13 @@ readarray -t enabled_arr < <(vdrctl list --enabled)
 plug_arr=($PLUGINS)
 
 
+# force live plugin if not explicitly disabled
+if [[ ! "${plug_arr[@]}" =~ "live" ]] && [ "$DISABLE_WEBINTERFACE" != "true" ]; then
+	echo "Keep live plugin enabled..."
+	plug_arr+=("live")
+fi
+
+
 _isAvailable() {
 	plugin=$1;
 	avail=$($pac_man -Ssq $plugin | grep "^$plugin$")

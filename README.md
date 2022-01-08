@@ -121,6 +121,7 @@ For example, `-p 8080:80` would expose port `80` from inside the container to be
 | `-e LANG=en_US.UTF-8` | Default locale; see [list](https://sourceware.org/git/?p=glibc.git;a=blob_plain;f=localedata/SUPPORTED;hb=HEAD) (e.g. en_US.UTF-8) |
 | `-e PLUGINS=epgsearch live streamdev-server vnsiserver` | Optional - **Space separated** list of [VDR Plugins](https://github.com/VDR4Arch/vdr4arch/tree/master/plugins) (default: `epgsearch live streamdev-server vnsiserver`). |
 | `-e PROTECT_CAMDATA=true` | Optional - Write protect `cam.data` to avoid unwanted changes. |
+| `-e DISABLE_WEBINTERFACE=true` | Optional - Disable webinterface (live plugin) |
 | `-v /vdr/system` | Start parameters, recording hooks and msmtprc config. |
 | `-v /vdr/config` | Config files (e.g. `setup.conf` or `channels.conf`) |
 | `-v /vdr/recordings` | Recording directory (aka video directory). |
