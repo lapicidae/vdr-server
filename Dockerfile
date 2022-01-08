@@ -10,7 +10,8 @@ ENV LANG="en_US.UTF-8" \
 ARG LANGUAGE="en_US:en_GB:en" \
     pacinst="sudo -u builduser paru --nouseask --removemake --cleanafter --noconfirm --clonedir /var/cache/paru -S" \
     pacdown="sudo -u builduser paru --getpkgbuild --clonedir /var/cache/paru" \
-    pacbuild="sudo -u builduser paru --nouseask --removemake --cleanafter --noconfirm -Ui"
+    pacbuild="sudo -u builduser paru --nouseask --removemake --cleanafter --noconfirm -Ui" \
+    buildDir="/var/cache/paru"
 
 ADD https://github.com/just-containers/s6-overlay/releases/download/v2.2.0.3/s6-overlay-amd64-installer /tmp/
 
@@ -23,13 +24,12 @@ RUN echo "**** configure pacman ****" && \
     sed -i 's|!usr/share/\*locales/en_??|!usr/share/\*locales/*|g' /etc/pacman.conf && \
     pacman -Sy && \
     echo "**** timezone and locale ****" && \
-    rm -f /etc/locale.gen && \
     pacman -S glibc --overwrite=* --noconfirm && \
-    curl -o /etc/locale.gen "https://sourceware.org/git/?p=glibc.git;a=blob_plain;f=localedata/SUPPORTED;hb=HEAD" && \
-    sed -i -e '1,3d' -e 's|/| |g' -e 's|\\| |g' -e 's|^|#|g' /etc/locale.gen && \
     rm -f /etc/localtime && \
     ln -s /usr/share/zoneinfo/$TZ /etc/localtime && \
     echo $TZ > /etc/timezone && \
+    curl -o /etc/locale.gen "https://sourceware.org/git/?p=glibc.git;a=blob_plain;f=localedata/SUPPORTED;hb=HEAD" && \
+    sed -i -e '1,3d' -e 's|/| |g' -e 's|\\| |g' -e 's|^|#|g' /etc/locale.gen && \
     sed -i '/#  /d' /etc/locale.gen && \
     sed -i '/en_US.UTF-8/s/^# *//' /etc/locale.gen && \
     sed -i "/$LANG/s/^# *//" /etc/locale.gen && \
@@ -46,26 +46,22 @@ RUN echo "**** configure pacman ****" && \
       git \
       sudo && \
     echo "**** add builduser ****" && \
-    useradd --system --create-home --no-user-group --home-dir /var/cache/paru/.user builduser && \
+    useradd --system --create-home --no-user-group --home-dir $buildDir/.user builduser && \
     echo -e "root ALL=(ALL) ALL\nbuilduser ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers && \
     echo "**** install paru-bin ****" && \
-    export buildDir="/tmp/paru" && \
-    mkdir -p $buildDir && \
     cd $buildDir && \
-    git clone https://aur.archlinux.org/paru-bin.git && \
+    git clone https://aur.archlinux.org/paru-bin.git paru-bin && \
+    chown -R builduser:users paru-bin && \
     cd paru-bin && \
-    chown -R builduser $buildDir/paru-bin && \
     sudo -u builduser makepkg -s --noconfirm && \
     cd $buildDir && \
     pacman --noconfirm -U */*.pkg.tar.zst && \
-    rm -rf $buildDir && \
     sed -i "/^\[options\].*/a CloneDir = /var/cache/paru" /etc/paru.conf && \
     sed -i "/CleanAfter/s/^# *//" /etc/paru.conf && \
     sed -i "/RemoveMake/s/^# *//" /etc/paru.conf && \
-    mkdir -p /var/cache/paru && \
-    chmod 775 /var/cache/paru && \
-    chgrp users /var/cache/paru && \
-    unset buildDir && \
+    mkdir -p $buildDir && \
+    chmod 775 $buildDir && \
+    chgrp users $buildDir && \
     cd /tmp && \
     echo "**** install s6-overlay & socklog-overlay ****" && \
     chmod +x /tmp/s6-overlay-amd64-installer && /tmp/s6-overlay-amd64-installer / && \
@@ -90,19 +86,34 @@ RUN echo "**** install VDR ****" && \
       vdr-streamdev-server \
       vdr-vnsiserver && \
     echo "**** install VDR plugin ddci2 ****" && \
-    cd /tmp && \
+    cd $buildDir && \
     $pacdown vdr-ddci2 && \
+    sed -i "s/vdr-api=/vdr-api>=/g" vdr-ddci2/PKGBUILD && \
+    chown -R builduser:users vdr-ddci2 && \
     cd vdr-ddci2 && \
-    sed -i "s/vdr-api=/vdr-api>=/g" PKGBUILD && \
     $pacbuild && \
     echo "**** install VDR plugin ciplus ****" && \
-    cd /tmp && \
-    git clone https://github.com/lmaresch/vdr-ciplus.git && \
+    cd $buildDir && \
+    git clone https://github.com/lmaresch/vdr-ciplus.git vdr-ciplus && \
+    sed -i "s/vdr-api=/vdr-api>=/g" vdr-ciplus/PKGBUILD && \
+    cp /tmp/addlib.patch $buildDir/vdr-ciplus && \
+    awk '1;/prepare()/{c=2}c&&!--c{print "  patch -p1 < ../../addlib.patch"}' vdr-ciplus/PKGBUILD > tmp && mv tmp vdr-ciplus/PKGBUILD && \
+    chown -R builduser:users vdr-ciplus && \
     cd vdr-ciplus && \
-    sed -i "s/vdr-api=/vdr-api>=/g" PKGBUILD && \
-    awk '1;/prepare()/{c=2}c&&!--c{print "  patch -p1 < /tmp/addlib.patch"}' PKGBUILD > tmp && mv tmp PKGBUILD && \
-    chown -R builduser /tmp/vdr-ciplus && \
     $pacbuild && \
+    echo "**** install VDR plugin live ****" && \
+    cd $buildDir && \
+    echo "install cxxtools" && \
+    mkdir -p cxxtools && \
+    curl -o cxxtools/PKGBUILD "https://raw.githubusercontent.com/VDR4Arch/vdr4arch/master/deps/cxxtools/PKGBUILD" && \
+    chown -R builduser:users cxxtools && \
+    cd cxxtools && \
+    $pacbuild && \
+    echo "install tntnet & vdr-live" && \
+    cd $buildDir && \
+    $pacinst \
+      tntnet \
+      vdr-live && \
     cd /tmp
 
 RUN echo "**** folders and symlinks ****" && \
@@ -157,9 +168,10 @@ RUN echo "**** CleanUp ****" && \
       pciutils \
       systemd \
       systemd-sysvcompat && \
-    pacman --noconfirm -Scc && \
+    paru --noconfirm -Sccd && \
     find /etc -type f -name "*.pacnew" -delete && \
     find /etc -type f -name "*.pacsave" -delete && \
+    find "$buildDir" -mindepth 1 -maxdepth 1 -type d -not -path '*/\.*' -exec rm -rf {} \; && \
     echo "**** install busybox ****" && \
     busybox --install -s
 
