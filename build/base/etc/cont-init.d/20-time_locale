@@ -17,7 +17,7 @@ fi
 ## set locale
 loc_file="/etc/locale.gen"
 
-if [ -f "$loc_file" ]; then
+if [ ! -z "$LANG" ] && [ -f "$loc_file" ]; then
 	default_loc="en_US.UTF-8 UTF-8"
 	loc_active=$(grep -v "^#" "$loc_file" | grep -v "^$" | grep -v "$default_loc" | cut -d " " -f1)
 	if [ -z "$loc_active" ]; then
@@ -31,9 +31,15 @@ if [ -f "$loc_file" ]; then
 		locale-gen
 		echo "Locale set to: $LANG"
 	fi
+	## set missing env locale
 	if [ -z "$LANGUAGE" ]; then
 		export LANGUAGE="$(echo "$LANG" | cut -d "." -f 1):$(echo "$LANG" | cut -d "_" -f 1)"
 		printf "%s" "${LANGUAGE}" > /var/run/s6/container_environment/LANGUAGE
-		echo "LANGUAGE variable not found, setting generated one: $LANGUAGE"
+		echo -e "LANGUAGE set to: $LANGUAGE"
+	fi
+	if [ -z "$LC_ALL" ]; then
+		export LC_ALL="$LANG"
+		printf "%s" "${LC_ALL}" > /var/run/s6/container_environment/LC_ALL
+		echo "LC_ALL set to: $LC_ALL"
 	fi
 fi
