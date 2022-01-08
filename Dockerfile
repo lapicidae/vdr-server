@@ -115,6 +115,7 @@ RUN echo "**** configure pacman ****" && \
       vdr-live && \
     cd /tmp && \
     echo "**** folders and symlinks ****" && \
+    mkdir -p /vdr/log && \
     mkdir -p /vdr/timeshift && \
     ln -s /var/lib/vdr /vdr/config && \
     ln -s /etc/vdr /vdr/system && \

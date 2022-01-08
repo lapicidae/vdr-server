@@ -62,7 +62,8 @@ services:
       - /path/to/config:/vdr/config
       - /path/to/recordings:/vdr/recordings
       - /path/to/cache:/vdr/cache
-      - /opt/vc/lib:/vdr/timeshift #optional
+      - /path/to/timeshift:/vdr/timeshift #optional
+      - /path/to/log:/vdr/log #optional
     ports:
       - 8008:8008
       - 6419:6419 #optional
@@ -92,7 +93,8 @@ docker run -d \
   -v /path/to/config:/vdr/config \
   -v /path/to/recordings:/vdr/recordings \
   -v /path/to/cache:/vdr/cache \
-  -v /opt/vc/lib:/vdr/timeshift `#optional` \
+  -v /path/to/timeshift:/vdr/timeshift `#optional` \
+  -v /path/to/log:/vdr/log `#optional` \
   --device /dev/dvb:/dev/dvb `#optional` \
   --restart unless-stopped \
   --cap-add=SYS_TIME `#optional: read hint!` \
@@ -120,6 +122,7 @@ For example, `-p 8080:80` would expose port `80` from inside the container to be
 | `-e TZ=Europe/London` | Specify a [timezone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List) to use (e.g. Europe/London). |
 | `-e LANG=en_US.UTF-8` | Default locale; see [list](https://sourceware.org/git/?p=glibc.git;a=blob_plain;f=localedata/SUPPORTED;hb=HEAD) (e.g. en_US.UTF-8) |
 | `-e PLUGINS=epgsearch live streamdev-server vnsiserver` | Optional - **Space separated** list of [VDR Plugins](https://github.com/VDR4Arch/vdr4arch/tree/master/plugins) (default: `epgsearch live streamdev-server vnsiserver`). |
+| `-e LOG2FILE=true` | Optional - Write log to file in `/vdr/log` |
 | `-e PROTECT_CAMDATA=true` | Optional - Write protect `cam.data` to avoid unwanted changes. |
 | `-e DISABLE_WEBINTERFACE=true` | Optional - Disable webinterface (live plugin) |
 | `-v /vdr/system` | Start parameters, recording hooks and msmtprc config. |
