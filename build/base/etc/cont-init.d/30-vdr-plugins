@@ -32,67 +32,70 @@ fi
 
 _isAvailable() {
 	plugin=$1;
-	avail=$($pac_man -Ssq $plugin | grep "^$plugin$")
+	avail=$($pac_man -Ssq "$plugin" 2> /dev/null | grep "^$plugin$")
 	if [ ! -z "$avail" ]; then
-		echo 0
+		echo 0	# Success
 	else
-		echo 1
+		echo 1	# Error
 	fi
 }
 
 _isInstalled() {
 	package=$1
-	$pac_man -Qi "${package}" &> /dev/null
+	$pac_man -Qi "$package" &> /dev/null
 	echo $?
 }
 
 _isEnabled() {
 	plugin=$1;
 	enabled=$(vdrctl list --enabled | grep "^$1$")
-	if [[ "${enabled_arr[@]}" =~ "${plugin}" ]]; then
-		echo 0
+	if [[ "${enabled_arr[@]}" =~ "$plugin" ]]; then
+		echo 0	# Success
 	else
-		echo 1
+		echo 1	# Error
 	fi
 }
 
 
-typeset -i h=0 max_h=${#enabled_arr[*]};
-while (( h < max_h )); do
-	plug=${enabled_arr[$h]}
-	pacname="vdr-$plug"
-
+for en_plug in  "${enabled_arr[@]}"; do
 	# Plugin not in list
-	if [[ ! "${plug_arr[@]}" =~ "${plug}" ]]; then
-		vdrctl disable "${plug}"
-		echo "Plugin ${plug} disabled."
+	if [[ ! "${plug_arr[@]}" =~ "$en_plug" ]]; then
+		vdrctl disable "$en_plug" && echo "Plugin $en_plug disabled."
 		if [ "$UNINSTALL_PLUGINS" = "true" ]; then
-			echo "Plugin ${plug} uninstalled."
+			echo "Plugin $en_plug not uninstalled.!"
 			echo -e "Uninstalling VDR plugins is currently not supported.\nPlease rebuild the container instead."
 		fi
 	fi
-
-	h=h+1
 done
 
 
-typeset -i i=0 max_i=${#plug_arr[*]};
-while (( i < max_i )); do
-	plug=${plug_arr[$i]}
+for plug in  "${plug_arr[@]}"; do
 	pacname="vdr-$plug"
 
-	# Plugin not installed
-	if [ $(_isInstalled "${pacname}") = "1" ] && [ $(_isAvailable "${pacname}") = "0" ]; then
-		echo "Plugin ${plug} is not installed."
-		## use "overwrite" because of busybox
-		$installer -S --overwrite "/usr/bin/*" --noconfirm ${pacname}
+	# Plugin available
+	if [ $(_isAvailable "$pacname") = "0" ]; then
+		plg_avail="true"
+	else
+		plg_avail="false"
+		echo "Plugin $plug is not available!"
 	fi
 
 	# Plugin installed
-	if [ $(_isInstalled "${pacname}") = "0" ] && [ $(_isEnabled "${plug}") = "1" ]; then
-		vdrctl enable "${plug}"
-		echo "Plugin ${plug} enabled."
+	if [ $(_isInstalled "$pacname") = "0" ]; then
+		plg_inst="true"
+	else
+		plg_inst="false"
+		echo "Plugin $plug is not installed."
+	fi
+	
+	# Plugin not installed and available
+	if [ $plg_inst != "true" ] && [ $plg_avail = "true" ]; then
+		## use "overwrite" because of busybox
+		$installer -S --overwrite "/usr/bin/*" --noconfirm "$pacname"
 	fi
 
-	i=i+1
+	# Plugin installed and disabled
+	if [ $plg_inst = "true" ] && [ $(_isEnabled "$plug") = "1" ]; then
+		vdrctl enable "$plug" && echo "Plugin $plug enabled."
+	fi
 done
