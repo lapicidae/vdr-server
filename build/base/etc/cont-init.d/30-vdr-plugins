@@ -87,7 +87,7 @@ for plug in  "${plug_arr[@]}"; do
 		plg_inst="false"
 		echo "Plugin $plug is not installed."
 	fi
-	
+
 	# Plugin not installed and available
 	if [ $plg_inst != "true" ] && [ $plg_avail = "true" ]; then
 		## use "overwrite" because of busybox
