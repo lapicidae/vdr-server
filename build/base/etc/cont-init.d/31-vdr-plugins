@@ -11,7 +11,7 @@ fi
 
 if [ "$AUR" = "false" ]; then
 	pac_man="pacman"
-	installer=$pac_man
+	installer="$pac_man"
 elif [ -z "$AUR" ] || [ "$AUR" != "false" ]; then
 	AUR="true"
 	bUser="builduser"
@@ -21,6 +21,21 @@ fi
 
 readarray -t enabled_arr < <(vdrctl list --enabled)
 plug_arr=($PLUGINS)
+
+
+# plugins added by user
+uplug_conf="/etc/cont.conf/user_plugins.conf"
+
+if [ -f "$uplug_conf" ]; then
+	while read -r uplug; do
+		if [[ "$uplug" =~ ^#.*$ ]]; then
+			continue
+		else
+			echo "User plugin '$uplug' was recognized..."
+			plug_arr+=("$uplug")
+		fi
+	done < "$uplug_conf"
+fi
 
 
 # force live plugin if not explicitly disabled
@@ -58,11 +73,11 @@ _isEnabled() {
 
 
 for en_plug in  "${enabled_arr[@]}"; do
-	# Plugin not in list
+	# Plugin not in array but enabled
 	if [[ ! "${plug_arr[@]}" =~ "$en_plug" ]]; then
 		vdrctl disable "$en_plug" && echo "Plugin $en_plug disabled."
 		if [ "$UNINSTALL_PLUGINS" = "true" ]; then
-			echo "Plugin $en_plug not uninstalled.!"
+			echo "Plugin $en_plug not uninstalled!"
 			echo -e "Uninstalling VDR plugins is currently not supported.\nPlease rebuild the container instead."
 		fi
 	fi
@@ -88,10 +103,10 @@ for plug in  "${plug_arr[@]}"; do
 		echo "Plugin $plug is not installed."
 	fi
 
-	# Plugin not installed and available
+	# Plugin not installed but available
 	if [ $plg_inst != "true" ] && [ $plg_avail = "true" ]; then
 		## use "overwrite" because of busybox
-		$installer -S --overwrite "/usr/bin/*" --noconfirm "$pacname"
+		$installer -S --overwrite "/usr/bin/*" --noprogressbar --noconfirm "$pacname"
 	fi
 
 	# Plugin installed and disabled

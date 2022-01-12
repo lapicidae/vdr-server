@@ -9,8 +9,8 @@ ENV LANG="en_US.UTF-8" \
 
 ARG LANGUAGE="en_US:en_GB:en" \
     pacinst="sudo -u builduser paru --nouseask --removemake --cleanafter --noconfirm --clonedir /var/cache/paru -S" \
-    pacdown="sudo -u builduser paru --getpkgbuild --clonedir /var/cache/paru" \
-    pacbuild="sudo -u builduser paru --nouseask --removemake --cleanafter --noconfirm -Ui" \
+    pacdown="sudo -u builduser paru --getpkgbuild --noprogressbar --clonedir /var/cache/paru" \
+    pacbuild="sudo -u builduser paru --cleanafter --noconfirm --noprogressbar --nouseask --removemake -Ui" \
     buildDir="/var/cache/paru"
 
 ADD https://github.com/just-containers/s6-overlay/releases/download/v2.2.0.3/s6-overlay-amd64-installer /tmp/
@@ -22,6 +22,8 @@ COPY build/ /
 RUN echo "**** configure pacman ****" && \
     sed -i '/NoExtract.*=.*[^\n]*/,$!b;//{x;//p;g};//!H;$!d;x;s//&\nNoExtract   = !usr\/share\/locale\/*\/LC_MESSAGES\/vdr*/' /etc/pacman.conf && \
     sed -i 's|!usr/share/\*locales/en_??|!usr/share/\*locales/*|g' /etc/pacman.conf && \
+    pacman-key --init && \
+    pacman-key --populate archlinux && \
     pacman -Sy && \
     echo "**** timezone and locale ****" && \
     pacman -S glibc --overwrite=* --noconfirm && \
@@ -117,12 +119,13 @@ RUN echo "**** configure pacman ****" && \
     echo "**** folders and symlinks ****" && \
     mkdir -p /vdr/log && \
     mkdir -p /vdr/timeshift && \
-    ln -s /var/lib/vdr /vdr/config && \
+    ln -s /etc/PKGBUILD.d /vdr/pkgbuild && \
     ln -s /etc/vdr /vdr/system && \
-    ln -s /var/cache/vdr /vdr/cache && \
     ln -s /srv/vdr/video /vdr/recordings && \
     ln -s /usr/lib/vdr/bin/shutdown-wrapper /usr/bin/shutdown-wrapper && \
     ln -s /usr/lib/vdr/bin/vdr-recordingaction /usr/bin/vdr-recordingaction && \
+    ln -s /var/cache/vdr /vdr/cache && \
+    ln -s /var/lib/vdr /vdr/config && \
     echo "**** vdr config ****" && \
     mv /etc/vdr/conf.avail/50-ddci2.conf /etc/vdr/conf.avail/10-ddci2.conf && \
     mv /etc/vdr/conf.avail/50-dvbapi.conf /etc/vdr/conf.avail/20-dvbapi.conf && \
@@ -150,7 +153,6 @@ RUN echo "**** configure pacman ****" && \
       cryptsetup \
       dbus \
       device-mapper \
-      hwids \
       iptables \
       iproute2 \
       json-c \
@@ -171,16 +173,15 @@ RUN echo "**** configure pacman ****" && \
     find /etc -type f -name "*.pacsave" -delete && \
     find "$buildDir" -mindepth 1 -maxdepth 1 -type d -not -path '*/\.*' -exec rm -rf {} \; && \
     echo "**** install busybox ****" && \
-    busybox --install -s
-
-RUN echo "**** move provided files ****" && \
+    busybox --install -s && \
+    echo "**** move provided files ****" && \
     find /base -type d -exec chmod 755 {} \; && \
     cp -Rlf /base/* / && \
     rm -rf /base
 
 WORKDIR /vdr
 
-EXPOSE 2004 3000 6419 6419/udp 8008 8009 34890
+EXPOSE 3000 8008 34890
 
 VOLUME ["/vdr/cache", "/vdr/config", "/vdr/recordings", "/vdr/system"]
 

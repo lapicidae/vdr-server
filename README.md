@@ -1,4 +1,4 @@
-[![vdr](https://raw.githubusercontent.com/lapicidae/vdr-server/master/vdr-logo.svg)](http://www.tvdr.de/)
+[![vdr](vdr-logo.svg)](http://www.tvdr.de/)
 
 The Video Disk Recorder ([VDR](http://www.tvdr.de/)) is a free, non-commercial project from Klaus Schmidinger to create a digital video recorder using standard PC components. It is possible to receive, record and playback digital TV broadcasts compatible with the DVB standard.
 
@@ -21,6 +21,8 @@ Image based on [Arch Linux](https://hub.docker.com/_/archlinux), [VDR4Arch](http
 * regular security updates
 * plugin [ciplus](https://github.com/ciminus/vdr-plugin-ciplus), [ddci2](https://github.com/jasmin-j/vdr-plugin-ddci2) and [dvbapi](https://github.com/manio/vdr-plugin-dvbapi) support
 * eMail notifications via [msmtprc](https://marlam.de/msmtp/) - a very simple and easy to use SMTP client
+* integrate your own PKGBUILD packages
+* log to file - via [socklog-overlay](https://github.com/just-containers/socklog-overlay) with built-in log rotation
 
 ### *Note*
 The image is automatically rebuilt when any of the following sources receive an update:
@@ -64,6 +66,7 @@ services:
       - /path/to/cache:/vdr/cache
       - /path/to/log:/vdr/log #optional
       - /path/to/timeshift:/vdr/timeshift #optional
+      - /path/to/pkgbuild:/vdr/pkgbuild
     ports:
       - 8008:8008
       - 6419:6419 #optional
@@ -95,6 +98,7 @@ docker run -d \
   -v /path/to/cache:/vdr/cache \
   -v /path/to/log:/vdr/log `#optional` \
   -v /path/to/timeshift:/vdr/timeshift `#optional` \
+  -v /path/to/pkgbuild:/vdr/pkgbuild `#optional` \
   --device /dev/dvb:/dev/dvb `#optional` \
   --restart unless-stopped \
   --cap-add=SYS_TIME `#optional: read hint!` \
@@ -111,30 +115,32 @@ For example, `-p 8080:80` would expose port `80` from inside the container to be
 | Parameter | Function |
 | :----: | --- |
 | `-p 8008` | Http VDR-Live plugin. |
-| `-p 8009` | Optional - Https VDR-Live plugin (you need to set up your own certificate). |
-| `-p 6419` | Optional - Simple VDR Protocol (SVDRP). |
-| `-p 6419/udp` | Optional - SVDRP Peering. |
-| `-p 2004` | Optional - Streamdev Server (VDR-to-VDR Streaming). |
-| `-p 3000` | Optional - Streamdev Server (HTTP Streaming). |
-| `-p 34890` | Optional - VDR-Network-Streaming-Interface (VNSI). |
+| `-p 3000` | Streamdev Server (HTTP Streaming) [^1] |
+| `-p 8009` | Optional - Https VDR-Live plugin (you need to set up your own certificate) |
+| `-p 6419` | Optional - Simple VDR Protocol (SVDRP) |
+| `-p 6419/udp` | Optional - SVDRP Peering |
+| `-p 2004` | Optional - Streamdev Server (VDR-to-VDR Streaming) |
+| `-p 34890` | Optional - [Kodi](https://kodi.wiki/view/Add-on:VDR_VNSI_Client) VDR-Network-Streaming-Interface (VNSI) |
 | `-e PUID=1000` | for UserID - see below for explanation |
 | `-e PGID=1000` | for GroupID - see below for explanation |
-| `-e TZ=Europe/London` | Specify a [timezone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List) to use (e.g. Europe/London). |
+| `-e TZ=Europe/London` | Specify a [timezone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List) to use (e.g. Europe/London) |
 | `-e LANG=en_US.UTF-8` | Default locale; see [list](https://sourceware.org/git/?p=glibc.git;a=blob_plain;f=localedata/SUPPORTED;hb=HEAD) (e.g. en_US.UTF-8) |
-| `-e PLUGINS=epgsearch live streamdev-server vnsiserver` | Optional - **Space separated** list of [VDR Plugins](https://github.com/VDR4Arch/vdr4arch/tree/master/plugins) (default: `epgsearch live streamdev-server vnsiserver`). |
+| `-e PLUGINS=epgsearch live streamdev-server vnsiserver` | Optional - **Space separated** list of [VDR Plugins](https://github.com/VDR4Arch/vdr4arch/tree/master/plugins) (default: `epgsearch live streamdev-server vnsiserver`) |
 | `-e LOG2FILE=true` | Optional - Write log to file in `/vdr/log` |
 | `-e PROTECT_CAMDATA=true` | Optional - Write protect `cam.data` to avoid unwanted changes. |
 | `-e DISABLE_WEBINTERFACE=true` | Optional - Disable webinterface (live plugin) |
-| `-v /vdr/system` | Start parameters, recording hooks and msmtprc config. |
+| `-v /vdr/system` | Start parameters, recording hooks and msmtprc config |
 | `-v /vdr/config` | Config files (e.g. `setup.conf` or `channels.conf`) |
-| `-v /vdr/recordings` | Recording directory (aka video directory). |
+| `-v /vdr/recordings` | Recording directory (aka video directory) |
 | `-v /vdr/cache` | Cache files (e.g. `epgimages` or `cam.data`) |
 | `-v /vdr/log` | Logfiles if `LOG2FILE=true` |
-| `-v /vdr/timeshift` | VNSI Time-Shift Buffer Directory. |
-| `--device /dev/dvb` | Only needed if you want to pass through a DVB card to the container. |
+| `-v /vdr/timeshift` | VNSI Time-Shift buffer directory |
+| `-v /vdr/pkgbuild` | Build packages: [README](build/base/etc/PKGBUILD.d/README.md) |
+| `--device /dev/dvb` | Only needed if you want to pass through a DVB card to the container |
 
 ### *Hint*
 If you want to use VDRs `"SetSystemTime = 1"` use parameter `"--cap-add=SYS_TIME"` **(untested)**
+[^1]: Simple interface is avalable at `http://<your-ip>:3000`
 
 
 ## User / Group Identifiers

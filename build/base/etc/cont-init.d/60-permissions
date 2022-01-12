@@ -4,7 +4,8 @@
 
 
 ## default mount points (docker volumes)
-declare -a chmown=("/etc/vdr"
+declare -a chmown=("/etc/PKGBUILD.d"
+		   "/etc/vdr"
 		   "/srv/vdr/video"
 		   "/var/cache/vdr"
 		   "/var/lib/vdr"
