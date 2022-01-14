@@ -24,7 +24,7 @@ plug_arr=($PLUGINS)
 
 
 # plugins added by user
-uplug_conf="/etc/cont.conf/user_plugins.conf"
+uplug_conf="/etc/conf.d/user_plugins.conf"
 
 if [ -f "$uplug_conf" ]; then
 	while read -r uplug; do

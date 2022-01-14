@@ -10,7 +10,7 @@ fi
 bUser="builduser"
 pkgb_dir="/etc/PKGBUILD.d"
 buildDir="/var/cache/paru/user_pkg"
-vdrplug_conf="/etc/cont.conf/user_plugins.conf"
+vdrplug_conf="/etc/conf.d/user_plugins.conf"
 pac_man="sudo -u $bUser paru --nouseask --removemake --cleanafter --noconfirm --noprogressbar --overwrite ´/usr/bin/*´ -Ui"
 
 
