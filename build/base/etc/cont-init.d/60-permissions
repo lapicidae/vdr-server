@@ -17,7 +17,7 @@ do
 	echo "Reassign permissions: $f"
 	chown -R vdr:vdr "$f"
 	find "$f" -type d -exec chmod 755 {} \;
-	find "$f" -type f -exec chmod 644 {} \;
+	find "$f" -type f -exec chmod 664 {} \;
 done
 
 

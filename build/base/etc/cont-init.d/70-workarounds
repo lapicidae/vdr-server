@@ -12,25 +12,6 @@ _isEnabled() {
 }
 
 
-## Missing Libraries ##
-if [ "$AUR" = "false" ]; then
-	# libtinyxml2
-	tinyxml2_NEW="/usr/lib/libtinyxml2.so"
-	tinyxml2_OLD="/usr/lib/libtinyxml2.so.7"
-	if [ -f "$tinyxml2_NEW" ] && [ ! -f "$tinyxml2_OLD" ]; then
-		ln -s $tinyxml2_NEW $tinyxml2_OLD
-	fi
-
-
-	# libpython3
-	libpython3_NEW="/usr/lib/libpython3.10.so.1.0"
-	libpython3_OLD="/usr/lib/libpython3.9.so.1.0"
-	if [ -f "$libpython3_NEW" ] && [ ! -f "$libpython3_OLD" ]; then
-		ln -s $libpython3_NEW $libpython3_OLD
-	fi
-fi
-
-
 ## VDR Plugins ##
 
 # epgsearch
