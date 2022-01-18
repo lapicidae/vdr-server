@@ -21,7 +21,7 @@ readarray -t package < <(find "$pkgb_dir" -mindepth 1 -maxdepth 1 -type d | LC_A
 for DIR in  "${package[@]}"; do
 
 	pacname=$(basename "$DIR")
-	dirmd5=$(find "$DIR" -type f \( ! -iname "rebuild" \) | LC_ALL=C sort | tar --no-recursion -cf - -T - 2> /dev/null | md5sum | cut -d " " -f 1)
+	dirmd5=$(find "$DIR" -type f \( ! -iname "rebuild" \) | LC_ALL=C sort | tar --mode="664" -cf - -T - 2>/dev/null | md5sum | cut -d " " -f 1)
 
 	echo "****** USER PACKAGE: $pacname ******"
 
