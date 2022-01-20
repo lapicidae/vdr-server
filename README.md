@@ -18,11 +18,11 @@ Image based on [Arch Linux](https://hub.docker.com/_/archlinux), [VDR4Arch](http
 
 * regular and timely application updates
 * easy user mappings (PGID, PUID)
-* regular security updates
 * plugin [ciplus](https://github.com/ciminus/vdr-plugin-ciplus), [ddci2](https://github.com/jasmin-j/vdr-plugin-ddci2) and [dvbapi](https://github.com/manio/vdr-plugin-dvbapi) support
 * eMail notifications via [msmtprc](https://marlam.de/msmtp/) - a very simple and easy to use SMTP client
 * integrate your own PKGBUILD packages
 * log to file - via [socklog-overlay](https://github.com/just-containers/socklog-overlay) with built-in log rotation
+* creation of a VDR channel ID list
 
 ### *Note*
 The image is automatically rebuilt when any of the following sources receive an update:
@@ -31,22 +31,15 @@ The image is automatically rebuilt when any of the following sources receive an 
 * [VDR4Arch](https://github.com/VDR4Arch) GitHub repository
 
 
-## Application Setup
+## Getting Started
 
-Please read the [VDR Wiki](http://www.vdr-wiki.de/).
-
-Webui ([live plugin](https://github.com/MarkusEh/vdr-plugin-live)) can be found at `http://<your-ip>:8008`.  
-Most VDR settings can be edited via the webui remote.
-
-
-## Usage
+### Usage
 Here are some example snippets to help you get started creating a container.
 
 > :warning: **WARNING: The first start might be slow.**  
 > The first start can take longer, as non-integrated plugins are built from the AUR.
 
-### *docker-compose (recommended)*
-
+#### *docker-compose (recommended)*
 Compatible with docker-compose v2 schemas.
 ```yaml
 version: "2.1"
@@ -79,8 +72,7 @@ services:
     restart: unless-stopped
 ```
 
-### *docker cli*
-
+#### *docker cli*
 ```bash
 docker run -d \
   --name=vdr-server \
@@ -105,9 +97,7 @@ docker run -d \
   lapicidae/vdr-server
 ```
 
-
-## Parameters
-
+### Parameters
 Container images are configured using parameters passed at runtime.  
 These parameters are separated by a colon and indicate `<external>:<internal>` respectively.  
 For example, `-p 8080:80` would expose port `80` from inside the container to be accessible from the host's IP on port `8080` outside the container.
@@ -138,13 +128,11 @@ For example, `-p 8080:80` would expose port `80` from inside the container to be
 | `-v /vdr/pkgbuild` | Build packages: [README](build/base/etc/PKGBUILD.d/README.md) |
 | `--device /dev/dvb` | Only needed if you want to pass through a DVB card to the container |
 
-### *Hint*
+#### *Hint*
 If you want to use VDRs `"SetSystemTime = 1"` use parameter `"--cap-add=SYS_TIME"` **(untested)**
 [^1]: Simple interface is avalable at `http://<your-ip>:3000`
 
-
-## User / Group Identifiers
-
+### User / Group Identifiers
 When using volumes (`-v` flags) permissions issues can arise between the host OS and the container, we avoid this issue by allowing you to specify the user `PUID` and group `PGID`.
 
 Ensure any volume directories on the host are owned by the same user you specify and any permissions issues will vanish like magic.
@@ -157,6 +145,36 @@ In this instance `PUID=1234` and `PGID=4321`, to find yours use `id user` as bel
 ```
 
 
+## VDR Configuration
+
+### Directory Structure
+Standard paths and their Container counterpart.
+
+* /etc/vdr -> /vdr/system
+* /var/lib/vdr -> /vdr/config
+* /srv/vdr/video -> /vdr/recordings
+* /var/cache/vdr -> /vdr/cache
+
+
+### Application Setup
+**Please read the [VDR Wiki](http://www.vdr-wiki.de/).**  
+
+Command line parameters can be changed in `vdr/system/conf.d/00-vdr.conf` and  
+configuration files are located in `vdr/config/`.
+
+Webui ([live plugin](https://github.com/MarkusEh/vdr-plugin-live)) can be found at `http://<your-ip>:8008`.  
+Most VDR settings can be edited via the webui remote.
+
+### Plugins
+First, see if there is anything to adjust in the Webui / Remote section.
+
+Parameters are passed via the corresponding file in `vdr/system/conf.d/`.  
+Most other files related to plugins are located in `vdr/config/plugins/`.
+
+### Bonus
+A list of VDR channel IDs is automatically created when the container is stopped and can be found in `vdr/cache/channelids.conf`.
+
+
 ## Thanks
 
 * **[Klaus Schmidinger (kls)](http://www.tvdr.de/)**
@@ -164,3 +182,4 @@ In this instance `PUID=1234` and `PGID=4321`, to find yours use `id user` as bel
 * **[VDR4Arch](https://github.com/VDR4Arch)**
 * **[just-containers](https://github.com/just-containers)**
 * **[linuxserver.io](https://www.linuxserver.io/)**
+* **...and all the forgotten ones**
