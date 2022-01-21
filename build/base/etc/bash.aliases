@@ -7,8 +7,5 @@ alias tailf='tail -f'
 # Workaround "vdr: OS does not support cap_sys_time" in bash
 alias vdr='s6-setuidgid vdr $(which vdr)'
 
-# overwrite busybox links
-alias pacman='$(which pacman) --overwrite "/usr/bin/*"'
-
-# start paru as user "builduser" and overwrite busybox links
-alias paru='sudo -u builduser $(which paru) --overwrite "/usr/bin/*"'
+# start paru as user "builduser"
+alias paru='sudo -u builduser $(which paru)"'

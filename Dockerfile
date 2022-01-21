@@ -112,7 +112,6 @@ RUN echo "**** configure pacman ****" && \
     cd vdr-ciplus && \
     $pacbuild && \
     echo "**** install VDR plugin live ****" && \
-    echo "install vdr-live" && \
     $pacinst \
       cxxtools \
       tntnet \

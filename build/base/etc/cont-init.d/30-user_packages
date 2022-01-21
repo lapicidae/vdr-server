@@ -7,11 +7,24 @@ if [ "$AUR" = "false" ]; then
 fi
 
 
+# read pkg extension
+makepkg_conf="/etc/makepkg.conf"
+
+if [ -f "$makepkg_conf" ]; then
+	pacext=$(grep -v "^#" "$makepkg_conf" | grep -w "^PKGEXT=" | cut -d "=" -f 2 | tr -d "'")
+	if [ -z "$pacext" ]; then
+		echo "Package extension not found, use default: '.pkg.tar.zst'"
+		pacext=".pkg.tar.zst"
+	fi
+fi
+
+
 bUser="builduser"
 pkgb_dir="/etc/PKGBUILD.d"
 buildDir="/var/cache/paru/user_pkg"
 vdrplug_conf="/etc/conf.d/user_plugins.conf"
-pac_man="sudo -u $bUser paru --nouseask --removemake --cleanafter --noconfirm --noprogressbar --overwrite ´/usr/bin/*´ -Ui"
+pacbuild="sudo -u builduser makepkg --clean --install --noconfirm --noprogressbar --syncdeps"
+pacinst="paru --nouseask --noconfirm --noprogressbar --overwrite ´/usr/bin/*´ -U *$pacext"
 
 
 # array of subdirs sorted alphabetically
@@ -56,7 +69,10 @@ for DIR in  "${package[@]}"; do
 	cd "$pacdir"
 
 	echo "build package..."
-	$pac_man || continue
+	$pacbuild || continue
+
+	echo "install package..."
+	$pacinst || continue
 
 	echo "cleanup..."
 	rm -rf "$pacdir/"{*,.*} 2>/dev/null
