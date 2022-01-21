@@ -10,7 +10,7 @@ ENV LANG="en_US.UTF-8" \
 ARG LANGUAGE="en_US:en_GB:en" \
     pacinst="sudo -u builduser paru --nouseask --removemake --cleanafter --noconfirm --clonedir /var/cache/paru -S" \
     pacdown="sudo -u builduser paru --getpkgbuild --noprogressbar --clonedir /var/cache/paru" \
-    pacbuild="sudo -u builduser paru --cleanafter --noconfirm --noprogressbar --nouseask --removemake -Ui" \
+    pacbuild="sudo -u builduser makepkg --clean --install --noconfirm --noprogressbar --syncdeps" \
     buildDir="/var/cache/paru"
 
 ADD https://github.com/just-containers/s6-overlay/releases/download/v2.2.0.3/s6-overlay-amd64-installer /tmp/
@@ -46,6 +46,7 @@ RUN echo "**** configure pacman ****" && \
     pacman -S --noconfirm --needed \
       base-devel \
       git \
+      pacman-contrib \
       sudo && \
     echo "**** add builduser ****" && \
     useradd --system --create-home --no-user-group --home-dir $buildDir/.user builduser && \
@@ -55,14 +56,11 @@ RUN echo "**** configure pacman ****" && \
     git clone https://aur.archlinux.org/paru-bin.git paru-bin && \
     chown -R builduser:users paru-bin && \
     cd paru-bin && \
-    sudo -u builduser makepkg -s --noconfirm && \
-    cd $buildDir && \
-    pacman --noconfirm -U */*.pkg.tar.zst && \
+    $pacbuild && \
     sed -i "/^\[options\].*/a SkipReview" /etc/paru.conf && \
     sed -i "/^\[options\].*/a CloneDir = /var/cache/paru" /etc/paru.conf && \
     sed -i "/CleanAfter/s/^# *//" /etc/paru.conf && \
     sed -i "/RemoveMake/s/^# *//" /etc/paru.conf && \
-    mkdir -p $buildDir && \
     chmod 775 $buildDir && \
     chgrp users $buildDir && \
     cd /tmp && \
@@ -78,8 +76,19 @@ RUN echo "**** configure pacman ****" && \
       libva-headless \
       ffmpeg-headless && \
     echo "**** install VDR ****" && \
+    cd $buildDir && \
+    $pacdown vdr && \
+    curl -o /tmp/eit-patch.gz "https://www.vdr-portal.de/index.php?attachment/46195-eit-patch-gz/" && \
+    gunzip -c /tmp/eit-patch.gz > vdr/eit.patch && \
+    cd vdr && \
+    sed -i "s/pkgrel=.*/pkgrel=2/g" PKGBUILD && \
+    sed -i "/^        '00-vdr.conf'.*/i \ \ \ \ \ \ \ \ 'eit.patch'" PKGBUILD && \
+    sed -i "/Don't install plugins with VDR.*/i \ \ # epg2vdr Patch\n \ patch -p1 -i \"\$srcdir/eit.patch\"\n" PKGBUILD && \
+    sudo -u builduser updpkgsums && \
+    sudo -u builduser makepkg --printsrcinfo > .SRCINFO && \
+    chown -R builduser:users . && \
+    $pacbuild && \
     $pacinst \
-      vdr \
       vdrctl && \
     echo "**** install VDR plugins ****" && \
     $pacinst --batchinstall \
@@ -103,19 +112,11 @@ RUN echo "**** configure pacman ****" && \
     cd vdr-ciplus && \
     $pacbuild && \
     echo "**** install VDR plugin live ****" && \
-    cd $buildDir && \
-    echo "install cxxtools" && \
-    mkdir -p cxxtools && \
-    curl -o cxxtools/PKGBUILD "https://raw.githubusercontent.com/VDR4Arch/vdr4arch/master/deps/cxxtools/PKGBUILD" && \
-    chown -R builduser:users cxxtools && \
-    cd cxxtools && \
-    $pacbuild && \
-    echo "install tntnet & vdr-live" && \
-    cd $buildDir && \
+    echo "install vdr-live" && \
     $pacinst \
+      cxxtools \
       tntnet \
       vdr-live && \
-    cd /tmp && \
     echo "**** folders and symlinks ****" && \
     mkdir -p /vdr/log && \
     mkdir -p /vdr/timeshift && \
@@ -164,6 +165,7 @@ RUN echo "**** configure pacman ****" && \
       libnftnl \
       libnl \
       libpcap \
+      pacman-contrib \
       popt \
       pciutils \
       systemd \
