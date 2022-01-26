@@ -89,6 +89,7 @@ RUN echo "**** configure pacman ****" && \
     chown -R builduser:users . && \
     $pacbuild && \
     $pacinst \
+      vdr-checkts \
       vdrctl && \
     echo "**** install VDR plugins ****" && \
     $pacinst --batchinstall \
