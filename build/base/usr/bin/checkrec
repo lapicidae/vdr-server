@@ -1,0 +1,109 @@
+#! /bin/bash
+VDR_CHECKTS="/usr/sbin/vdr-checkts"
+REC_DIR="/vdr/recordings"
+
+
+if [ ! -x "$VDR_CHECKTS" ]; then
+   echo "Cannot execute VDR_CHECKTS=$VDR_CHECKTS, exiting"
+   exit 1
+fi
+
+
+while getopts "lq" o; do
+	case "${o}" in
+		l)	LOGGER="true"
+			;;
+		q)	QUIET="true"
+			;;
+		*)
+			exit 1
+			;;
+	esac
+done
+shift $((OPTIND-1))
+
+
+function log {
+	if [ ! -z "$LOGGER" ] && [ $LOGGER = "true" ]; then
+		logger -e -t CheckRecording -p info "$1"
+	else
+		echo "$1"
+	fi
+}
+
+
+trap 'log KILLED; exit 130' SIGINT SIGTERM
+
+
+if [ -z "$1" ]; then
+	readarray -t record < <(find "$REC_DIR/" -type d -regex '.*rec$' | LC_ALL=C sort -f)
+	question="Start error check of all recordings (y/n)?"
+else
+	record=("$1")
+	question="Start error check of the recording (y/n)?"
+fi
+
+
+if [ -z "$QUIET" ] || [ "$QUIET" != "true" ]; then
+	read -p "$question " answer
+	case ${answer:0:1} in
+		y|Y )
+			log "Start..."
+		;;
+		* )
+			log "Abort!"
+			exit 1
+		;;
+	esac
+fi
+
+
+for DIR in  "${record[@]}"; do
+	log "Recording review: $DIR"
+
+	if [ ! -r "$DIR/00001.ts" ]; then
+		log "File 00001.ts does not exist, skipping"
+		continue
+	fi
+
+	if [ ! -r "$DIR/info" ]; then
+		log "Info file does not exist, skipping"
+		continue
+	fi
+
+	if ( grep --silent --regexp="^O [0-9]" "$DIR/info" ); then
+		log "Recording was already checked, skipping"
+		continue
+	elif ( grep --silent --regexp="^O $" "$DIR/info" ); then
+		log "Delete empty or wrong error entry..."
+		sed -i "/^O $/d" "$DIR/info"
+	fi
+
+	if [ ! -w "$DIR/info" ]; then
+		log "Cannot write to info file, skipping"
+		continue
+	fi
+
+
+	log "Checking..."
+
+	output=$(nice -n 19 "$VDR_CHECKTS" "$DIR")
+	log "$output"
+
+	errors=$(echo "$output" | cut -d\  -f2)
+
+	if [ ! -z "$errors" ]; then
+		echo "O $errors" >> "$DIR/info"
+	else
+		log "CHECK FAILED!!!"
+		continue
+	fi
+done
+
+
+if [ -f "$REC_DIR/checkreck" ] && [ -z "$1" ]; then
+	rm "$REC_DIR/checkreck"
+fi
+
+
+log "!!! Restart the VDR for the changes to take effect !!!"

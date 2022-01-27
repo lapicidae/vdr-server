@@ -118,7 +118,7 @@ For example, `-p 8080:80` would expose port `80` from inside the container to be
 | `-e PLUGINS=epgsearch live streamdev-server vnsiserver` | Optional - **Space separated** list of [VDR Plugins](https://github.com/VDR4Arch/vdr4arch/tree/master/plugins) (default: `epgsearch live streamdev-server vnsiserver`) |
 | `-e LOG2FILE=true` | Optional - Write log to file in `/vdr/log` |
 | `-e PROTECT_CAMDATA=true` | Optional - Write protect `cam.data` to avoid unwanted changes. |
-| `-e DISABLE_WEBINTERFACE=true` | Optional - Disable webinterface (live plugin) |
+| `-e DISABLE_WEBINTERFACE=true` | Optional - Disable web interface (live plugin) |
 | `-v /vdr/system` | Start parameters, recording hooks and msmtprc config |
 | `-v /vdr/config` | Config files (e.g. `setup.conf` or `channels.conf`) |
 | `-v /vdr/recordings` | Recording directory (aka video directory) |
@@ -171,8 +171,16 @@ First, see if there is anything to adjust in the Webui / Remote section.
 Parameters are passed via the corresponding file in `vdr/system/conf.d/`.  
 Most other files related to plugins are located in `vdr/config/plugins/`.
 
-### Bonus
+
+## Bonus
+
+### Channel IDs
 A list of VDR channel IDs is automatically created when the container is stopped and can be found in `vdr/cache/channelids.conf`.
+
+### Recording Error Check
+Scan the recordings before 'VDR 2.6.0' for errors, e.g. to display them in the web interface.  
+Just put an empty file named `checkrec` into the directory of your recordings (`/vdr/recordings`).  
+The process is executed as soon as the file is created and runs until everything is checked.
 
 
 ## Thanks

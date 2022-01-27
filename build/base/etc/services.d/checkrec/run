@@ -1,0 +1,9 @@
+#!/usr/bin/with-contenv bash
+
+if [ -f "/vdr/recordings/checkrec" ]; then
+	s6-echo "Starting CheckRecordings..."
+	exec \
+		s6-setuidgid vdr /usr/bin/checkrec -ql
+else
+	sleep 30
+fi
