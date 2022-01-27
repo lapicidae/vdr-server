@@ -108,8 +108,8 @@ for DIR in  "${record[@]}"; do
 done
 
 
-if [ -f "$REC_DIR/checkreck" ] && [ -z "$1" ]; then
-	rm "$REC_DIR/checkreck"
+if [ -f "$REC_DIR/checkrec" ] && [ -z "$1" ]; then
+	rm "$REC_DIR/checkrec"
 fi
 
 
