@@ -1,4 +1,11 @@
-#! /bin/bash
+#!/bin/bash
+#/usr/bin/checkrec
+
+##
+## Check if the recording contains an error and update the 'info' file.
+## Thanks MarkusE @ vdr-portal.de
+##
+
 VDR_CHECKTS="/usr/sbin/vdr-checkts"
 REC_DIR="/vdr/recordings"
 
