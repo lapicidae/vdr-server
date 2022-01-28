@@ -171,6 +171,11 @@ First, see if there is anything to adjust in the Webui / Remote section.
 Parameters are passed via the corresponding file in `vdr/system/conf.d/`.  
 Most other files related to plugins are located in `vdr/config/plugins/`.
 
+### eMail Notification
+For example, the VDR plugin [epgsearch](https://github.com/vdr-projects/vdr-plugin-epgsearch) can send a notification by e-mail (sendmail).  
+To provide sendmail functionality [msmtp](https://marlam.de/) is used and the configuration is done in `vdr/system/eMail.conf`.  
+Please refer to the [msmtp documentation](https://marlam.de/msmtp/documentation/) for configuration instructions.
+
 
 ## Bonus
 
@@ -178,9 +183,10 @@ Most other files related to plugins are located in `vdr/config/plugins/`.
 A list of VDR channel IDs is automatically created when the container is stopped and can be found in `vdr/cache/channelids.conf`.
 
 ### Recording Error Check
-Scan the recordings before 'VDR 2.6.0' for errors, e.g. to display them in the web interface.  
-Just put an empty file named `checkrec` into the directory of your recordings (`/vdr/recordings`).  
-The process is executed as soon as the file is created and runs until everything is checked.
+Scan the recordings before 'VDR 2.6.0' for errors (continuity counter), e.g. to display them in the web interface.  
+Just put an empty file named `checkrec` into the main directory of your recordings (`vdr/recordings`).  
+The process is executed as soon as the file is created and runs until everything is checked.  
+The check is done via [vdr-checkts](https://projects.vdr-developer.org/git/vdr-checkts.git/) by [eTobi](http://e-tobi.net) and the basic script comes from [MarkusE](https://www.vdr-portal.de/forum/index.php?thread/134607-alte-aufzeichnungen-fehlerhaft/&postID=1342589#post1342589).
 
 
 ## Thanks
@@ -188,6 +194,7 @@ The process is executed as soon as the file is created and runs until everything
 * **[Klaus Schmidinger (kls)](http://www.tvdr.de/)**
 * **[vdr-portal.de](https://www.vdr-portal.de/)**
 * **[VDR4Arch](https://github.com/VDR4Arch)**
+* **[Tobias Grimm (eTobi)](http://e-tobi.net)**
 * **[just-containers](https://github.com/just-containers)**
 * **[linuxserver.io](https://www.linuxserver.io/)**
 * **...and all the forgotten ones**
