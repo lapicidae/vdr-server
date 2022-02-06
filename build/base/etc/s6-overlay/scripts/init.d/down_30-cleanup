@@ -1,0 +1,8 @@
+#!/command/with-contenv bash
+
+echo "clean pacman cache..."
+yes | pacman -Scc &>/dev/null
+
+# clean paru cache dir - exlude hidden and 'user_pkg' dirs
+echo "clean paru build cache..."
+find "/var/cache/paru" -mindepth 1 -maxdepth 1 -type d -not -path "*\/user_pkg" -not -path '*/\.*' -exec rm -rf {} \;

@@ -1,6 +1,0 @@
-#!/usr/bin/with-contenv bash
-
-echo "Starting vdr..."
-export LANG="$LANG"
-exec \
-	s6-setuidgid vdr /usr/bin/vdr

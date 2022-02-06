@@ -11,7 +11,7 @@ The Video Disk Recorder ([VDR](http://www.tvdr.de/)) is a free, non-commercial p
 [![GitHub Checks](https://img.shields.io/github/checks-status/lapicidae/vdr-server/master?label=build%20check&labelColor=555555&logoColor=ffffff&style=for-the-badge&logo=jenkins)](https://github.com/lapicidae/vdr-server/commits)
 
 
-Image based on [Arch Linux](https://hub.docker.com/_/archlinux), [VDR4Arch](https://github.com/VDR4Arch/vdr4arch), [s6-overlay](https://github.com/just-containers/s6-overlay) and [socklog-overlay](https://github.com/just-containers/socklog-overlay).
+Image based on [Arch Linux](https://hub.docker.com/_/archlinux), [VDR4Arch](https://github.com/VDR4Arch/vdr4arch) and [s6-overlay](https://github.com/just-containers/s6-overlay).
 
 
 ## Features
@@ -20,8 +20,9 @@ Image based on [Arch Linux](https://hub.docker.com/_/archlinux), [VDR4Arch](http
 * easy user mappings (PGID, PUID)
 * plugin [ciplus](https://github.com/ciminus/vdr-plugin-ciplus), [ddci2](https://github.com/jasmin-j/vdr-plugin-ddci2) and [dvbapi](https://github.com/manio/vdr-plugin-dvbapi) support
 * eMail notifications via [msmtprc](https://marlam.de/msmtp/) - a very simple and easy to use SMTP client
+* built-in [channel logos](https://github.com/lapicidae/svg-channellogos)
 * integrate your own PKGBUILD packages
-* log to file - via [socklog-overlay](https://github.com/just-containers/socklog-overlay) with built-in log rotation
+* log to file with built-in log rotation
 * creation of a VDR channel ID list
 
 ### *Note*
@@ -57,9 +58,10 @@ services:
       - /path/to/config:/vdr/config
       - /path/to/recordings:/vdr/recordings
       - /path/to/cache:/vdr/cache
+      - /path/to/channellogos:/vdr/channellogos #optional
       - /path/to/log:/vdr/log #optional
       - /path/to/timeshift:/vdr/timeshift #optional
-      - /path/to/pkgbuild:/vdr/pkgbuild
+      - /path/to/pkgbuild:/vdr/pkgbuild #optional
     ports:
       - 8008:8008
       - 6419:6419 #optional
@@ -88,6 +90,7 @@ docker run -d \
   -v /path/to/config:/vdr/config \
   -v /path/to/recordings:/vdr/recordings \
   -v /path/to/cache:/vdr/cache \
+  -v /path/to/channellogos:/vdr/channellogos `#optional` \
   -v /path/to/log:/vdr/log `#optional` \
   -v /path/to/timeshift:/vdr/timeshift `#optional` \
   -v /path/to/pkgbuild:/vdr/pkgbuild `#optional` \
@@ -119,13 +122,15 @@ For example, `-p 8080:80` would expose port `80` from inside the container to be
 | `-e LOG2FILE=true` | Optional - Write log to file in `/vdr/log` |
 | `-e PROTECT_CAMDATA=true` | Optional - Write protect `cam.data` to avoid unwanted changes. |
 | `-e DISABLE_WEBINTERFACE=true` | Optional - Disable web interface (live plugin) |
+| `-e LOGO_COPY=false` | Optional - Use your own station logos in /vdr/channellogos |
 | `-v /vdr/system` | Start parameters, recording hooks and msmtprc config |
 | `-v /vdr/config` | Config files (e.g. `setup.conf` or `channels.conf`) |
 | `-v /vdr/recordings` | Recording directory (aka video directory) |
 | `-v /vdr/cache` | Cache files (e.g. `epgimages` or `cam.data`) |
+| `-v /vdr/channellogos` | TV and radio station logos |
 | `-v /vdr/log` | Logfiles if `LOG2FILE=true` |
 | `-v /vdr/timeshift` | VNSI Time-Shift buffer directory |
-| `-v /vdr/pkgbuild` | Build packages: [README](build/base/etc/PKGBUILD.d/README.md) |
+| `-v /vdr/pkgbuild` | Build packages: [README](build/base/defaults/pkgbuild/README.md) |
 | `--device /dev/dvb` | Only needed if you want to pass through a DVB card to the container |
 
 #### *Hint*
@@ -185,7 +190,7 @@ A list of VDR channel IDs is automatically created when the container is stopped
 ### Recording Error Check
 Scan the recordings before 'VDR 2.6.0' for errors (continuity counter), e.g. to display them in the web interface.  
 Just put an empty file named `checkrec` into the main directory of your recordings (`vdr/recordings`).  
-The process is executed as soon as the file is created and runs until everything is checked.  
+The process is executed at container start and runs until everything is checked.  
 The check is done via [vdr-checkts](https://projects.vdr-developer.org/git/vdr-checkts.git/) by [eTobi](http://e-tobi.net) and the basic script comes from [MarkusE](https://www.vdr-portal.de/forum/index.php?thread/134607-alte-aufzeichnungen-fehlerhaft/&postID=1342589#post1342589).
 
 

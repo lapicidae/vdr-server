@@ -1,0 +1,72 @@
+#!/command/with-contenv bash
+
+### !!! this file is also called at finish !!!
+
+
+function chmown {
+	local usr=$1
+	local grp=$2
+	local perm_dir=$3
+	local perm_file=$4
+	local path=$5
+
+	if [ -z "$usr" ] || [ -z "$grp" ] || [ -z "$perm_dir" ] || [ -z "$perm_file" ] || [ -z "$path" ]; then
+		echo "Incorrect use of the function!"
+		return 1
+	elif [ -d "$path" ]; then
+		echo "Reassign permissions: $path"
+		chown -R $usr:$grp "$path"
+		find "$path" -type d -exec chmod $perm_dir {} \;
+		find "$path" -type f -exec chmod $perm_file {} \;
+	fi
+}
+
+
+## directory & file permissions
+# dvb devices
+chmown root video 755 660 "/dev/dri"
+chmown root video 755 660 "/dev/dvb"
+
+# default mount points (docker volumes)
+chown vdr:vdr "/vdr"
+chmown vdr vdr 755 664 "/etc/PKGBUILD.d"
+chmown vdr vdr 755 664 "/etc/vdr"
+chmown vdr vdr 755 664 "/srv/vdr/video"
+chmown vdr vdr 755 664 "/var/cache/vdr"
+chmown vdr vdr 755 664 "/var/lib/vdr"
+chmown vdr vdr 755 664 "/vdr/channellogos"
+chmown vdr vdr 755 664 "/vdr/timeshift"
+
+# paru build
+chown root:users "/var/cache/paru"
+
+# syslogd-overlay
+chmown sysllog sysllog 775 664 "/vdr/log"
+
+
+## Plugins
+# live
+live_dir="/vdr/config/plugins/live"
+if [ -f "$live_dir/live.pem" ]; then
+	chmod ug+r $live_dir/live.pem
+fi
+if [ -f "$live_dir/live-key.pem" ]; then
+	chmod ug+r $live_dir/live-key.pem
+fi
+
+# ciplus
+ci_plus="/vdr/cache/plugins/ciplus/"
+if [ -d "$ci_plus" ] && [ ! -z "$(ls -A $ci_plus)" ]; then
+	chmod -f ug+rw *.auth || true
+fi
+
+
+## protect cam.data
+cam_data="/var/cache/vdr/cam.data"
+if [ -f "$cam_data" ]; then
+	if [ "$PROTECT_CAMDATA" = "true" ]; then
+		chmod ug-w $cam_data
+	else
+		chmod ug+w $cam_data
+	fi
+fi
