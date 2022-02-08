@@ -28,7 +28,7 @@ pacinst="paru --nouseask --noconfirm --noprogressbar --overwrite ´/usr/bin/*´ 
 
 
 # array of subdirs sorted alphabetically
-readarray -t package < <(find "$pkgb_dir" -mindepth 1 -maxdepth 1 -type d | LC_ALL=C sort -f)
+readarray -t package < <(find "$pkgb_dir/" -mindepth 1 -maxdepth 1 -type d | LC_ALL=C sort -f)
 
 
 for DIR in  "${package[@]}"; do
