@@ -6,7 +6,7 @@ ARG LANGUAGE="en_US:en_GB:en" \
     pacbuild="sudo -u builduser makepkg --clean --install --noconfirm --noprogressbar --syncdeps" \
     buildDir="/var/cache/paru" \
     buildOptimize="false" \
-    maintainer="lapicidae <github.com/lapicidae>"
+    maintainer="lapicidae <github.com/lapicidae>" \
     S6VER="3.0.0.2"
 
 ENV PATH="$PATH:/command"
