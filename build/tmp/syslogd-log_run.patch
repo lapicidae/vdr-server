@@ -1,0 +1,28 @@
+--- /etc/s6-overlay/s6-rc.d/syslogd-log/run	2022-01-28 14:11:50.000000000 +0100
++++ /etc/s6-overlay/s6-rc.d/syslogd-log/run.new	2022-02-01 00:08:07.959524374 +0100
+@@ -1,13 +1,17 @@
+ #!/command/execlineb -P
+ 
+ s6-envuidgid -D 32761:32761: -- sysllog
+-s6-applyuidgid -U --
+-backtick -D "n20 s1000000 T" line { printcontenv S6_LOGGING_SCRIPT }
++backtick -D "n5 s1000000" line { printcontenv S6_LOGGING_SCRIPT }
++backtick -D "false" fileLOG { printcontenv LOG2FILE }
+ multisubstitute
+ {
++  importas -usC fileLOG fileLOG
+   importas -usC T line
+   define dir /var/log/syslogd
+ }
++backtick -D "1" loggir_vdr { if { echo "1" "$T" "/vdr/log" } test $fileLOG = true }
++importas -usC loggir_vdr loggir_vdr
++s6-applyuidgid -U --
+ exec -c
+ s6-log -d3 --
+ 
+@@ -20,4 +24,5 @@
+  - +mail\\.  $T ${dir}/mail
+  - +user\\.  $T ${dir}/user
+  - +^[[:alnum:]]*\\.info: +^[[:alnum:]]*\\.notice: +^[[:alnum:]]*\\.warn: -^auth\\. -^authpriv\\. -^cron\\. -daemon\\. -mail\\.  $T ${dir}/messages
++ - +^[[:alnum:]].*vdr: +^[[:alnum:]].*recordingaction: +^[[:alnum:]].*CheckRecording:  $loggir_vdr
+  + -^auth\\. -^authpriv\\.  $T ${dir}/everything

@@ -58,11 +58,21 @@ pipeline {
 				}
 			}
 		}
+		stage('Version') {
+			steps{
+				echo 'Read Version from image....'
+				script {
+					VERSION = sh(returnStdout: true, script: 'docker run --rm --entrypoint "" $registry:$BUILD_NUMBER cat /vdr/VERSION').trim()
+				}
+				echo "Image Version: $VERSION"
+			}
+		}
 		stage('Publish') {
 			steps{
 				echo 'Publishing....'
 				script {
 					docker.withRegistry( '', registryCredential ) {
+						dockerImage.push("${VERSION}")
 						dockerImage.push(registryTag)
 					}
 				}
@@ -72,7 +82,7 @@ pipeline {
 			steps{
 				echo 'Cleaning....'
 				sh "docker rmi $registry:$BUILD_NUMBER || echo Failed to remove image $registry:$BUILD_NUMBER."
-				sh "docker rmi $registry:$registryTag || echo Failed to remove image $registry:$BUILD_NUMBER."
+				sh "docker rmi $registry:$registryTag || echo Failed to remove image $registry:$registryTag."
 			}
 		}
 	}

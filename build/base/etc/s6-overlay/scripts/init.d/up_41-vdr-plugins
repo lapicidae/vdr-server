@@ -1,0 +1,127 @@
+#!/command/with-contenv bash
+
+if [ -z "$PLUGINS" ]; then
+	PLUGINS="epgsearch live streamdev-server vnsiserver"
+	echo "Using default plugins: $PLUGINS"
+fi
+
+if [ -z "$UNINSTALL_PLUGINS" ]; then
+	UNINSTALL_PLUGINS="false"
+fi
+
+if [ "$AUR" = "false" ]; then
+	pac_man="pacman"
+	installer="$pac_man"
+elif [ -z "$AUR" ] || [ "$AUR" != "false" ]; then
+	AUR="true"
+	bUser="builduser"
+	pac_man="paru"
+	installer="sudo -u $bUser $pac_man --nouseask --removemake --cleanafter"
+fi
+
+readarray -t enabled_arr < <(vdrctl list --enabled)
+plug_arr=($PLUGINS)
+
+
+# plugins added by user
+uplug_conf="/etc/conf.d/user_plugins.conf"
+
+if [ -f "$uplug_conf" ]; then
+	while read -r uplug; do
+		if [[ "$uplug" =~ ^#.*$ ]]; then
+			continue
+		else
+			echo "User plugin '$uplug' was recognized..."
+			plug_arr+=("$uplug")
+		fi
+	done < "$uplug_conf"
+fi
+
+
+# live plugin handling
+if [[ ! "${plug_arr[@]}" =~ "live" ]] && [ "$DISABLE_WEBINTERFACE" != "true" ]; then
+	echo "Keep live plugin enabled..."
+	plug_arr+=("live")
+elif [[ "${plug_arr[@]}" =~ "live" ]] && [ "$DISABLE_WEBINTERFACE" = "true" ]; then
+	echo "Plugin live is disabled via the environment variable 'DISABLE_WEBINTERFACE=true'!"
+	# delete plugin live from array
+	for i in "${!plug_arr[@]}"; do
+		if [[ ${plug_arr[i]} = "live" ]]; then
+			unset 'plug_arr[i]'
+		fi
+	done
+fi
+
+
+_isAvailable() {
+	plugin=$1;
+	avail=$($pac_man -Ssq "$plugin" 2> /dev/null | grep "^$plugin$")
+	if [ ! -z "$avail" ]; then
+		echo 0	# Success
+	else
+		echo 1	# Error
+	fi
+}
+
+_isInstalled() {
+	package=$1
+	$pac_man -Qi "$package" &> /dev/null
+	echo $?
+}
+
+_isEnabled() {
+	plugin=$1;
+	enabled=$(vdrctl list --enabled | grep "^$1$")
+	if [[ "${enabled_arr[@]}" =~ "$plugin" ]]; then
+		echo 0	# Success
+	else
+		echo 1	# Error
+	fi
+}
+
+
+for en_plug in  "${enabled_arr[@]}"; do
+	# Plugin not in array but enabled
+	if [[ ! "${plug_arr[@]}" =~ "$en_plug" ]]; then
+		vdrctl disable "$en_plug" && \
+		echo "Plugin $en_plug disabled."
+		if [ "$UNINSTALL_PLUGINS" = "true" ]; then
+			echo "Plugin $en_plug not uninstalled!"
+			echo -e "Uninstalling VDR plugins is currently not supported.\nPlease rebuild the container instead."
+		fi
+	fi
+done
+
+
+for plug in  "${plug_arr[@]}"; do
+	pacname="vdr-$plug"
+
+	# Plugin available
+	if [ $(_isAvailable "$pacname") = "0" ]; then
+		plg_avail="true"
+	else
+		plg_avail="false"
+		echo "Plugin $plug is not available!"
+	fi
+
+	# Plugin installed
+	if [ $(_isInstalled "$pacname") = "0" ]; then
+		plg_inst="true"
+	else
+		plg_inst="false"
+		echo "Plugin $plug is not installed."
+	fi
+
+	# Plugin not installed but available
+	if [ $plg_inst != "true" ] && [ $plg_avail = "true" ]; then
+		## use "overwrite" because of busybox
+		$installer -S --overwrite "/usr/bin/*" --noprogressbar --noconfirm "$pacname" && \
+		activate_plug="true"
+	fi
+
+	# Plugin installed and disabled
+	if [[ $plg_inst = "true" && $(_isEnabled "$plug") = "1" ]] || [ ${activate_plug:="false"} = "true" ]; then
+		vdrctl enable "$plug" && \
+		echo "Plugin $plug enabled."
+	fi
+done

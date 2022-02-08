@@ -1,0 +1,11 @@
+#!/bin/sh
+### Setting the exit code of the container to the exit code of vdr
+
+if test "$1" -eq 256; then
+	e=$((128 + $2))
+else
+	e="$1"
+fi
+
+echo "VDR exit code: $e"
+echo "$e" > "/run/s6-linux-init-container-results/exitcode"
