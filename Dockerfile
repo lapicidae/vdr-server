@@ -49,6 +49,8 @@ RUN echo "**** configure pacman ****" && \
       pacman -S --noconfirm --needed \
         base-devel \
         git \
+        imagemagick \
+        librsvg \
         pacman-contrib \
         sudo && \
     echo "**** add builduser ****" && \
@@ -139,7 +141,9 @@ RUN echo "**** configure pacman ****" && \
       ln -s /usr/lib/vdr/bin/shutdown-wrapper /usr/bin/shutdown-wrapper && \
       ln -s /usr/lib/vdr/bin/vdr-recordingaction /usr/bin/vdr-recordingaction && \
       ln -s /var/cache/vdr /vdr/cache && \
+      ln -s /var/cache/vdr/epgimages /srv/http/epgimages && \
       ln -s /var/lib/vdr /vdr/config && \
+      ln -s /vdr/channellogos /srv/http/channellogos && \
       ln -s /vdr/channellogos /usr/share/vdr/channel-logos && \
       ln -s /vdr/pkgbuild /etc/PKGBUILD.d && \
     echo "**** vdr config ****" && \
@@ -162,12 +166,14 @@ RUN echo "**** configure pacman ****" && \
     echo "**** copy provided settings ****" && \
       cp -Rlf /defaults/config/* /var/lib/vdr && \
       cp -Rlf /defaults/system/* /etc/vdr && \
-    echo "**** get channellogos ****" && \
+    echo "**** get png channellogos ****" && \
       cd /tmp && \
       git clone https://github.com/lapicidae/svg-channellogos.git chlogo && \
-      chmod +x chlogo/tools/install && \
-      chlogo/tools/install -c dark -p /tmp/channellogos -r && \
+      chmod +x chlogo/tools/* && \
+      chlogo/tools/install -c light -p /tmp/tmp_channellogos -r && \
+      chlogo/tools/svg2png -i /tmp/tmp_channellogos -o /tmp/channellogos -s -w 450 && \
       tar -cpJf /defaults/channellogos.tar.xz -C /tmp/channellogos . &&\
+      cp chlogo/tools/picon /usr/bin && \
     echo "**** change permissions ****" && \
       chown -R vdr:vdr /defaults && \
       chown -R vdr:vdr /vdr && \
@@ -176,9 +182,11 @@ RUN echo "**** configure pacman ****" && \
       chmod 4754 /usr/lib/vdr/bin/vdr-recordingaction && \
       chmod 755 /usr/bin/checkrec && \
       chmod 755 /usr/bin/contenv2env && \
+      chmod 755 /usr/bin/picon && \
       chmod 755 /usr/bin/vdr-channelids && \
       chown root:root /usr/bin/checkrec && \
       chown root:root /usr/bin/contenv2env && \
+      chown root:root /usr/bin/picon && \
       chown root:root /usr/bin/vdr-channelids && \
       chown root:vdr /usr/lib/vdr/bin/shutdown-wrapper && \
       chown vdr:vdr /usr/lib/vdr/bin/vdr-recordingaction && \
@@ -198,8 +206,9 @@ RUN echo "**** configure pacman ****" && \
         cryptsetup \
         dbus \
         device-mapper \
-        iptables \
+        imagemagick \
         iproute2 \
+        iptables \
         json-c \
         kbd \
         kmod \
@@ -209,9 +218,10 @@ RUN echo "**** configure pacman ****" && \
         libnftnl \
         libnl \
         libpcap \
+        librsvg \
         pacman-contrib \
-        popt \
         pciutils \
+        popt \
         systemd \
         systemd-sysvcompat && \
       pacman --noconfirm -R $(pacman -Qtdq) 2>/dev/null || true && \
