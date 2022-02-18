@@ -72,7 +72,7 @@ pipeline {
 				echo 'Publishing....'
 				script {
 					docker.withRegistry( '', registryCredential ) {
-						dockerImage.push("${VERSION}")
+						//dockerImage.push("${VERSION}")
 						dockerImage.push(registryTag)
 					}
 				}
