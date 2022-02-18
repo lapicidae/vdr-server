@@ -101,6 +101,7 @@ RUN echo "**** configure pacman ****" && \
       sudo -u builduser makepkg --printsrcinfo > .SRCINFO && \
       chown -R builduser:users . && \
       $pacbuild && \
+      pacman --noconfirm -R vdr-examples 2>/dev/null || true && \
       $pacinst \
         vdr-checkts \
         vdrctl && \
