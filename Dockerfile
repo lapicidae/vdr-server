@@ -173,13 +173,12 @@ RUN echo "**** configure pacman ****" && \
       cp -Rlf /defaults/config/* /var/lib/vdr && \
       cp -Rlf /defaults/system/* /etc/vdr && \
     echo "**** get png channellogos ****" && \
-      cd /tmp && \
-      git clone https://github.com/lapicidae/svg-channellogos.git chlogo && \
-      chmod +x chlogo/tools/* && \
-      chlogo/tools/install -c light -p /tmp/tmp_channellogos -r && \
-      chlogo/tools/svg2png -i /tmp/tmp_channellogos -o /tmp/channellogos -s -w 450 && \
-      tar -cpJf /defaults/channellogos.tar.xz -C /tmp/channellogos . &&\
-      cp chlogo/tools/picon /usr/bin && \
+      curl -s https://api.github.com/repos/lapicidae/svg-channellogos/releases/latest | \
+        grep "browser_download_url" | \
+        grep -Eo 'https://[^\"]*' | \
+        grep -e 'light.*square' | \
+        xargs curl -s -L -o /defaults/channellogos.tar.xz && \
+      curl -o /usr/bin/picon https://raw.githubusercontent.com/lapicidae/svg-channellogos/master/tools/picon && \
     echo "**** change permissions ****" && \
       chown -R vdr:vdr /defaults && \
       chown -R vdr:vdr /vdr && \
