@@ -1,0 +1,3 @@
+#!/command/execlineb -P
+foreground { s6-echo "Download fresh package databases from the server..." }
+/usr/sbin/pacman --quiet --noprogressbar -Sy

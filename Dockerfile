@@ -151,6 +151,11 @@ RUN echo "**** configure pacman ****" && \
       mv /etc/vdr/conf.avail/50-ddci2.conf /etc/vdr/conf.avail/10-ddci2.conf && \
       mv /etc/vdr/conf.avail/50-dvbapi.conf /etc/vdr/conf.avail/20-dvbapi.conf && \
       mv /etc/vdr/conf.avail/50-ciplus.conf /etc/vdr/conf.avail/30-ciplus.conf && \
+    echo "**** busybox crond ****" && \
+      mkdir -p /var/spool/cron/crontabs && \
+      touch /var/spool/cron/crontabs/root && \
+      touch /var/spool/cron/crontabs/vdr && \
+      echo -e 'root\nvdr' >> /etc/cron/crontabs/cron.update && \
     echo "**** SMTP client ****" && \
       $pacinst msmtp-mta && \
       curl -o /etc/msmtprc "https://git.marlam.de/gitweb/?p=msmtp.git;a=blob_plain;f=doc/msmtprc-system.example" && \
