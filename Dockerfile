@@ -74,6 +74,7 @@ RUN echo "**** configure pacman ****" && \
       cd /tmp && \
       tar -C / -Jxpf /tmp/s6-overlay-noarch-$S6VER.tar.xz && \
       tar -C / -Jxpf /tmp/s6-overlay-x86_64-$S6VER.tar.xz && \
+      sed -ie "s/$/:\/usr\/sbin/" /etc/s6-overlay/config/global_path && \
     echo "**** syslogd-overlay ($S6VER) ****" && \
       tar -C / -Jxpf /tmp/syslogd-overlay-noarch-$S6VER.tar.xz && \
       touch /etc/s6-overlay/s6-rc.d/syslogd-prepare/dependencies.d/init && \
