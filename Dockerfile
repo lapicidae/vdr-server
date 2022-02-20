@@ -5,7 +5,7 @@ ARG LANGUAGE="en_US:en_GB:en" \
     pacdown="sudo -u builduser paru --getpkgbuild --noprogressbar --clonedir /var/cache/paru" \
     pacbuild="sudo -u builduser makepkg --clean --install --noconfirm --noprogressbar --syncdeps" \
     buildDir="/var/cache/paru" \
-    buildOptimize="false" \
+    buildOptimize="true" \
     maintainer="lapicidae <github.com/lapicidae>" \
     S6VER="3.0.0.2"
 
@@ -202,6 +202,7 @@ RUN echo "**** configure pacman ****" && \
     echo "**** Versioning ****" && \
       paru -Gp vdr | grep -i pkgver= | cut -d = -f 2 > /vdr/VERSION && \
     echo "**** CleanUp ****" && \
+      if [ "${buildOptimize:="false"}" = "true" ]; then sed -i 's/^MAKEFLAGS=.*/#&/' "/etc/makepkg.conf"; fi && \
       rm -rf \
         /tmp/* \
         /var/tmp/* && \
