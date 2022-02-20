@@ -176,6 +176,7 @@ RUN echo "**** configure pacman ****" && \
       curl -s https://api.github.com/repos/lapicidae/svg-channellogos/releases/latest | \
         grep "browser_download_url" | \
         grep -Eo 'https://[^\"]*' | \
+        grep -v 'nolinks' | \
         grep -e 'light.*square' | \
         xargs curl -s -L -o /defaults/channellogos.tar.xz && \
       curl -o /usr/bin/picon https://raw.githubusercontent.com/lapicidae/svg-channellogos/master/tools/picon && \
