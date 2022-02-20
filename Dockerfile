@@ -50,8 +50,6 @@ RUN echo "**** configure pacman ****" && \
       pacman -S --noconfirm --needed \
         base-devel \
         git \
-        imagemagick \
-        librsvg \
         pacman-contrib \
         sudo && \
     echo "**** add builduser ****" && \
@@ -156,7 +154,8 @@ RUN echo "**** configure pacman ****" && \
       mkdir -p /var/spool/cron/crontabs && \
       touch /var/spool/cron/crontabs/root && \
       touch /var/spool/cron/crontabs/vdr && \
-      echo -e 'root\nvdr' >> /etc/cron/crontabs/cron.update && \
+      echo -e 'root\nvdr' >> /var/spool/cron/crontabs/cron.update && \
+      chmod 600 /var/spool/cron/crontabs/* && \
     echo "**** SMTP client ****" && \
       $pacinst msmtp-mta && \
       curl -o /etc/msmtprc "https://git.marlam.de/gitweb/?p=msmtp.git;a=blob_plain;f=doc/msmtprc-system.example" && \
@@ -212,7 +211,6 @@ RUN echo "**** configure pacman ****" && \
         cryptsetup \
         dbus \
         device-mapper \
-        imagemagick \
         iproute2 \
         iptables \
         json-c \
@@ -224,7 +222,6 @@ RUN echo "**** configure pacman ****" && \
         libnftnl \
         libnl \
         libpcap \
-        librsvg \
         pacman-contrib \
         pciutils \
         popt \

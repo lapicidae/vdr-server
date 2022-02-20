@@ -12,4 +12,4 @@ foreground {
   s6-mkdir -p /var/spool/cron/crontabs
 }
 if { test $start != false }
- /usr/sbin/busybox crond -f
+ /usr/sbin/busybox crond -f -l 5

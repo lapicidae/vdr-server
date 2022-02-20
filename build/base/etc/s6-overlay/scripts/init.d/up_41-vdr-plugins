@@ -71,8 +71,8 @@ _isInstalled() {
 
 _isEnabled() {
 	plugin=$1;
-	enabled=$(vdrctl list --enabled | grep "^$1$")
-	if [[ "${enabled_arr[@]}" =~ "$plugin" ]]; then
+	enabled=$(vdrctl list --enabled | grep "^$plugin$")
+	if [ "$enabled" = "$plugin" ]; then
 		echo 0	# Success
 	else
 		echo 1	# Error
