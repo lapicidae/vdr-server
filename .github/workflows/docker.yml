@@ -2,15 +2,25 @@ name: Docker Build & Push
 on:
   push:
     branches:
-      - 'master'
+      - master
+    paths-ignore:
+      - README.md
+      - vdr-logo.svg
+      - Jenkinsfile
   workflow_dispatch:
     inputs:
       tags:
-          description: 'Test scenario'
-          required: false
-          type: boolean
+        description: 'Scenario tags'
+        type: choice
+        options:
+          - test
+          - build
+        required: true
+      trigger:
+        type: string
 jobs:
   docker:
+    if: github.event.inputs.tags != 'test'
     runs-on: ubuntu-latest
     steps:
       - name: Set up QEMU
@@ -18,7 +28,7 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       - name: Login to DockerHub
-        uses: docker/login-action@v1 
+        uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -28,6 +38,39 @@ jobs:
           no-cache: true
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.REPOSITORY }}:${{ env.TAGNAME }}
+      - name: Send mail
+        if: github.event_name == 'workflow_dispatch'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{secrets.GMAIL_USER}}
+          password: ${{secrets.GMAIL_PASS}}
+          from: GitHub
+          to: ${{secrets.EMAIL}}
+          subject: "Action ${{job.status}}: ${{github.repository}} - ${{github.workflow}} #${{github.run_id}}"
+          body: |
+            ${{job.status}}
+            Action "${{github.workflow}}" started by ${{github.actor}} (${{ github.event.inputs.trigger }}) in ${{github.repository}}.
+            View workflow run: ${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}
+            Your faithful employee
+            ${{runner.name}} (${{runner.os}} - ${{runner.arch}})
+          html_body: |
+            <!DOCTYPE html>
+            <html>
+            <body>
+            <h1 style="text-transform:uppercase">${{job.status}}</h1>
+            <p>Action "${{github.workflow}}" started by ${{github.actor}} (${{ github.event.inputs.trigger }}) in ${{github.repository}}.</p>
+            <p><button
+              style="background-color:#4CAF50; border:none; color:white; padding:20px; text-align:center; text-decoration:none; display:inline-block; font-size:16px; margin:4px 2px; cursor:pointer; border-radius:12px;"
+              onclick="location.href='${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}'">
+              View workflow run
+            </button></p>
+            <p>Your faithful employee<br>
+            ${{runner.name}} (${{runner.os}} - ${{runner.arch}})</p>
+            </body>
+            </html>
+          priority: low
     env:
       REPOSITORY: vdr-server
       TAGNAME: latest
