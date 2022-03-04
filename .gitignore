@@ -36,7 +36,7 @@ $RECYCLE.BIN/
 .Trash-*
 
 # Kate Swap File
-.kate-swp
+*.kate-swp
 
 # OSX
 # =========================
