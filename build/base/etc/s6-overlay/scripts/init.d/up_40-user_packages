@@ -84,9 +84,14 @@ for DIR in  "${package[@]}"; do
 	if [ 0 -lt $(ls "$DIR/vdrplug-"* 2>/dev/null | wc -w) ]; then
 		vdrplug=$(find "$DIR" -maxdepth 1 -name "vdrplug-*" -exec basename {} \; | LC_ALL=C sort -f | head -n 1 | sed 's/^vdrplug-//')
 		if ! grep -q "$vdrplug" "$vdrplug_conf"; then
-			echo "enable vdr plugin $vdrplug..."
+			echo "enable vdr-plugin $vdrplug..."
 			echo "$vdrplug" >> "$vdrplug_conf"
-			vdrctl enable "$vdrplug" && echo "Plugin $vdrplug enabled."
+			# only enable if disabled
+			enabled=$(vdrctl list --enabled | grep "^epg2vdr$" &>/dev/null && echo "true")
+			if [ "$enabled" != "true" ]; then
+				vdrctl enable "$vdrplug" && \
+				echo "VDR-Plugin $vdrplug enabled."
+			fi
 		fi
 	fi
 
