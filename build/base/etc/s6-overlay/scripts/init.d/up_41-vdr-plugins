@@ -2,7 +2,7 @@
 
 if [ -z "$PLUGINS" ]; then
 	PLUGINS="epgsearch live streamdev-server vnsiserver"
-	echo "Using default plugins: $PLUGINS"
+	echo "Using default VDR-Plugins: $PLUGINS"
 fi
 
 if [ -z "$UNINSTALL_PLUGINS" ]; then
@@ -31,7 +31,7 @@ if [ -f "$uplug_conf" ]; then
 		if [[ "$uplug" =~ ^#.*$ ]]; then
 			continue
 		else
-			echo "User plugin '$uplug' was recognized..."
+			echo "User VDR-Plugin '$uplug' was recognized..."
 			plug_arr+=("$uplug")
 		fi
 	done < "$uplug_conf"
@@ -43,7 +43,7 @@ if [[ ! "${plug_arr[@]}" =~ "live" ]] && [ "$DISABLE_WEBINTERFACE" != "true" ]; 
 	echo "Keep live plugin enabled..."
 	plug_arr+=("live")
 elif [[ "${plug_arr[@]}" =~ "live" ]] && [ "$DISABLE_WEBINTERFACE" = "true" ]; then
-	echo "Plugin live is disabled via the environment variable 'DISABLE_WEBINTERFACE=true'!"
+	echo "VDR-Plugin live is disabled via the environment variable 'DISABLE_WEBINTERFACE=true'!"
 	# delete plugin live from array
 	for i in "${!plug_arr[@]}"; do
 		if [[ ${plug_arr[i]} = "live" ]]; then
@@ -86,8 +86,8 @@ for en_plug in  "${enabled_arr[@]}"; do
 		vdrctl disable "$en_plug" && \
 		echo "Plugin $en_plug disabled."
 		if [ "$UNINSTALL_PLUGINS" = "true" ]; then
-			echo "Plugin $en_plug not uninstalled!"
-			echo -e "Uninstalling VDR plugins is currently not supported.\nPlease rebuild the container instead."
+			echo "VDR-Plugin $en_plug not uninstalled!"
+			echo "Uninstalling VDR-Plugins is currently not supported..."
 		fi
 	fi
 done
@@ -101,7 +101,7 @@ for plug in  "${plug_arr[@]}"; do
 		plg_avail="true"
 	else
 		plg_avail="false"
-		echo "Plugin $plug is not available!"
+		echo "VDR-Plugin $plug is not available in repository!"
 	fi
 
 	# Plugin installed
@@ -109,7 +109,7 @@ for plug in  "${plug_arr[@]}"; do
 		plg_inst="true"
 	else
 		plg_inst="false"
-		echo "Plugin $plug is not installed."
+		echo "VDR-Plugin $plug is not installed."
 	fi
 
 	# Plugin not installed but available
@@ -120,8 +120,8 @@ for plug in  "${plug_arr[@]}"; do
 	fi
 
 	# Plugin installed and disabled
-	if [[ $plg_inst = "true" && $(_isEnabled "$plug") = "1" ]] || [ ${activate_plug:="false"} = "true" ]; then
+	if [[ $plg_inst = "true" || ${activate_plug:="false"} = "true" ]] && [ $(_isEnabled "$plug") = "1" ]; then
 		vdrctl enable "$plug" && \
-		echo "Plugin $plug enabled."
+		echo "VDR-Plugin $plug enabled."
 	fi
 done
