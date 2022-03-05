@@ -1,6 +1,6 @@
 [![vdr](vdr-logo.svg)](http://www.tvdr.de/)
 
-The Video Disk Recorder ([VDR](http://www.tvdr.de/)) is a free, non-commercial project from Klaus Schmidinger to create a digital video recorder using standard PC components. It is possible to receive, record and playback digital TV broadcasts compatible with the DVB standard.
+The Video Disk Recorder ([VDR](http://www.tvdr.de/)) is a free (open source), non-commercial project from Klaus Schmidinger to create a digital video recorder using standard PC components. It is possible to receive, record and playback digital TV broadcasts compatible with the DVB standard.
 
 
 # [lapicidae/vdr-server](https://github.com/lapicidae/vdr-server)
