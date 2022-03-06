@@ -7,7 +7,7 @@ ARG LANGUAGE="en_US:en_GB:en" \
     buildDir="/var/cache/paru" \
     buildOptimize="true" \
     maintainer="lapicidae <github.com/lapicidae>" \
-    S6VER="3.0.0.2-2"
+    S6VER="3.0.0.2"
 
 ENV PATH="$PATH:/command"
 ENV LANG="en_US.UTF-8" \
@@ -89,11 +89,21 @@ RUN echo "**** configure pacman ****" && \
         ffmpeg-headless && \
     echo "**** install VDR ****" && \
       cd $buildDir && \
+      $pacdown vdr && \
+      curl -o /tmp/eit-patch.gz "https://www.vdr-portal.de/index.php?attachment/46195-eit-patch-gz/" && \
+      gunzip -c /tmp/eit-patch.gz > vdr/eit.patch && \
+      cd vdr && \
+      sed -i "s/pkgrel=.*/pkgrel=2/g" PKGBUILD && \
+      sed -i "/^        '00-vdr.conf'.*/i \ \ \ \ \ \ \ \ 'eit.patch'" PKGBUILD && \
+      sed -i "/Don't install plugins with VDR.*/i \ \ # epg2vdr Patch\n \ patch -p1 -i \"\$srcdir/eit.patch\"\n" PKGBUILD && \
+      sudo -u builduser updpkgsums && \
+      sudo -u builduser makepkg --printsrcinfo > .SRCINFO && \
+      chown -R builduser:users . && \
+      $pacbuild && \
+      pacman --noconfirm -R vdr-examples 2>/dev/null || true && \
       $pacinst \
-        vdr \
         vdr-checkts \
         vdrctl && \
-      pacman --noconfirm -R vdr-examples 2>/dev/null || true && \
     echo "**** install VDR plugins ****" && \
       $pacinst --batchinstall \
         vdr-dvbapi \
