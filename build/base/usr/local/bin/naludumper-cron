@@ -1,0 +1,6 @@
+#!/command/execlineb -P
+with-contenv
+backtick -D "false" start { printcontenv START_NALUDUMP }
+importas -usC start start
+if { test $start != false }
+ /usr/local/bin/naludumper /vdr/recordings/

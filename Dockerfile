@@ -7,17 +7,16 @@ ARG LANGUAGE="en_US:en_GB:en" \
     buildDir="/var/cache/paru" \
     buildOptimize="true" \
     maintainer="lapicidae <github.com/lapicidae>" \
-    S6VER="3.0.0.2-2"
+    S6VER="3.1.0.1"
 
 ENV PATH="$PATH:/command"
 ENV LANG="en_US.UTF-8" \
     TZ="Europe/London" \
-    S6_CMD_WAIT_FOR_SERVICES_MAXTIME="0" \
-    S6_GLOBAL_PATH="/usr/sbin"
+    S6_CMD_WAIT_FOR_SERVICES_MAXTIME="0"
 
-ADD https://github.com/just-containers/s6-overlay/releases/download/v$S6VER/s6-overlay-noarch-$S6VER.tar.xz /tmp
-ADD https://github.com/just-containers/s6-overlay/releases/download/v$S6VER/s6-overlay-x86_64-$S6VER.tar.xz /tmp
-ADD https://github.com/just-containers/s6-overlay/releases/download/v$S6VER/syslogd-overlay-noarch-$S6VER.tar.xz /tmp
+ADD https://github.com/just-containers/s6-overlay/releases/download/v$S6VER/s6-overlay-noarch.tar.xz /tmp
+ADD https://github.com/just-containers/s6-overlay/releases/download/v$S6VER/s6-overlay-x86_64.tar.xz /tmp
+ADD https://github.com/just-containers/s6-overlay/releases/download/v$S6VER/syslogd-overlay-noarch.tar.xz /tmp
 
 COPY build/ /
 
@@ -42,7 +41,7 @@ RUN echo "**** configure pacman ****" && \
       echo "LANG=$LANG" > /etc/locale.conf && \
       locale-gen && \
     echo "**** bash tweaks ****" && \
-      echo -e "\n[ -r /usr/bin/contenv2env ] && . /usr/bin/contenv2env" >> /etc/bash.bashrc && \
+      echo -e "\n[ -r /usr/local/bin/contenv2env ] && . /usr/local/bin/contenv2env" >> /etc/bash.bashrc && \
       echo -e "\n[ -r /etc/bash.aliases ] && . /etc/bash.aliases" >> /etc/bash.bashrc && \
       echo "**** system update ****" && \
       pacman -Su --noconfirm && \
@@ -70,11 +69,10 @@ RUN echo "**** configure pacman ****" && \
       cd /tmp && \
     echo "**** s6-overlay ($S6VER) ****" && \
       cd /tmp && \
-      tar -C / -Jxpf /tmp/s6-overlay-noarch-$S6VER.tar.xz && \
-      tar -C / -Jxpf /tmp/s6-overlay-x86_64-$S6VER.tar.xz && \
-      sed -ie "s/$/:\/usr\/sbin/" /etc/s6-overlay/config/global_path && \
+      tar -C / -Jxpf /tmp/s6-overlay-noarch.tar.xz && \
+      tar -C / -Jxpf /tmp/s6-overlay-x86_64.tar.xz && \
     echo "**** syslogd-overlay ($S6VER) ****" && \
-      tar -C / -Jxpf /tmp/syslogd-overlay-noarch-$S6VER.tar.xz && \
+      tar -C / -Jxpf /tmp/syslogd-overlay-noarch.tar.xz && \
       touch /etc/s6-overlay/s6-rc.d/syslogd-prepare/dependencies.d/init && \
       patch /etc/s6-overlay/s6-rc.d/syslogd-log/run /tmp/syslogd-log_run.patch && \
       useradd --system --no-create-home --shell /bin/false syslog && \
@@ -153,7 +151,6 @@ RUN echo "**** configure pacman ****" && \
     echo "**** busybox crond ****" && \
       mkdir -p /var/spool/cron/crontabs && \
       touch /var/spool/cron/crontabs/root && \
-      touch /var/spool/cron/crontabs/vdr && \
       echo -e 'root\nvdr' >> /var/spool/cron/crontabs/cron.update && \
       chmod 600 /var/spool/cron/crontabs/* && \
     echo "**** SMTP client ****" && \
@@ -179,21 +176,25 @@ RUN echo "**** configure pacman ****" && \
         grep -v 'nolinks' | \
         grep -e 'light.*square' | \
         xargs curl -s -L -o /defaults/channellogos.tar.xz && \
-      curl -o /usr/bin/picon https://raw.githubusercontent.com/lapicidae/svg-channellogos/master/tools/picon && \
+      curl -o /usr/local/bin/picon https://raw.githubusercontent.com/lapicidae/svg-channellogos/master/tools/picon && \
     echo "**** change permissions ****" && \
       chown -R vdr:vdr /defaults && \
       chown -R vdr:vdr /vdr && \
       chown -R sysllog:sysllog /vdr/log && \
       chmod 4754 /usr/lib/vdr/bin/shutdown-wrapper && \
       chmod 4754 /usr/lib/vdr/bin/vdr-recordingaction && \
-      chmod 755 /usr/bin/checkrec && \
-      chmod 755 /usr/bin/contenv2env && \
-      chmod 755 /usr/bin/picon && \
-      chmod 755 /usr/bin/vdr-channelids && \
-      chown root:root /usr/bin/checkrec && \
-      chown root:root /usr/bin/contenv2env && \
-      chown root:root /usr/bin/picon && \
-      chown root:root /usr/bin/vdr-channelids && \
+      chmod 755 /usr/local/bin/checkrec && \
+      chmod 755 /usr/local/bin/contenv2env && \
+      chmod 755 /usr/local/bin/naludumper && \
+      chmod 755 /usr/local/bin/naludumper-cron && \
+      chmod 755 /usr/local/bin/picon && \
+      chmod 755 /usr/local/bin/vdr-channelids && \
+      chown root:root /usr/local/bin/checkrec && \
+      chown root:root /usr/local/bin/contenv2env && \
+      chown root:root /usr/local/bin/naludumper && \
+      chown root:root /usr/local/bin/naludumper-cron && \
+      chown root:root /usr/local/bin/picon && \
+      chown root:root /usr/local/bin/vdr-channelids && \
       chown root:vdr /usr/lib/vdr/bin/shutdown-wrapper && \
       chown vdr:vdr /usr/lib/vdr/bin/vdr-recordingaction && \
     echo "**** mark essential packages ****" && \
@@ -215,7 +216,6 @@ RUN echo "**** configure pacman ****" && \
         device-mapper \
         iproute2 \
         iptables \
-        json-c \
         kbd \
         kmod \
         libmnl \

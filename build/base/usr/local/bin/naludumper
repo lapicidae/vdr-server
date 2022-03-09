@@ -1,0 +1,136 @@
+#!/bin/bash
+#/usr/bin/naludumper
+
+# Check if another instance of script is running
+pidof -o %PPID -x $0 >/dev/null && echo >&2 "ERROR: Script $0 already running" && exit 1
+
+# Check if naludump and vdr are installed
+command -v naludump >/dev/null 2>&1 || { echo >&2 "naludump is required but it's not installed. Aborting!"; exit 1; }
+command -v vdr >/dev/null 2>&1 || { echo >&2 "vdr is required but it's not installed. Aborting!"; exit 1; }
+
+
+#DEBUG="true"
+#SVDRP_IP="127.0.0.1"
+#SVDRP_PORT="6419"
+#SKIP_SVDRP="true"
+MIN_LEAD_TIME="1200"
+
+
+INPUTDIR="$1"
+TMPDIR=$(mktemp -d --suffix="_naludump")
+NALUD=$(command -v naludump)
+VDR=$(command -v vdr)
+IFS=$'\n'
+
+
+
+function log {
+	if [ ${DEBUG:="false"} = "true" ]; then
+		logger -e -p info "NaluDumper: $1"
+		echo "NaluDumper: $1"
+	else
+		logger -e -p info "NaluDumper: $1"
+	fi
+}
+
+function upcoming_rec {
+	if [ ${SKIP_SVDRP:="false"} != "true" ]; then
+		local recsec="$({ echo -e "NEXT rel" >&5; timeout 1 cat <&5; } 2>/dev/null 5<> /dev/tcp/${SVDRP_IP:="127.0.0.1"}/${SVDRP_PORT:="6419"} | tail -n1 -q | grep -o '[^ ]*$')"
+		if [ -z $recsec ] || [[ $recsec != ?(-)+([0-9]) ]]; then
+			log "Cannot connect to SVDRP or wrong answer!"
+			exit 1
+		elif [ $recsec -le ${MIN_LEAD_TIME:="600"} ]; then
+			log "Upcoming recording in $recsec seconds... EXIT"
+			exit 0
+		fi
+	fi
+}
+
+
+# CleanUp on exit or error
+trap 'log KILLED; rm -rf "$TMPDIR"; exit 130' SIGINT SIGTERM
+trap 'rm -rf "$TMPDIR"' EXIT
+
+
+# Check input dir
+if [ -z "$INPUTDIR" ]; then
+	INPUTDIR="/srv/vdr/video/"
+	log "Using default directory '$INPUTDIR'"
+fi
+
+if [ ! -d "$INPUTDIR" ]; then
+	log "'$INPUTDIR' not found, or not a directory!"
+	exit 1
+fi
+
+
+# Find directories that do not contain 'naludump.log' or '.naludump.done'
+declare -a workdir
+while read; do
+	workdir+=("$REPLY")
+done < <(find "$INPUTDIR" -type d -name "*.rec" '!' -exec sh -c 'ls -1A "{}" | grep -i -q -E "^naludump.log$|^.naludump.done$"' ';' -print0 | if grep -q '.'; then xargs -0 realpath | sort -t '\0' -n; fi)
+
+if [ ${#workdir[@]} -eq 0 ]; then
+    log "There's nothing to do."
+    exit 0
+fi
+
+for RECDIR in ${workdir[@]}; do
+	upcoming_rec
+	RECNAME=$(basename $(dirname "$RECDIR"))
+	TMPLOG=$(mktemp --tmpdir="$TMPDIR" --suffix=".log")
+	rm -f "$TMPLOG"
+
+	# is recording in H.264 HD
+	if grep -q "^X 5 0B*" "$RECDIR/info"; then
+		log "Working on '$RECNAME'..."
+
+		for tsfile in "$RECDIR"/?????.ts; do
+			if [ -L "$tsfile" ]; then 
+				tsfile=$(readlink $tsfile)
+			fi
+
+			DIR=$(dirname $tsfile)
+			FILE=$(basename $tsfile)
+			TMPFILE=$(mktemp --tmpdir="$TMPDIR" --suffix="_nald.ts")
+
+			rm -f "$TMPFILE"
+
+			nice -n 19 $NALUD "$DIR/$FILE" "$TMPFILE" >> "$TMPLOG" 2>&1
+
+			if [ "$?" = "0" ]; then
+				SIZE_ORG=$(stat -c "%s" "$DIR/$FILE")
+				SIZE_NEW=$(stat -c "%s" "$TMPFILE")
+				if [ $SIZE_NEW -lt $SIZE_ORG ]; then
+					SIZE_DIFF=$(numfmt --to=iec $(($SIZE_ORG-$SIZE_NEW)))
+					log "$RECNAME - $FILE: saved $SIZE_DIFF"
+					echo ">>> $SIZE_DIFF SAVED <<<" >> "$TMPLOG"
+					mv "$TMPFILE" "$DIR/$FILE"
+					if [ -e "$DIR/$FILE" ]; then
+						rm -f "$TMPFILE"
+					fi
+				else
+					log "$RECNAME - $FILE: nothing dumped"
+					echo ">>> NOTHING DUMPED <<<" >> "$TMPLOG"
+					rm -f "$TMPFILE"
+				fi
+			else
+				log "ERROR stripping NALUs from recording $RECNAME"
+				echo "########## naludump finished unsuccessfull." >> "$TMPLOG"
+				cp -b "$TMPLOG" "$RECDIR/naludump-error.log"
+				continue 2
+			fi
+		done
+
+		if grep -q "SAVED <<<$" "$TMPLOG"; then
+			log "$RECNAME: regenerate index..."
+			nice -n 19 $VDR --genindex="$RECDIR" >> "$TMPLOG" 2>&1 || \
+			continue
+		fi
+
+		mv "$TMPLOG" "$RECDIR/naludump.log"
+		touch "$RECDIR/.naludump.done"
+		log "$RECNAME: finished stripping NALUs"
+
+	fi
+done

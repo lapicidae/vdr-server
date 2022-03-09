@@ -23,7 +23,7 @@ if ([ ! -e "$logo_picon_done" ] && [ ${START_IMAGESERVER:="false"} = "true" ]) |
 	if [ -r "$channels_conf" ]; then
 		picopts+=" -c $channels_conf"
 	fi
-	/usr/bin/picon $(echo "$picopts") && \
+	/usr/local/bin/picon $(echo "$picopts") && \
 	touch "$logo_picon_done" && \
 	if [ -e "$repicon" ]; then rm -f "$repicon"; fi
 fi
