@@ -35,16 +35,21 @@ function log {
 
 function upcoming_rec {
 	if [ ${SKIP_SVDRP:="false"} != "true" ]; then
-		local recsec="$({ echo -e "NEXT rel" >&5; timeout 1 cat <&5; } 2>/dev/null 5<> /dev/tcp/${SVDRP_IP:="127.0.0.1"}/${SVDRP_PORT:="6419"} | tail -n1 -q | grep -o '[^ ]*$')"
+		local recsec="$({ echo -e "NEXT rel" >&5; timeout 1 cat <&5; } 2>/dev/null 5<> /dev/tcp/${SVDRP_IP:="127.0.0.1"}/${SVDRP_PORT:="6419"} | tail -n1 -q | grep -o '[^ ]*$' | sed 's/\r//g;s/\n//g' | xargs printf '%i')"
 		if [ -z $recsec ] || [[ $recsec != ?(-)+([0-9]) ]]; then
 			log "Cannot connect to SVDRP or wrong answer!"
 			exit 1
 		elif [ $recsec -le ${MIN_LEAD_TIME:="600"} ]; then
-			log "Upcoming recording in $recsec seconds... EXIT"
+			if [ $recsec -le 0 ]; then
+				log "Recording in progress... EXIT"
+			else
+				log "Upcoming recording in $recsec seconds... EXIT"
+			fi
 			exit 0
 		fi
 	fi
 }
+
 
 
 # CleanUp on exit or error
@@ -74,6 +79,7 @@ if [ ${#workdir[@]} -eq 0 ]; then
     log "There's nothing to do."
     exit 0
 fi
+
 
 for RECDIR in ${workdir[@]}; do
 	upcoming_rec
