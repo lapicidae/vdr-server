@@ -12,6 +12,9 @@ fi
 command -v naludump >/dev/null 2>&1 || { echo >&2 "naludump is required but it's not installed. Aborting!"; exit 1; }
 command -v vdr >/dev/null 2>&1 || { echo >&2 "vdr is required but it's not installed. Aborting!"; exit 1; }
 
+# prevent core dumps
+ulimit -c 0
+
 
 #DEBUG="true"
 #SVDRP_IP="127.0.0.1"
@@ -73,11 +76,11 @@ if [ ! -d "$INPUTDIR" ]; then
 fi
 
 
-# Find directories that do not contain 'naludump.log' or '.naludump.done'
+# Find directories that do not contain 'naludump.log', '.naludump.done' or 'naludump-error.log'
 declare -a workdir
 while read; do
 	workdir+=("$REPLY")
-done < <(find "$INPUTDIR" -type d -name "*.rec" '!' -exec sh -c 'ls -1A "{}" | grep -i -q -E "^naludump.log$|^.naludump.done$"' ';' -print0 | if grep -q '.'; then xargs -0 realpath | sort -t '\0' -n; fi)
+done < <(find "$INPUTDIR" -type d -name "*.rec" '!' -exec sh -c 'ls -1A "{}" | grep -i -q -E "^naludump-error.log$|^naludump.log$|^naludump.skip$"' ';' -print0 | xargs -0 -r realpath | sort -t '\0' -n)
 
 if [ ${#workdir[@]} -eq 0 ]; then
     log "There's nothing to do."
@@ -138,8 +141,7 @@ for RECDIR in ${workdir[@]}; do
 			continue
 		fi
 
-		mv "$TMPLOG" "$RECDIR/naludump.log"
-		touch "$RECDIR/.naludump.done"
+		cp -b "$TMPLOG" "$RECDIR/naludump.log"
 		log "$RECNAME: finished stripping NALUs"
 
 	fi
