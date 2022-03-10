@@ -2,7 +2,11 @@
 #/usr/bin/naludumper
 
 # Check if another instance of script is running
-pidof -o %PPID -x $0 >/dev/null && echo >&2 "ERROR: Script $0 already running" && exit 1
+if pidof --help 2>&1 | grep -i busybox > /dev/null; then	# BusyBox version
+	pidof -s -o %PPID $(basename "$0") >/dev/null && echo >&2 "ERROR: Script '$(basename "$0")' already running" && exit 1
+else
+	pidof -s -x -o %PPID $0 >/dev/null && echo >&2 "ERROR: Script '$(basename "$0")' already running" && exit 1
+fi
 
 # Check if naludump and vdr are installed
 command -v naludump >/dev/null 2>&1 || { echo >&2 "naludump is required but it's not installed. Aborting!"; exit 1; }
