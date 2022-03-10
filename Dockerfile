@@ -189,6 +189,7 @@ RUN echo "**** configure pacman ****" && \
       chmod 755 /usr/local/bin/naludumper-cron && \
       chmod 755 /usr/local/bin/picon && \
       chmod 755 /usr/local/bin/vdr-channelids && \
+      chmod 600 /var/spool/cron/crontabs/* && \
       chown root:root /usr/local/bin/checkrec && \
       chown root:root /usr/local/bin/contenv2env && \
       chown root:root /usr/local/bin/naludumper && \
