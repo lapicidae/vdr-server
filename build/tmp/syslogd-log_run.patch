@@ -1,6 +1,6 @@
 --- /etc/s6-overlay/s6-rc.d/syslogd-log/run	2022-03-08 02:55:29.000000000 +0100
-+++ /etc/s6-overlay/s6-rc.d/syslogd-log/run.new	2022-03-08 15:27:32.852628671 +0100
-@@ -1,18 +1,22 @@
++++ /etc/s6-overlay/s6-rc.d/syslogd-log/run.new	2022-03-25 15:07:44.919492475 +0100
+@@ -1,13 +1,17 @@
  #!/command/execlineb -P
  
  s6-envuidgid -D 32761:32761: -- sysllog
@@ -20,15 +20,9 @@
  exec -c
  s6-log -d3 --
  
-  - +^auth\\. +^authpriv\\.  $T ${dir}/secure
-- - +^cron\\.  $T ${dir}/cron
-+ - +^cron\\.  1 $T ${dir}/cron
-  - +^daemon\\.  $T ${dir}/daemon
-  - +^[[:alnum:]]*\\.debug:  $T ${dir}/debug
-  - +^[[:alnum:]]*\\.err: +^[[:alnum:]]*\\.error: +^[[:alnum:]]*\\.emerg: +^[[:alnum:]]*\\.alert: +^[[:alnum:]]*\\.crit:  $T ${dir}/errors
 @@ -20,4 +24,5 @@
   - +mail\\.  $T ${dir}/mail
   - +user\\.  $T ${dir}/user
   - +^[[:alnum:]]*\\.info: +^[[:alnum:]]*\\.notice: +^[[:alnum:]]*\\.warn: -^auth\\. -^authpriv\\. -^cron\\. -daemon\\. -mail\\.  $T ${dir}/messages
-+ - +^[[:alnum:]].*vdr: +^[[:alnum:]].*recordingaction: +^[[:alnum:]].*CheckRecording:  $logdir_vdr
++ - +^[[:alnum:]].*[[:space:]]vdr: +^[[:alnum:]].*[[:space:]]recordingaction: +^[[:alnum:]].*[[:space:]]CheckRecording: +^[[:alnum:]].*[[:space:]]NaluDumper:  $logdir_vdr
   + -^auth\\. -^authpriv\\.  $T ${dir}/everything

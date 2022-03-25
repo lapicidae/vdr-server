@@ -6,7 +6,7 @@
 # This script gets executed by VDR before a recording starts, after a
 # recording ends and after a recording has been edited.
 # In order to allow other addons to hook into this process, this script will
-# search for any executables in /usr/share/vdr/recording-hooks. These
+# search for any executables in /etc/vdr/recording-hooks. These
 # hooks are called in their alphabetical order and should follow this
 # naming scheme:
 #
@@ -31,11 +31,14 @@ recordinghooks=`find "$REC_HOOKS_DIR" -maxdepth 1 -xtype f | sort`
 
 for recordinghook in $recordinghooks; do
 	case $1 in
-		before|after)
-			action="$1 recording $2"
+		before|after|started|deleted)
+			action="$(echo $1 | tr '[:lower:]' '[:upper:]') recording $2"
 			;;
 		edited)
 			action="after cutting recording $2 from $3"
+			;;
+		*)
+			continue
 			;;
 	esac
 	if [ -x $recordinghook ]; then

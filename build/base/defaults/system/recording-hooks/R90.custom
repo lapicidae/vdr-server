@@ -10,7 +10,7 @@
 # package. All other recording hooks get executed before this one! 
 #
 # If you want to create your own recording hook that may get executed
-# before any other hook, create it in /usr/share/vdr/recording-hooks or
+# before any other hook, create it in /etc/vdr/recording-hooks or
 # link to this location. All hooks are called in their alphabetical
 # order and should follow this naming scheme: 
 #

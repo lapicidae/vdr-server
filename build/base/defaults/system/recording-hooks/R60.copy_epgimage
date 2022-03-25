@@ -3,7 +3,7 @@
 
 
 # Enable recordingaction
-ENABLED=false
+ENABLED="false"
 
 
 # epg definitions
@@ -30,7 +30,7 @@ copyepgimages() {
         epgimages_dir="$3"
 
         for i in "$origin" "$target" "$epgimages_dir"; do
-		[ -z "$i" ] && echo "copyepgimages: got an invalid argument" && exit 0
+		[ -z "$i" ] && logger -t recordingaction "copyepgimages: got an invalid argument" && exit 0
 	done
 
 	geteventid "$origin" || return 0
@@ -38,7 +38,7 @@ copyepgimages() {
 }
 
 
-if $ENABLED; then
+if [ ${ENABLED:="true"} != "false" ]; then
 	case $1 in
 		before)
 			# do here whatever you would like to do right BEFORE
