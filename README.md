@@ -125,6 +125,7 @@ For example, `-p 8080:80` would expose port `80` from inside the container to be
 | `-e LANG=en_US.UTF-8` | Default locale; see [list](https://sourceware.org/git/?p=glibc.git;a=blob_plain;f=localedata/SUPPORTED;hb=HEAD) (e.g. en_US.UTF-8) |
 | `-e PLUGINS=epgsearch live streamdev-server vnsiserver` | Optional - **Space separated** list of [VDR Plugins](https://github.com/VDR4Arch/vdr4arch/tree/master/plugins) (default: `epgsearch live streamdev-server vnsiserver`) |
 | `-e START_NALUDUMP=true` | Optional - Start [naludump](https://www.udo-richter.de/vdr/naludump.html) every day at 4 am (via cron) [^3] |
+| `-e START_NALUDUMP_AT=0 4 * * *` | Optional - Crontab schedule for the start of naludump ([examples](https://crontab.guru/)) |
 | `-e START_IMAGESERVER=true` | Optional - Image Server: provision of station logos and epg images via http |
 | `-e LOG2FILE=true` | Optional - Write log to file in `/vdr/log` |
 | `-e PROTECT_CAMDATA=true` | Optional - Write protect `cam.data` to avoid unwanted changes |
