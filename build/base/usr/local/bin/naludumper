@@ -76,7 +76,7 @@ if [ ! -d "$INPUTDIR" ]; then
 fi
 
 
-# Find directories that do not contain 'naludump.log', '.naludump.done' or 'naludump-error.log'
+# Find directories that do not contain 'naludump.log', 'naludump.skip' or 'naludump-error.log'
 declare -a workdir
 while read; do
 	workdir+=("$REPLY")
