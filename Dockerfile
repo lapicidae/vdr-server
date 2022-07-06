@@ -7,7 +7,7 @@ ARG LANGUAGE="en_US:en_GB:en" \
     buildDir="/var/cache/paru" \
     buildOptimize="true" \
     maintainer="lapicidae <github.com/lapicidae>" \
-    S6VER="3.1.0.1"
+    S6VER="3.1.1.2"
 
 ENV PATH="$PATH:/command"
 ENV LANG="en_US.UTF-8" \
