@@ -99,9 +99,15 @@ RUN echo "**** configure pacman ****" && \
       chown -R builduser:users . && \
       $pacbuild && \
       pacman --noconfirm -R vdr-examples 2>/dev/null || true && \
+    echo "**** install VDR tools ****" && \
       $pacinst \
-        vdr-checkts \
         vdrctl && \
+      cd $buildDir && \
+      $pacdown vdr-checkts && \
+      sed -i "s/projects.vdr-developer.org\/git/github.com\/vdr-projects/g" vdr-checkts/PKGBUILD && \
+      chown -R builduser:users vdr-checkts && \
+      cd vdr-checkts && \
+      $pacbuild && \
     echo "**** install VDR plugins ****" && \
       $pacinst --batchinstall \
         vdr-dvbapi \
