@@ -9,7 +9,8 @@ If you want to (re)build or patch packages by yourself.
 ## Features
   * changes in the dir are detected and a rebuild begins when the container starts
   * if a file named `rebuild` is found in the dir, the package is rebuilt at startup
-  * if a file named `vdrplug-PLUGINNAME` is found, the VDR plugin will be activated at container start.
+  * if a file named `forcedeps` is found in the dir, "makedepends" are installed with the "overwrite /usr/bin/*" flag to avoid "exists in filesystem" errors
+  * if a file named `vdrplug-PLUGINNAME` is found, the VDR plugin will be activated at container start
 
 ### VDR Plugin Example:
 ```bash

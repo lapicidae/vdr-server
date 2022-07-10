@@ -23,7 +23,7 @@ bUser="builduser"
 pkgb_dir="/etc/PKGBUILD.d"
 buildDir="/var/cache/paru/user_pkg"
 vdrplug_conf="/etc/conf.d/user_plugins.conf"
-pacbuild="sudo -u builduser makepkg --clean --install --noconfirm --noprogressbar --syncdeps"
+pacbuild="sudo -u builduser makepkg --clean --install --noconfirm --noprogressbar --syncdeps --rmdeps"
 pacinst="paru --nouseask --noconfirm --noprogressbar --overwrite ´/usr/bin/*´ -U *$pacext"
 
 
@@ -68,6 +68,13 @@ for DIR in  "${package[@]}"; do
 	chown -R builduser:users "$pacdir"
 	cd "$pacdir"
 
+	if [ -f "$DIR/forcedeps" ]; then
+		echo "force install dependencies..."
+		readarray -t mkdeps < <(cat "$pacdir/PKGBUILD" | awk "/.*makedepends=\(/,/\)/" | sed "s/makedepends=(//g" | sed "s/)//g" | xargs -n 1)
+		pacman -S --overwrite "/usr/bin/*" --needed --asdeps --noconfirm "${mkdeps[@]}"
+		forcedeps="true"
+	fi
+
 	echo "build package..."
 	$pacbuild || continue
 
@@ -78,6 +85,9 @@ for DIR in  "${package[@]}"; do
 	rm -rf "$pacdir/"{*,.*} 2>/dev/null
 	rm -f "$DIR/rebuild"
 	echo "$dirmd5" > "$md5file"
+	if [ ${forcedeps:="false"} = "true" ]; then
+		pacman --noconfirm -R $(pacman -Qtdq) 2>/dev/null || true
+	fi
 
 
 	# enable VDR plugin if control file exists

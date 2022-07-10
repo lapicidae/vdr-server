@@ -39,9 +39,9 @@ fi
 if [ ${START_NALUDUMP:="false"} != "false" ] && [ ! -z "$START_NALUDUMP_AT" ]; then
 	echo "Set naludump crontab to '$START_NALUDUMP_AT'"
 	TMP_CRON=$(mktemp --suffix=".crontab")
-	crontab -u vdr -l > $TMP_CRON
+	busybox crontab -u vdr -l > $TMP_CRON
 	sed -i '/naludump/c\'"$START_NALUDUMP_AT"' /usr/local/bin/naludumper-cron' $TMP_CRON
 	chown vdr:vdr $TMP_CRON
-	crontab -u vdr $TMP_CRON
+	busybox crontab -u vdr $TMP_CRON
 	rm -f $TMP_CRON
 fi
