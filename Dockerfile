@@ -9,7 +9,7 @@ ARG LANGUAGE="en_US:en_GB:en" \
     maintainer="lapicidae <github.com/lapicidae>" \
     S6VER="3.1.1.2"
 
-ENV PATH="$PATH:/command"
+ENV PATH="$PATH:/command:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl"
 ENV LANG="en_US.UTF-8" \
     TZ="Europe/London" \
     S6_CMD_WAIT_FOR_SERVICES_MAXTIME="0"
