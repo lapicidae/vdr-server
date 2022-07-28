@@ -27,7 +27,8 @@ RUN echo "**** configure pacman ****" && \
       sed -i "/^#PACKAGER=.*/a PACKAGER=\"$maintainer\"" "/etc/makepkg.conf" && \
       pacman-key --init && \
       pacman-key --populate archlinux && \
-      pacman -Sy && \
+      pacman -Sy archlinux-keyring --noprogressbar --noconfirm && \
+      pacman -Su --noprogressbar --noconfirm && \
     echo "**** timezone and locale ****" && \
       pacman -S glibc --overwrite=* --noconfirm && \
       rm -f /etc/localtime && \
