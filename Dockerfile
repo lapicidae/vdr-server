@@ -132,6 +132,7 @@ RUN echo "**** configure pacman ****" && \
       cd vdr-ciplus && \
       $pacbuild && \
     echo "**** install VDR plugin live ****" && \
+      cd $buildDir && \
       $pacdown cxxtools && \
       curl -LJ -o cxxtools/timer.patch "https://github.com/maekitalo/cxxtools/files/9257147/cxxtools-3.0-timer.txt" && \
       cd cxxtools && \
