@@ -1,7 +1,7 @@
 FROM archlinux:latest
 
 ARG LANGUAGE="en_US:en_GB:en" \
-    pacinst="sudo -u builduser paru --nouseask --removemake --cleanafter --noconfirm --clonedir /var/cache/paru -S" \
+    pacinst="sudo -u builduser paru --failfast --nouseask --removemake --cleanafter --noconfirm --clonedir /var/cache/paru -S" \
     pacdown="sudo -u builduser paru --getpkgbuild --noprogressbar --clonedir /var/cache/paru" \
     pacbuild="sudo -u builduser makepkg --clean --install --noconfirm --noprogressbar --syncdeps" \
     buildDir="/var/cache/paru" \
