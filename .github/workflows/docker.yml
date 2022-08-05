@@ -61,11 +61,7 @@ jobs:
             <body>
             <h1 style="text-transform:uppercase">${{job.status}}</h1>
             <p>Action "${{github.workflow}}" started by ${{github.actor}} (${{ github.event.inputs.trigger }}) in ${{github.repository}}.</p>
-            <p><button
-              style="background-color:#4CAF50; border:none; color:white; padding:20px; text-align:center; text-decoration:none; display:inline-block; font-size:16px; margin:4px 2px; cursor:pointer; border-radius:12px;"
-              onclick="location.href='${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}'">
-              View workflow run
-            </button></p>
+            <p><a href="${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}" target="_blank" style="background-color:#4CAF50; border:none; color:white; padding:20px; text-align:center; text-decoration:none; display:inline-block; font-size:16px; margin:4px 2px; cursor:pointer; border-radius:12px;">View workflow run</a></p>
             <p>Your faithful employee<br>
             ${{runner.name}} (${{runner.os}} - ${{runner.arch}})</p>
             </body>
