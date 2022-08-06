@@ -20,7 +20,7 @@ elif [ -z "$AUR" ] || [ "$AUR" != "false" ]; then
 fi
 
 readarray -t enabled_arr < <(vdrctl list --enabled)
-plug_arr=("$PLUGINS")
+readarray -d ' ' -t plug_arr < <(printf '%s ' "$PLUGINS")
 
 
 # plugins added by user
@@ -54,7 +54,8 @@ fi
 
 
 _isAvailable() {
-	plugin=$1;
+	local plugin=$1;
+	local avail
 	avail=$($pac_man -Ssq "$plugin" 2> /dev/null | grep "^$plugin$")
 	if [  -n "$avail" ]; then
 		echo 0	# Success
@@ -64,13 +65,14 @@ _isAvailable() {
 }
 
 _isInstalled() {
-	package=$1
+	local package=$1
 	$pac_man -Qi "$package" &> /dev/null
 	echo $?
 }
 
 _isEnabled() {
-	plugin=$1;
+	local plugin=$1;
+	local enabled
 	enabled=$(vdrctl list --enabled | grep "^$plugin$")
 	if [ "$enabled" = "$plugin" ]; then
 		echo 0	# Success
