@@ -15,9 +15,9 @@ function chmown {
 		return 1
 	elif [ -d "$path" ]; then
 		echo "Reassign permissions: $path"
-		chown -R $usr:$grp "$path"
-		find "$path" -type d -exec chmod $perm_dir {} \;
-		find "$path" -type f -exec chmod $perm_file {} \;
+		chown -R "$usr":"$grp" "$path"
+		find "$path" -type d -exec chmod "$perm_dir" {} \;
+		find "$path" -type f -exec chmod "$perm_file" {} \;
 	fi
 }
 
@@ -56,8 +56,8 @@ fi
 
 # ciplus
 ci_plus="/vdr/cache/plugins/ciplus/"
-if [ -d "$ci_plus" ] && [ ! -z "$(ls -A $ci_plus)" ]; then
-	chmod -f ug+rw *.auth || true
+if [ -d "$ci_plus" ] && [ -n "$(ls -A $ci_plus)" ]; then
+	chmod -f ug+rw -- *.auth || true
 fi
 
 

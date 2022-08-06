@@ -12,6 +12,7 @@ ARG LANGUAGE="en_US:en_GB:en" \
 ENV PATH="$PATH:/command:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl"
 ENV LANG="en_US.UTF-8" \
     TZ="Europe/London" \
+    DISABLE_WEBINTERFACE="true" \
     S6_CMD_WAIT_FOR_SERVICES_MAXTIME="0"
 
 ADD https://github.com/just-containers/s6-overlay/releases/download/v$S6VER/s6-overlay-noarch.tar.xz /tmp
@@ -83,9 +84,7 @@ RUN echo "**** configure pacman ****" && \
         busybox \
         libdvbcsa \
         ttf-vdrsymbols \
-        naludump \
-        libva-headless \
-        ffmpeg-headless && \
+        naludump && \
     echo "**** install VDR ****" && \
       cd $buildDir && \
       $pacdown vdr && \
@@ -131,11 +130,6 @@ RUN echo "**** configure pacman ****" && \
       chown -R builduser:users vdr-ciplus && \
       cd vdr-ciplus && \
       $pacbuild && \
-    echo "**** install VDR plugin live ****" && \
-      $pacinst \
-        cxxtools \
-        tntnet \
-        vdr-live && \
     echo "**** folders and symlinks ****" && \
       mkdir -p /vdr/channellogos && \
       mkdir -p /vdr/log && \

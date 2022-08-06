@@ -3,9 +3,9 @@
 
 # Check if another instance of script is running
 if pidof --help 2>&1 | grep -i busybox > /dev/null; then	# BusyBox version
-	pidof -s -o %PPID $(basename "$0") >/dev/null && echo >&2 "ERROR: Script '$(basename "$0")' already running" && exit 1
+	pidof -s -o %PPID "$(basename "$0")" >/dev/null && echo >&2 "ERROR: Script '$(basename "$0")' already running" && exit 1
 else
-	pidof -s -x -o %PPID $0 >/dev/null && echo >&2 "ERROR: Script '$(basename "$0")' already running" && exit 1
+	pidof -s -x -o %PPID "$0" >/dev/null && echo >&2 "ERROR: Script '$(basename "$0")' already running" && exit 1
 fi
 
 # Check if naludump and vdr are installed
@@ -32,7 +32,7 @@ IFS=$'\n'
 
 
 function log {
-	if [ ${DEBUG:="false"} = "true" ]; then
+	if [ "${DEBUG:="false"}" = "true" ]; then
 		logger -e -p info "NaluDumper: $1"
 		echo "NaluDumper: $1"
 	else
@@ -41,13 +41,14 @@ function log {
 }
 
 function upcoming_rec {
-	if [ ${SKIP_SVDRP:="false"} != "true" ]; then
-		local recsec="$({ echo -e "NEXT rel" >&5; timeout 1 cat <&5; } 2>/dev/null 5<> /dev/tcp/${SVDRP_IP:="127.0.0.1"}/${SVDRP_PORT:="6419"} | tail -n1 -q | grep -o '[^ ]*$' | sed 's/\r//g;s/\n//g' | xargs printf '%i')"
-		if [ -z $recsec ] || [[ $recsec != ?(-)+([0-9]) ]]; then
+	if [ "${SKIP_SVDRP:="false"}" != "true" ]; then
+		local recsec
+		recsec="$({ echo -e "NEXT rel" >&5; timeout 1 cat <&5; } 2>/dev/null 5<> /dev/tcp/"${SVDRP_IP:="127.0.0.1"}"/"${SVDRP_PORT:="6419"}" | tail -n1 -q | grep -o '[^ ]*$' | sed 's/\r//g;s/\n//g' | xargs printf '%i')"
+		if [ -z "$recsec" ] || [[ $recsec != ?(-)+([0-9]) ]]; then
 			log "Cannot connect to SVDRP or wrong answer!"
 			exit 1
-		elif [ $recsec -le ${MIN_LEAD_TIME:="600"} ]; then
-			if [ $recsec -le 0 ]; then
+		elif [ "$recsec" -le ${MIN_LEAD_TIME:="600"} ]; then
+			if [ "$recsec" -le 0 ]; then
 				log "Recording in progress... EXIT"
 			else
 				log "Upcoming recording in $recsec seconds... EXIT"
@@ -78,9 +79,9 @@ fi
 
 # Find directories that do not contain 'naludump.log', 'naludump.skip' or 'naludump-error.log'
 declare -a workdir
-while read; do
+while read -r; do
 	workdir+=("$REPLY")
-done < <(find "$INPUTDIR" -type d -name "*.rec" '!' -exec sh -c 'ls -1A "{}" | grep -i -q -E "^naludump-error.log$|^naludump.log$|^naludump.skip$"' ';' -print0 | xargs -0 -r realpath | sort -t '\0' -n)
+done < <(find "$INPUTDIR" -type d -name "*.rec" '!' -exec sh -c 'ls -1A "{$1}" | grep -i -q -E "^naludump-error.log$|^naludump.log$|^naludump.skip$"' ';' -print0 | xargs -0 -r realpath | sort -t '\0' -n)
 
 if [ ${#workdir[@]} -eq 0 ]; then
     log "There's nothing to do."
@@ -88,9 +89,9 @@ if [ ${#workdir[@]} -eq 0 ]; then
 fi
 
 
-for RECDIR in ${workdir[@]}; do
+for RECDIR in "${workdir[@]}"; do
 	upcoming_rec
-	RECNAME=$(basename $(dirname "$RECDIR"))
+	RECNAME=$(basename "$(dirname "$RECDIR")")
 	TMPLOG=$(mktemp --tmpdir="$TMPDIR" --suffix=".log")
 	rm -f "$TMPLOG"
 
@@ -100,22 +101,23 @@ for RECDIR in ${workdir[@]}; do
 
 		for tsfile in "$RECDIR"/?????.ts; do
 			if [ -L "$tsfile" ]; then 
-				tsfile=$(readlink $tsfile)
+				tsfile=$(readlink "$tsfile")
 			fi
 
-			DIR=$(dirname $tsfile)
-			FILE=$(basename $tsfile)
+			DIR=$(dirname "$tsfile")
+			FILE=$(basename "$tsfile")
 			TMPFILE=$(mktemp --tmpdir="$TMPDIR" --suffix="_nald.ts")
 
 			rm -f "$TMPFILE"
 
-			nice -n 19 $NALUD "$DIR/$FILE" "$TMPFILE" >> "$TMPLOG" 2>&1
+			nice -n 19 "$NALUD" "$DIR/$FILE" "$TMPFILE" >> "$TMPLOG" 2>&1
+			nalu_exit="$?"
 
-			if [ "$?" = "0" ]; then
+			if [ $nalu_exit -eq 0 ]; then
 				SIZE_ORG=$(stat -c "%s" "$DIR/$FILE")
 				SIZE_NEW=$(stat -c "%s" "$TMPFILE")
-				if [ $SIZE_NEW -lt $SIZE_ORG ]; then
-					SIZE_DIFF=$(numfmt --to=iec $(($SIZE_ORG-$SIZE_NEW)))
+				if [ "$SIZE_NEW" -lt "$SIZE_ORG" ]; then
+					SIZE_DIFF=$(numfmt --to=iec $((SIZE_ORG-SIZE_NEW)))
 					log "$RECNAME - $FILE: saved $SIZE_DIFF"
 					echo ">>> $SIZE_DIFF SAVED <<<" >> "$TMPLOG"
 					mv "$TMPFILE" "$DIR/$FILE"
@@ -137,7 +139,7 @@ for RECDIR in ${workdir[@]}; do
 
 		if grep -q "SAVED <<<$" "$TMPLOG"; then
 			log "$RECNAME: regenerate index..."
-			nice -n 19 $VDR --genindex="$RECDIR" >> "$TMPLOG" 2>&1 || \
+			nice -n 19 "$VDR" --genindex="$RECDIR" >> "$TMPLOG" 2>&1 || \
 			continue
 		fi
 

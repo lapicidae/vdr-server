@@ -14,7 +14,7 @@ EPGIMAGESFORMAT="jpg"
 # eventid for recording
 geteventid() {
 	for file in "${origin}/info"*; do
-		EVENTID=$(egrep "^E " "$file" | cut -d " " -f 2)
+		EVENTID=$(grep -E "^E " "$file" | cut -d " " -f 2)
 		[ -n "$EVENTID" ] && return 0
 	done
 	return 1
@@ -30,7 +30,7 @@ copyepgimages() {
         epgimages_dir="$3"
 
         for i in "$origin" "$target" "$epgimages_dir"; do
-		[ -z "$i" ] && logger -t recordingaction "copyepgimages: got an invalid argument" && exit 0
+		[ -z "$i" ] && logger -t recordingaction "<Copy EPG-Image> got an invalid argument" && exit 0
 	done
 
 	geteventid "$origin" || return 0
@@ -66,5 +66,5 @@ if [ ${ENABLED:="true"} != "false" ]; then
 			;;
 	esac
 else
-	logger -t recordingaction "copy-epgimage is disabled"
+	logger -t recordingaction "<Copy EPG-Image> is disabled"
 fi

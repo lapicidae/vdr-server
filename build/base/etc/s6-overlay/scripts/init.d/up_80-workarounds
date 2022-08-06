@@ -3,8 +3,8 @@
 
 _isEnabled() {
 	plugin=$1;
-	enabled=$(vdrctl list --enabled | grep "^$1$")
-	if [[ "${enabled_arr[@]}" =~ "$plugin" ]]; then
+	enabled_arr=$(vdrctl list --enabled | grep "^$1$")
+	if [[ "${enabled_arr[*]}" =~ $plugin ]]; then
 		echo 0	# Success
 	else
 		echo 1	# Error
@@ -15,12 +15,12 @@ _isEnabled() {
 ## VDR Plugins ##
 
 # epgsearch
-if [ $(_isEnabled "epgsearch") = "0" ]; then
+if [ "$(_isEnabled "epgsearch")" = "0" ]; then
 	plug_dir="/vdr/config/plugins/epgsearch"
-	loc=$(echo $LANG | cut -d "." -f 1)
+	#loc=$(echo "$LANG" | cut -d "." -f 1)
 	confl_templ="$plug_dir/epgsearchconflmail.templ"
-	confl_templ_loc="$plug_dir/epgsearchconflmail-$loc.templ"
-	upd_templ="$plug_dir/epgsearchupdmail.templ"
+	#confl_templ_loc="$plug_dir/epgsearchconflmail-$loc.templ"
+	#upd_templ="$plug_dir/epgsearchupdmail.templ"
 	if [ ! -d $plug_dir ]; then
 		mkdir -p $plug_dir
 	fi
@@ -38,7 +38,7 @@ if [ $(_isEnabled "epgsearch") = "0" ]; then
 fi
 
 # vdrmanager
-if [ $(_isEnabled "vdrmanager") = "0" ]; then
+if [ "$(_isEnabled "vdrmanager")" = "0" ]; then
 	plug_dir="/vdr/config/plugins/vdrmanager"
 	if [ ! -d "$plug_dir" ]; then
 		mkdir -p $plug_dir
