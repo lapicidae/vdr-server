@@ -8,10 +8,10 @@
 ENVDIR="/var/run/s6/container_environment"
 
 if [ -d "$ENVDIR" ]; then
-	for f in $ENVDIR/*; do
+	for f in "$ENVDIR"/*; do
 		CONTVAR=$(basename "$f")
-		if [ -z "${!CONTVAR}" ] && [ $CONTVAR != "CWD" ]; then
-			export $CONTVAR=$(redirfd -r 0 "$f" cat)
+		if [ -z "${!CONTVAR}" ] && [ "$CONTVAR" != "CWD" ]; then
+			export "$CONTVAR"="$(redirfd -r 0 "$f" cat)"
 		fi
 	done
 fi

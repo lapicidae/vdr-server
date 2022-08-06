@@ -31,7 +31,7 @@ shift $((OPTIND-1))
 
 
 function log {
-	if [ ! -z "$LOGGER" ] && [ $LOGGER = "true" ]; then
+	if [ "${LOGGER:="false"}" != "false" ]; then
 		logger -e -t CheckRecording -p info "$1"
 	else
 		echo "$1"
@@ -52,7 +52,7 @@ fi
 
 
 if [ -z "$QUIET" ] || [ "$QUIET" != "true" ]; then
-	read -p "$question " answer
+	read -r -p "$question " answer
 	case ${answer:0:1} in
 		y|Y )
 			log "Start..."
@@ -99,7 +99,7 @@ for DIR in  "${record[@]}"; do
 
 	errors=$(echo "$output" | cut -d\  -f2)
 
-	if [ ! -z "$errors" ]; then
+	if [ -n "$errors" ]; then
 		echo "O $errors" >> "$DIR/info"
 	else
 		log "CHECK FAILED!!!"

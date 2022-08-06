@@ -17,13 +17,13 @@ if [ ! -e "$logo_ext_done" ] && [ "$LOGO_COPY" != "false" ] && [ -f "$logo_tar" 
 fi
 
 
-if ([ ! -e "$logo_picon_done" ] && [ ${START_IMAGESERVER:="false"} = "true" ]) || [ -e "$repicon" ]; then
+if ([ ! -e "$logo_picon_done" ] && [ "${START_IMAGESERVER:="false"}" = "true" ]) || [ -e "$repicon" ]; then
 	echo "Link picons to channellogos..."
 	picopts="-i $logo_dir -o $logo_picon_dir"
 	if [ -r "$channels_conf" ]; then
 		picopts+=" -c $channels_conf"
 	fi
-	/usr/local/bin/picon $(echo "$picopts") && \
+	eval /usr/local/bin/picon "$picopts" && \
 	touch "$logo_picon_done" && \
 	if [ -e "$repicon" ]; then rm -f "$repicon"; fi
 fi

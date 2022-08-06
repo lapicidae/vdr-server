@@ -25,7 +25,7 @@ if [ -d "$sys_dir" ]; then
 	msmtp_conf_new="$sys_dir/eMail.conf"
 	if [ -f "$msmtp_conf_new" ]; then
 		CONF_COMP="$(cmp --silent $msmtp_conf $msmtp_conf_new; echo $?)"
-		if [ $CONF_COMP != "0" ]; then	# only if files are not the same
+		if [ "$CONF_COMP" != "0" ]; then	# only if files are not the same
 			echo "Copy new eMail config"
 			cp -f "$msmtp_conf_new" "$msmtp_conf"
 			chown root:root $msmtp_conf
@@ -36,12 +36,28 @@ fi
 
 
 # crontab naludump
-if [ ${START_NALUDUMP:="false"} != "false" ] && [ ! -z "$START_NALUDUMP_AT" ]; then
-	echo "Set naludump crontab to '$START_NALUDUMP_AT'"
+if [ "${START_NALUDUMP:="false"}" != "false" ] && [ -n "$START_NALUDUMP_AT" ]; then
 	TMP_CRON=$(mktemp --suffix=".crontab")
-	busybox crontab -u vdr -l > $TMP_CRON
-	sed -i '/naludump/c\'"$START_NALUDUMP_AT"' /usr/local/bin/naludumper-cron' $TMP_CRON
-	chown vdr:vdr $TMP_CRON
-	busybox crontab -u vdr $TMP_CRON
-	rm -f $TMP_CRON
+	busybox crontab -u vdr -l > "$TMP_CRON"
+	mapfile -d ' ' -t ctab_old < <(grep 'naludump' "$TMP_CRON" | tr -d '\n')
+
+	if [[ "${ctab_old[0]}" = '@'* ]]; then
+		ctab_time="$(printf '%s' "${ctab_old[0]}")"
+		ctab_command="$(printf '%s' "${ctab_old[*]:1}")"
+	else
+		ctab_time="$(printf '%s' "${ctab_old[*]:0:5}")"
+		ctab_command="$(printf '%s' "${ctab_old[*]:5}")"
+	fi
+
+	if [ "$START_NALUDUMP_AT" != "$ctab_time" ]; then
+		echo "naludump crontab: set start to '$START_NALUDUMP_AT'"
+		sed -i '/naludump/d' "$TMP_CRON"
+		echo "$START_NALUDUMP_AT $ctab_command" >> "$TMP_CRON"
+		chown vdr:vdr "$TMP_CRON"
+		busybox crontab -u vdr "$TMP_CRON"
+	else
+		echo "naludump crontab: desired ($START_NALUDUMP_AT) and current ($ctab_time) start time are identical"
+	fi
+
+	rm -f "$TMP_CRON"
 fi
