@@ -8,9 +8,10 @@ else
 	pidof -s -x -o %PPID "$0" >/dev/null && echo >&2 "ERROR: Script '$(basename "$0")' already running" && exit 1
 fi
 
-# Check if naludump and vdr are installed
+# Check if naludump, vdr and ffprobe are installed
 command -v naludump >/dev/null 2>&1 || { echo >&2 "naludump is required but it's not installed. Aborting!"; exit 1; }
 command -v vdr >/dev/null 2>&1 || { echo >&2 "vdr is required but it's not installed. Aborting!"; exit 1; }
+command -v ffprobe >/dev/null 2>&1 && FFPROBE=$(command -v ffprobe)
 
 # prevent core dumps
 ulimit -c 0
@@ -58,6 +59,23 @@ function upcoming_rec {
 	fi
 }
 
+function is_h264hd {
+	local indir="$1"
+	local output
+	if grep -q "^X 5 0B*" "$indir/info"; then
+		output="true"
+	elif [ -n "$FFPROBE" ]; then
+		local first_vid
+		first_vid=$(find "$indir" -maxdepth 1 -type f -name "*.ts" -print | sort -nr | tail -1 | tr -d '\n')
+		local -a cdc_rsltn=()	# Codec & Resolution array (0=width 1=height 2=codec)
+		mapfile -t cdc_rsltn < <(nice -n 19 "$FFPROBE" -v panic -i "$first_vid" -select_streams v:0 -show_entries stream=codec_name,width,height -of default=noprint_wrappers=1:nokey=1 | sort | uniq)
+		if [ "${cdc_rsltn[0]}" -ge 1280 ] && [ "${cdc_rsltn[1]}" -ge 720 ] && [ "${cdc_rsltn[2]}" = "h264" ]; then
+			output="true"
+		fi
+	fi
+	echo -n "${output:="false"}"
+}
+
 
 
 # CleanUp on exit or error
@@ -78,10 +96,7 @@ fi
 
 
 # Find directories that do not contain 'naludump.log', 'naludump.skip' or 'naludump-error.log'
-declare -a workdir
-while read -r; do
-	workdir+=("$REPLY")
-done < <(find "$INPUTDIR" -type d -name "*.rec" '!' -exec sh -c 'ls -1A "{$1}" | grep -i -q -E "^naludump-error.log$|^naludump.log$|^naludump.skip$"' ';' -print0 | xargs -0 -r realpath | sort -t '\0' -n)
+mapfile -t workdir < <(find "$INPUTDIR" -type d -name "*.rec" '!' -exec sh -c 'ls -1 "$1" | grep -i -q -E "^naludump-error.log$|^naludump.log$|^naludump.skip$"' shell {} \; -print0 | xargs -0 -r realpath | sort -t '\0' -n)
 
 if [ ${#workdir[@]} -eq 0 ]; then
     log "There's nothing to do."
@@ -95,8 +110,7 @@ for RECDIR in "${workdir[@]}"; do
 	TMPLOG=$(mktemp --tmpdir="$TMPDIR" --suffix=".log")
 	rm -f "$TMPLOG"
 
-	# is recording in H.264 HD
-	if grep -q "^X 5 0B*" "$RECDIR/info"; then
+	if [ "$(is_h264hd "$RECDIR")" = "true" ]; then		# is recording in H.264 HD
 		log "Working on '$RECNAME'..."
 
 		for tsfile in "$RECDIR"/?????.ts; do
