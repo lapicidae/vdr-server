@@ -44,7 +44,7 @@ RUN echo "**** configure pacman ****" && \
     echo "**** bash tweaks ****" && \
       echo -e "\n[ -r /usr/local/bin/contenv2env ] && . /usr/local/bin/contenv2env" >> /etc/bash.bashrc && \
       echo -e "\n[ -r /etc/bash.aliases ] && . /etc/bash.aliases" >> /etc/bash.bashrc && \
-      echo "**** system update ****" && \
+    echo "**** system update ****" && \
       pacman -Su --noconfirm && \
     echo "**** install build packages ****" && \
       pacman -S --noconfirm --needed \
