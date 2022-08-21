@@ -75,6 +75,7 @@ services:
     cap_add:
       - SYS_TIME #optional: read hint!
     restart: unless-stopped
+    stop_grace_period: 60s #important
 ```
 
 #### *docker cli*
@@ -101,6 +102,7 @@ docker run -d \
   --device /dev/dvb:/dev/dvb `#optional` \
   --restart unless-stopped \
   --cap-add=SYS_TIME `#optional: read hint!` \
+  --stop-timeout 60 `#important` \
   lapicidae/vdr-server
 ```
 
