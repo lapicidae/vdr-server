@@ -1,26 +1,22 @@
---- /etc/s6-overlay/s6-rc.d/syslogd-log/run	2022-03-08 02:55:29.000000000 +0100
-+++ /etc/s6-overlay/s6-rc.d/syslogd-log/run.new	2022-03-25 15:07:44.919492475 +0100
-@@ -1,13 +1,17 @@
- #!/command/execlineb -P
+--- /etc/s6-overlay/s6-rc.d/syslogd-log/run	2022-08-26 17:57:50.000000000 +0200
++++ /etc/s6-overlay/s6-rc.d/syslogd-log/run.new	2022-08-27 11:03:57.437167151 +0200
+@@ -2,12 +2,14 @@
  
  s6-envuidgid -D 32761:32761: -- sysllog
--s6-applyuidgid -U --
--backtick -D "n20 s1000000 T" line { printcontenv S6_LOGGING_SCRIPT }
+ s6-applyuidgid -U --
+-backtick -D "n20 s1000000" line { printcontenv S6_LOGGING_SCRIPT }
 +backtick -D "n5 s1000000" line { printcontenv S6_LOGGING_SCRIPT }
-+backtick -D "false" fileLOG { printcontenv LOG2FILE }
++backtick -D "false" -E fileLOG { printcontenv LOG2FILE }
  multisubstitute
  {
-+  importas -usC fileLOG fileLOG
    importas -usC T line
    define dir /var/log/syslogd
  }
-+backtick -D "1" logdir_vdr { if { echo "1" "$T" "/vdr/log" } test $fileLOG = true }
-+importas -usC logdir_vdr logdir_vdr
-+s6-applyuidgid -U --
++backtick -D "1" -E logdir_vdr { if { echo "1" "$T" "/vdr/log" } test $fileLOG = true }
  exec -c
  s6-log -d3 --
  
-@@ -20,4 +24,5 @@
+@@ -20,4 +22,5 @@
   - +mail\\.  $T ${dir}/mail
   - +user\\.  $T ${dir}/user
   - +^[[:alnum:]]*\\.info: +^[[:alnum:]]*\\.notice: +^[[:alnum:]]*\\.warn: -^auth\\. -^authpriv\\. -^cron\\. -daemon\\. -mail\\.  $T ${dir}/messages
