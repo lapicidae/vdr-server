@@ -1,0 +1,42 @@
+#!/command/with-contenv bash
+
+
+function chmown {
+	local usr=$1
+	local grp=$2
+	local perm_dir=$3
+	local perm_file=$4
+	local path=$5
+
+	if [ -z "$usr" ] || [ -z "$grp" ] || [ -z "$perm_dir" ] || [ -z "$perm_file" ] || [ -z "$path" ]; then
+		echo "Incorrect use of the function!"
+		return 1
+	elif [ -d "$path" ]; then
+		echo "Reassign permissions: $path"
+		chown -R "$usr":"$grp" "$path"
+		find "$path" -type d -exec chmod "$perm_dir" {} \;
+		find "$path" -type f -exec chmod "$perm_file" {} \;
+	fi
+}
+
+
+## directory & file permissions
+# dvb devices
+chmown root video 755 660 "/dev/dri"
+chmown root video 755 660 "/dev/dvb"
+
+# default mount points (docker volumes)
+chown vdr:vdr "/vdr"
+chmown vdr vdr 755 664 "/etc/PKGBUILD.d"
+chmown vdr vdr 755 664 "/etc/vdr"
+chmown vdr vdr 755 664 "/srv/vdr"
+chmown vdr vdr 755 664 "/var/cache/vdr"
+chmown vdr vdr 755 664 "/var/lib/vdr"
+chmown vdr vdr 755 664 "/vdr/channellogos"
+chmown vdr vdr 755 664 "/vdr/timeshift"
+
+# paru build
+chown root:users "/var/cache/paru"
+
+# syslogd-overlay
+chmown sysllog sysllog 775 664 "/vdr/log"

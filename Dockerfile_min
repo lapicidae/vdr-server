@@ -13,7 +13,8 @@ ENV PATH="$PATH:/command:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_p
 ENV LANG="en_US.UTF-8" \
     TZ="Europe/London" \
     DISABLE_WEBINTERFACE="true" \
-    S6_CMD_WAIT_FOR_SERVICES_MAXTIME="0"
+    S6_CMD_WAIT_FOR_SERVICES_MAXTIME="0" \
+    S6_VERBOSITY="1"
 
 ADD https://github.com/just-containers/s6-overlay/releases/download/v$S6VER/s6-overlay-noarch.tar.xz /tmp
 ADD https://github.com/just-containers/s6-overlay/releases/download/v$S6VER/s6-overlay-x86_64.tar.xz /tmp
@@ -75,8 +76,7 @@ RUN echo "**** configure pacman ****" && \
       tar -C / -Jxpf /tmp/s6-overlay-x86_64.tar.xz && \
     echo "**** syslogd-overlay ($S6VER) ****" && \
       tar -C / -Jxpf /tmp/syslogd-overlay-noarch.tar.xz && \
-      touch /etc/s6-overlay/s6-rc.d/syslogd-prepare/dependencies.d/init && \
-      patch /etc/s6-overlay/s6-rc.d/syslogd-log/run /tmp/syslogd-log_run.patch && \
+      patch -t /etc/s6-overlay/s6-rc.d/syslogd-log/run /tmp/syslogd-log_run.patch && \
       useradd --system --no-create-home --shell /bin/false syslog && \
       useradd --system --no-create-home --shell /bin/false sysllog && \
     echo "**** install dependencies & tools ****" && \

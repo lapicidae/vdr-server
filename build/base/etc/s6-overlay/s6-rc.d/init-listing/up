@@ -1,0 +1,52 @@
+#!/command/execlineb -P
+with-contenv
+define user vdr
+define group vdr
+foreground { s6-echo "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄⚟ Settings ⚞┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄" }
+foreground {
+ pipeline { id -u ${user} }
+ pipeline { sed "s/$/ ${user}/" }
+ xargs printf "User ID:\t\t%s (%s)\n"
+}
+foreground {
+ pipeline { getent group ${group} }
+ pipeline { s6-cut -d ":" -f 3 }
+ pipeline { sed "s/$/ ${group}/" }
+ xargs printf "Group ID:\t\t%s (%s)\n"
+}
+foreground { pipeline { printcontenv LANG } xargs -0 printf "Lang:\t\t\t%s" }
+foreground { pipeline { printcontenv LANGUAGE } xargs -0 printf "Language:\t\t%s" }
+foreground { pipeline { realpath --relative-to /usr/share/zoneinfo /etc/localtime } xargs -0 printf "Timezone:\t\t%s" }
+foreground {
+ if { redirfd -w 1 /dev/null printcontenv PLUGINS }
+  pipeline { printcontenv PLUGINS } xargs -0 printf "VDR Plugins:\t\t%s"
+}
+foreground {
+ if { redirfd -w 1 /dev/null printcontenv START_NALUDUMP }
+  pipeline { printcontenv START_NALUDUMP } xargs -0 printf "Naludump:\t\t%s"
+}
+foreground {
+ if { redirfd -w 1 /dev/null printcontenv START_NALUDUMP_AT }
+  pipeline { printcontenv START_NALUDUMP_AT } xargs -0 printf "Naludump cron at:\t%s"
+}
+foreground {
+ if { redirfd -w 1 /dev/null printcontenv START_IMAGESERVER }
+  pipeline { printcontenv START_IMAGESERVER } xargs -0 printf "Image Server:\t\t%s"
+}
+foreground {
+ if { redirfd -w 1 /dev/null printcontenv LOG2FILE }
+  pipeline { printcontenv LOG2FILE } xargs -0 printf "Log2File:\t\t%s"
+}
+foreground {
+ if { redirfd -w 1 /dev/null printcontenv PROTECT_CAMDATA }
+  pipeline { printcontenv PROTECT_CAMDATA } xargs -0 printf "Protect camdata:\t%s"
+}
+foreground {
+ if { redirfd -w 1 /dev/null printcontenv DISABLE_WEBINTERFACE }
+  pipeline { printcontenv DISABLE_WEBINTERFACE } xargs -0 printf "Disable Webinterface:\t%s"
+}
+foreground {
+ if { redirfd -w 1 /dev/null printcontenv LOGO_COPY }
+  pipeline { printcontenv LOGO_COPY } xargs -0 printf "Default Channel Logos:\t%s"
+}
+s6-echo "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄"

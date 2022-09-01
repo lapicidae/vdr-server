@@ -1,14 +1,13 @@
 #!/command/execlineb -P
 with-contenv
-backtick -D "false" start { printcontenv START_IMAGESERVER }
-importas -usC start start
+importas -D "false" start START_IMAGESERVER
 foreground {
- if { test $start = false }
-  foreground { s6-echo httpd is disabled by environment variable! }
+ if { s6-test $start = false }
+  foreground { s6-echo "ImageServer (httpd) is not enabled via environment variable" }
   foreground { s6-rmrf /etc/s6-overlay/s6-rc.d/user/contents.d/httpd }
   s6-svc -d -O /run/s6-rc/servicedirs/httpd
 }
-if { test $start != false }
+if -t { s6-test $start != false }
  s6-setuidgid http
  fdmove -c 2 1
  /usr/sbin/busybox httpd -f -p 8099

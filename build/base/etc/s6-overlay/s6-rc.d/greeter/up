@@ -1,0 +1,8 @@
+#!/command/execlineb -P
+foreground { s6-echo "╔════════════════════════════════════════════════════════════════╗" }
+foreground { s6-echo "║                        _  _  ____  ____                        ║" }
+foreground { s6-echo "║                       ( \\/ )(  _ \\(  _ \\                       ║" }
+foreground { s6-echo "║                        \\  /  )(_) ))   /                       ║" }
+foreground { s6-echo "║                         \\/  (____/(_)\\_)                       ║" }
+foreground { s6-echo "║                        http://www.tvdr.de                      ║" }
+s6-echo "╚════════════════════════════════════════════════════════════════╝"

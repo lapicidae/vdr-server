@@ -1,0 +1,13 @@
+#!/command/execlineb -P
+with-contenv
+importas -D "Europe/London" tz TZ
+backtick -E -D "NONE" current_tz { realpath --relative-to /usr/share/zoneinfo /etc/localtime }
+ifelse { s6-test -f "/usr/share/zoneinfo/${tz}" } {
+ foreground {
+  if -n { s6-test ${current_tz} =~ .*${tz}$ }
+   foreground { s6-ln -sf "/usr/share/zoneinfo/${tz}" "/etc/localtime" }
+   foreground { redirfd -w 1 /etc/timezone s6-echo ${tz} }
+   s6-echo "Timezone changed to ${tz}"
+ }
+}
+ s6-echo "Cannot set timezone: ${tz}"

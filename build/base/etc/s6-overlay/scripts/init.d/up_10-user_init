@@ -1,7 +1,0 @@
-#!/command/with-contenv bash
-
-PUID=${PUID:-666}
-PGID=${PGID:-666}
-
-groupmod -o -g "$PGID" vdr
-usermod -o -u "$PUID" vdr

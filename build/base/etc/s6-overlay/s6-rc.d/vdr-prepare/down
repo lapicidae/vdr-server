@@ -1,0 +1,25 @@
+#!/command/execlineb -P
+with-contenv
+## unProtect cam.data
+foreground {
+ define cam_data "/var/cache/vdr/cam.data"
+ importas -D "false" protect_camdata PROTECT_CAMDATA
+ if { s6-test ${protect_camdata} = true }
+ if { s6-test -f ${cam_data} }
+ foreground { s6-chmod 0664 $cam_data }
+ s6-echo "cam.data is now unprotected"
+}
+## Generate channelids
+multisubstitute {
+ define input "/vdr/config/channels.conf"
+ define output "/vdr/cache/channelids.conf"
+ define tmp "/tmp/chid.tmp"
+}
+if -t { s6-test -f ${input} }
+ foreground {
+  foreground { export LC_ALL C redirfd -w 1 ${tmp} /usr/local/bin/vdr-channelids ${input} }
+  foreground { iconv -sc -f UTF-8 -t UTF-8 -o ${output} ${tmp} }
+  foreground { envuidgid vdr s6-chown -U ${output} }
+  foreground { s6-rmrf ${tmp} }
+  s6-echo "Channel ID list has been created"
+ }

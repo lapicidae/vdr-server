@@ -1,0 +1,3 @@
+#!/command/execlineb -P
+foreground { s6-echo "Load current pacman package databases from the server" }
+redirfd -w 1 /dev/null pacman --noprogressbar -Sy

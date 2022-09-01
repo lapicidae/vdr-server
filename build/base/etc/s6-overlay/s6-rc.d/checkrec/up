@@ -1,9 +1,5 @@
 #!/command/execlineb -P
-ifelse { test -e /vdr/recordings/checkrec }
- {
-  foreground { s6-echo Starting CheckRecordings... }
-  s6-setuidgid vdr
-  fdmove -c 2 1
-  /usr/local/bin/checkrec -ql
- }
- exit 0
+if -t { s6-test -e /vdr/recordings/checkrec }
+foreground { s6-echo "Starting CheckRecordings..." }
+s6-setuidgid vdr
+/usr/local/bin/checkrec -ql

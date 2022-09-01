@@ -1,0 +1,4 @@
+#!/command/execlineb -P
+define dir "/etc/s6-overlay/scripts"
+define script "vdr-prepare_up"
+exec "${dir}/${script}"

@@ -1,0 +1,14 @@
+#!/command/execlineb -P
+with-contenv
+define main_dir "/vdr"
+define conf_dir "${main_dir}/config"
+define pkg_dir "${main_dir}/pkgbuild"
+define sys_dir "${main_dir}/system"
+foreground {
+ if -n { s6-test -d "${main_dir}" }
+  s6-mkdir -p -m 0755 "${main_dir}"
+ }
+foreground { s6-echo "Prepare workdir" }
+foreground { cp -RPpn /defaults/config/. "${conf_dir}" }
+foreground { cp -RPpn /defaults/pkgbuild/. "${pkg_dir}" }
+cp -RPpn /defaults/system/. "${sys_dir}"

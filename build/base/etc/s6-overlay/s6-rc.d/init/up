@@ -1,5 +1,0 @@
-#!/command/execlineb -P
-elglob -0s files /etc/s6-overlay/scripts/init.d/up_*
-forx file { ${files} }
-  importas file file
-  ${file}

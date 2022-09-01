@@ -1,0 +1,19 @@
+#!/command/execlineb -P
+with-contenv
+define user vdr
+define group vdr
+backtick -E uid { id -u ${user} }
+backtick -E gid {
+ pipeline { getent group ${group} }
+ s6-cut -d ":" -f 3
+}
+importas -D "666" puid PUID
+importas -D "666" pgid PGID
+foreground {
+ if { s6-test ${uid} -ne ${puid} }
+  foreground { s6-echo "Change the user ID of user ${user} to ${puid}" }
+  usermod --non-unique --uid "${puid}" "${user}"
+}
+if -t { s6-test ${gid} -ne ${pgid} }
+ foreground { s6-echo "Change the group ID of group ${group} to ${pgid}" }
+ groupmod --non-unique --gid "${pgid}" "${group}"

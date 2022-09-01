@@ -1,7 +1,0 @@
-#!/command/with-contenv bash
-
-## unprotect cam.data
-cam_data="/var/cache/vdr/cam.data"
-if [ -f "$cam_data" ]; then
-	chmod ug+w $cam_data
-fi

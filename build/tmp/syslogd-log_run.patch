@@ -12,7 +12,7 @@
    importas -usC T line
    define dir /var/log/syslogd
  }
-+backtick -D "1" logdir_vdr { if { test $fileLOG = true } echo "1" "$T" "/vdr/log" }
++backtick -D "1" logdir_vdr { if { s6-test $fileLOG = true } s6-echo "1" "$T" "/vdr/log" }
 +importas -usC LOGDIR_VDR logdir_vdr
  exec -c
  s6-log -d3 --
