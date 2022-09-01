@@ -75,7 +75,6 @@ RUN echo "**** configure pacman ****" && \
       tar -C / -Jxpf /tmp/s6-overlay-x86_64.tar.xz && \
     echo "**** syslogd-overlay ($S6VER) ****" && \
       tar -C / -Jxpf /tmp/syslogd-overlay-noarch.tar.xz && \
-      touch /etc/s6-overlay/s6-rc.d/syslogd-prepare/dependencies.d/init && \
       patch /etc/s6-overlay/s6-rc.d/syslogd-log/run /tmp/syslogd-log_run.patch && \
       useradd --system --no-create-home --shell /bin/false syslog && \
       useradd --system --no-create-home --shell /bin/false sysllog && \
