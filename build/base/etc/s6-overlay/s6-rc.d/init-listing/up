@@ -6,47 +6,47 @@ foreground { s6-echo "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄�
 foreground {
  pipeline { id -u ${user} }
  pipeline { sed "s/$/ ${user}/" }
- xargs printf "User ID:\t\t%s (%s)\n"
+ xargs printf "%-26s%s (%s)\n" "User ID:"
 }
 foreground {
  pipeline { getent group ${group} }
  pipeline { s6-cut -d ":" -f 3 }
  pipeline { sed "s/$/ ${group}/" }
- xargs printf "Group ID:\t\t%s (%s)\n"
+ xargs printf "%-26s%s (%s)\n" "Group ID:"
 }
-foreground { pipeline { printcontenv LANG } xargs -0 printf "Lang:\t\t\t%s" }
-foreground { pipeline { printcontenv LANGUAGE } xargs -0 printf "Language:\t\t%s" }
-foreground { pipeline { realpath --relative-to /usr/share/zoneinfo /etc/localtime } xargs -0 printf "Timezone:\t\t%s" }
+foreground { pipeline { printcontenv LANG } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Lang:" }
+foreground { pipeline { printcontenv LANGUAGE } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Language:" }
+foreground { pipeline { realpath --relative-to /usr/share/zoneinfo /etc/localtime } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Timezone:" }
 foreground {
- if { redirfd -w 1 /dev/null printcontenv PLUGINS }
-  pipeline { printcontenv PLUGINS } xargs -0 printf "VDR Plugins:\t\t%s"
-}
-foreground {
- if { redirfd -w 1 /dev/null printcontenv START_NALUDUMP }
-  pipeline { printcontenv START_NALUDUMP } xargs -0 printf "Naludump:\t\t%s"
+ if { s6-test -v PLUGINS }
+  pipeline { printcontenv PLUGINS } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "VDR Plugins:"
 }
 foreground {
- if { redirfd -w 1 /dev/null printcontenv START_NALUDUMP_AT }
-  pipeline { printcontenv START_NALUDUMP_AT } xargs -0 printf "Naludump cron at:\t%s"
+ if { s6-test -v START_NALUDUMP }
+  pipeline { printcontenv START_NALUDUMP } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Naludump:"
 }
 foreground {
- if { redirfd -w 1 /dev/null printcontenv START_IMAGESERVER }
-  pipeline { printcontenv START_IMAGESERVER } xargs -0 printf "Image Server:\t\t%s"
+ if { s6-test -v START_NALUDUMP_AT }
+  pipeline { printcontenv START_NALUDUMP_AT } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Naludump cron at:"
 }
 foreground {
- if { redirfd -w 1 /dev/null printcontenv LOG2FILE }
-  pipeline { printcontenv LOG2FILE } xargs -0 printf "Log2File:\t\t%s"
+ if { s6-test -v START_IMAGESERVER }
+  pipeline { printcontenv START_IMAGESERVER } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Image Server:"
 }
 foreground {
- if { redirfd -w 1 /dev/null printcontenv PROTECT_CAMDATA }
-  pipeline { printcontenv PROTECT_CAMDATA } xargs -0 printf "Protect camdata:\t%s"
+ if { s6-test -v LOG2FILE }
+  pipeline { printcontenv LOG2FILE } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Log2File:"
 }
 foreground {
- if { redirfd -w 1 /dev/null printcontenv DISABLE_WEBINTERFACE }
-  pipeline { printcontenv DISABLE_WEBINTERFACE } xargs -0 printf "Disable Webinterface:\t%s"
+ if { s6-test -v PROTECT_CAMDATA }
+  pipeline { printcontenv PROTECT_CAMDATA } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Protect camdata:"
 }
 foreground {
- if { redirfd -w 1 /dev/null printcontenv LOGO_COPY }
-  pipeline { printcontenv LOGO_COPY } xargs -0 printf "Default Channel Logos:\t%s"
+ if { s6-test -v DISABLE_WEBINTERFACE }
+  pipeline { printcontenv DISABLE_WEBINTERFACE } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Disable Webinterface:"
+}
+foreground {
+ if { s6-test -v LOGO_COPY }
+  pipeline { printcontenv LOGO_COPY } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Default Channel Logos:"
 }
 s6-echo "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄"
