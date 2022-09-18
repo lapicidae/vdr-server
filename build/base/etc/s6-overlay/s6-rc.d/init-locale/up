@@ -3,7 +3,6 @@ with-contenv
 define loc_file "/etc/locale.gen"
 define default_loc "en_US.UTF-8 UTF-8"
 importas -D "en_US.UTF-8" lang LANG
-importas -D "NoLng" language LANGUAGE
 backtick -E -D "en_US.UTF-8" default_lang {
  pipeline { s6-echo "${default_loc}" }
  pipeline { s6-cut -d " " -f1 }
@@ -18,20 +17,18 @@ backtick -E -D "${default_lang}" loc_active {
  s6-grep -v "^$"
 }
 foreground {
- if { s6-test -n ${lang} }
  if { s6-test -f ${loc_file} }
  if -n { redirfd -w 1 /dev/null expr ${loc_active} : .*${lang}$ }
   foreground {
    foreground { sed -i "/^[a-zA-Z0-9]/ s/^/#/" ${loc_file} }
    foreground { sed -i "/${lang}/s/^# *//" ${loc_file} }
    foreground { sed -i "/${default_loc}/s/^# *//" ${loc_file} }
-   foreground { redirfd -w 1 /etc/locale.conf echo "LANG=${lang}" }
+   foreground { redirfd -w 1 /etc/locale.conf s6-echo "LANG=${lang}" }
    foreground { redirfd -w 1 /dev/null locale-gen }
    s6-echo "Locale set to ${lang}"
   }
 }
-if -t { s6-test ${language} = NoLng }
-if { s6-test -n ${lang} }
+if -tn { s6-test -v LANGUAGE }
  foreground {
   backtick -E new_lng {
    pipeline { s6-echo "${lang}" }
@@ -40,5 +37,5 @@ if { s6-test -n ${lang} }
    s6-cut -d "_" -f 1-2
   }
   foreground { redirfd -w 1 /var/run/s6/container_environment/LANGUAGE s6-echo -n "${new_lng}" }
-  s6-echo "Language set to ${new_lng}"
+  s6-echo "Environment variable LANGUAGE set to ${new_lng}"
  }

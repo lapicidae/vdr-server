@@ -22,12 +22,16 @@ foreground {
   pipeline { printcontenv PLUGINS } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "VDR Plugins:"
 }
 foreground {
+ if { s6-test -v START_CROND }
+  pipeline { printcontenv START_CROND } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Enable Cron-Daemon:"
+}
+foreground {
  if { s6-test -v START_NALUDUMP }
-  pipeline { printcontenv START_NALUDUMP } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Naludump:"
+  pipeline { printcontenv START_NALUDUMP } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Naludump Cron:"
 }
 foreground {
  if { s6-test -v START_NALUDUMP_AT }
-  pipeline { printcontenv START_NALUDUMP_AT } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Naludump cron at:"
+  pipeline { printcontenv START_NALUDUMP_AT } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Naludump Cron at:"
 }
 foreground {
  if { s6-test -v START_IMAGESERVER }
@@ -39,7 +43,7 @@ foreground {
 }
 foreground {
  if { s6-test -v PROTECT_CAMDATA }
-  pipeline { printcontenv PROTECT_CAMDATA } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Protect camdata:"
+  pipeline { printcontenv PROTECT_CAMDATA } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Protect cam.data:"
 }
 foreground {
  if { s6-test -v DISABLE_WEBINTERFACE }

@@ -37,7 +37,7 @@ fi
 
 
 # crontab naludump
-if [ "${START_NALUDUMP:="false"}" != "false" ] && [ -n "$START_NALUDUMP_AT" ]; then
+if [ "${START_CROND:='true'}" != "false" ] && [ "${START_NALUDUMP:="false"}" != "false" ] && [ -n "$START_NALUDUMP_AT" ]; then
 	TMP_CRON=$(mktemp --suffix=".crontab")
 	busybox crontab -u vdr -l > "$TMP_CRON"
 	mapfile -d ' ' -t ctab_old < <(grep 'naludump' "$TMP_CRON" | tr -d '\n')

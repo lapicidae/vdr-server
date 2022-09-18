@@ -1,14 +1,13 @@
 #!/command/execlineb -P
 with-contenv
 importas -D "true" start START_CROND
-foreground {
- ifelse { s6-test $start = false } {
+ifelse { s6-test $start = false } {
   foreground { s6-echo "Cron-Daemon (crond) is disabled by environment variable!" }
   foreground { s6-rmrf /etc/s6-overlay/s6-rc.d/user/contents.d/crond }
   s6-svc -d -O /run/s6-rc/servicedirs/crond
  }
- if -n { s6-test -d /var/spool/cron/crontabs }
-  s6-mkdir -p /var/spool/cron/crontabs
-}
-if -t { s6-test $start != false }
+ foreground {
+  if -n { s6-test -d /var/spool/cron/crontabs }
+   s6-mkdir -p /var/spool/cron/crontabs
+ }
  /usr/sbin/busybox crond -f -l 5
