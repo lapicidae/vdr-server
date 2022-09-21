@@ -88,8 +88,7 @@ RUN echo "**** configure pacman ****" && \
     echo "**** install VDR ****" && \
       cd $buildDir && \
       $pacdown vdr && \
-      curl -o /tmp/eit-patch.gz "https://www.vdr-portal.de/index.php?attachment/46195-eit-patch-gz/" && \
-      gunzip -c /tmp/eit-patch.gz > vdr/eit.patch && \
+      cp --update /tmp/vdr-eit.patch vdr/eit.patch && \
       cd vdr && \
       sed -i "s/pkgrel=.*/pkgrel=2/g" PKGBUILD && \
       sed -i "/^        '00-vdr.conf'.*/i \ \ \ \ \ \ \ \ 'eit.patch'" PKGBUILD && \
