@@ -131,18 +131,8 @@ RUN echo "**** configure pacman ****" && \
       cd vdr-ciplus && \
       $pacbuild && \
     echo "**** install VDR plugin live ****" && \
-      cd $buildDir && \
-      $pacdown cxxtools && \
-      curl -LJ -o cxxtools/timer.patch "https://github.com/maekitalo/cxxtools/files/9257147/cxxtools-3.0-timer.txt" && \
-      cd cxxtools && \
-      sed -i "s/pkgrel=.*/pkgrel=3/g" PKGBUILD && \
-      sed -i "/^        .*$pkgname-char-trivial-class.patch.*/i \ \ \ \ \ \ \ \ 'timer.patch'" PKGBUILD && \
-      sed -i "/patch -p1.*/i \ \ # BuildFix\n \ patch -i \"\$srcdir/timer.patch\" \"src/timer.cpp\" \n" PKGBUILD && \
-      sudo -u builduser updpkgsums && \
-      sudo -u builduser makepkg --printsrcinfo > .SRCINFO && \
-      chown -R builduser:users . && \
-      $pacbuild && \
       $pacinst \
+        cxxtools \
         tntnet \
         vdr-live && \
     echo "**** folders and symlinks ****" && \
