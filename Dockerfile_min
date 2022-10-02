@@ -57,6 +57,7 @@ RUN echo "**** configure pacman ****" && \
     echo "**** add builduser ****" && \
       useradd --system --create-home --no-user-group --home-dir $buildDir/.user --shell /bin/false builduser && \
       echo -e "root ALL=(ALL) ALL\nbuilduser ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers && \
+      sudo -u builduser git config --global --add safe.directory '*' && \
     echo "**** install paru-bin ****" && \
       cd $buildDir && \
       git clone https://aur.archlinux.org/paru-bin.git paru-bin && \
