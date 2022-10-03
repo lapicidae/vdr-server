@@ -1,7 +1,7 @@
 #!/bin/sh
-echo -en "Content-Type: text/html\r\n\r\n<!DOCTYPE html>\n<html lang='en'>\n"
+printf "Content-Type: text/html\r\n\r\n<!DOCTYPE html>\n<html lang='en'>\n"
 
-if [ ! -d "..${REQUEST_URI#${SCRIPT_NAME}}" ]; then
+if [ ! -d "..${REQUEST_URI#"${SCRIPT_NAME}"}" ]; then
 cat << EOH
   <head>
 	<meta http-equiv='Refresh' content='0.2; url=../error/404.html'>
@@ -50,8 +50,19 @@ cat << EOH
 EOH
 
 #create list
-ls -a --group-directories-first "..${REQUEST_URI#${SCRIPT_NAME}}" | grep -E -v "^.$" | grep -v "cgi-bin\|css\|error" |while read line
+ls -a --group-directories-first "..${REQUEST_URI#"${SCRIPT_NAME}"}" | grep -E -v "^.$" | grep -v "cgi-bin\|css\|error" | while read -r line
 do
+if file -iL "..${REQUEST_URI#"${SCRIPT_NAME}"}$line" | grep -qE 'image|bitmap'; then
+ttid="tt-$line"
+cat << EOH
+						<li class="mdl-list__item">
+							<span class="mdl-list__item-primary-content">
+								<a href="$line" id="$ttid" class="mdl-list__item-primary-content">$line</a>
+								<span class="mdl-tooltip mdl-tooltip--left" for="$ttid"><img src="$line" width="150"></span>
+							</span>
+						</li>
+EOH
+else
 cat << EOH
 						<li class="mdl-list__item">
 							<span class="mdl-list__item-primary-content">
@@ -59,6 +70,7 @@ cat << EOH
 							</span>
 						</li>
 EOH
+fi
 done
 
 cat << EOF
