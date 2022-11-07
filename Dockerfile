@@ -29,6 +29,7 @@ RUN echo "**** configure pacman ****" && \
       pacman-key --init && \
       pacman-key --populate archlinux && \
       pacman -Sy archlinux-keyring --noprogressbar --noconfirm && \
+    echo "**** system update ****" && \
       pacman -Su --noprogressbar --noconfirm && \
     echo "**** timezone and locale ****" && \
       pacman -S glibc --overwrite=* --noconfirm && \
@@ -45,8 +46,6 @@ RUN echo "**** configure pacman ****" && \
     echo "**** bash tweaks ****" && \
       echo -e "\n[ -r /usr/local/bin/contenv2env ] && . /usr/local/bin/contenv2env" >> /etc/bash.bashrc && \
       echo -e "\n[ -r /etc/bash.aliases ] && . /etc/bash.aliases" >> /etc/bash.bashrc && \
-    echo "**** system update ****" && \
-      pacman -Su --noconfirm && \
     echo "**** install build packages ****" && \
       pacman -S --noconfirm --needed \
         base-devel \
