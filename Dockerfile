@@ -51,7 +51,6 @@ RUN echo "**** configure pacman ****" && \
       pacman -S --noconfirm --needed \
         base-devel \
         git \
-        openssl \
         pacman-contrib \
         sudo && \
     echo "**** add builduser ****" && \
