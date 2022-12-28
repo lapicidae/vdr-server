@@ -49,8 +49,11 @@ cat << EOH
 					<ul id="filelist" class="mdl-list">
 EOH
 
-#create list
-ls -a --group-directories-first "..${REQUEST_URI#"${SCRIPT_NAME}"}" | grep -E -v "^.$" | grep -v "cgi-bin\|css\|error" | while read -r line
+## create list (POSIX Shell Array)
+set -- '..'	# add 'one folder up'
+set -- "$@" "$(find "..${REQUEST_URI#"${SCRIPT_NAME}"}" -maxdepth 1 -mindepth 1 -type d \( -name 'cgi-bin' -o -name 'css' -o -name 'error' \) -prune -o -type d -printf '%f\n' | sort -bfiV)"	# directories first - ignore 'cgi-bin', 'css' and 'error'
+set -- "$@" "$(find -L "..${REQUEST_URI#"${SCRIPT_NAME}"}" -maxdepth 1 -mindepth 1 -type f -printf '%f\n' | sort -bfiV)"	# add files to array
+printf '%s\n' "$@" | while read -r line
 do
 if file -iL "..${REQUEST_URI#"${SCRIPT_NAME}"}$line" | grep -qE 'image|bitmap'; then
 ttid="tt-$line"
@@ -62,7 +65,7 @@ cat << EOH
 							</span>
 						</li>
 EOH
-else
+elif test -n "$line"; then
 cat << EOH
 						<li class="mdl-list__item">
 							<span class="mdl-list__item-primary-content">
