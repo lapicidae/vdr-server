@@ -5,10 +5,10 @@ The Video Disk Recorder ([VDR](http://www.tvdr.de/)) is a free (open source), no
 
 # [lapicidae/vdr-server](https://github.com/lapicidae/vdr-server)
 
-[![GitHub Stars](https://img.shields.io/github/stars/lapicidae/vdr-server.svg?color=3c0e7b&labelColor=555555&logoColor=ffffff&style=for-the-badge&logo=github)](https://github.com/lapicidae/vdr-server)
-[![Docker Pulls](https://img.shields.io/docker/pulls/lapicidae/vdr-server.svg?color=3c0e7b&labelColor=555555&logoColor=ffffff&style=for-the-badge&label=pulls&logo=docker)](https://hub.docker.com/r/lapicidae/vdr-server)
-[![Docker Stars](https://img.shields.io/docker/stars/lapicidae/vdr-server.svg?color=3c0e7b&labelColor=555555&logoColor=ffffff&style=for-the-badge&label=stars&logo=docker)](https://hub.docker.com/r/lapicidae/vdr-server)
-[![Build & Push](https://img.shields.io/github/workflow/status/lapicidae/vdr-server/Docker%20Build%20&%20Push?label=Build%20%26%20Push&labelColor=555555&logoColor=ffffff&style=for-the-badge&logo=github)](https://github.com/lapicidae/vdr-server/actions/workflows/docker.yml)
+[![GitHub Repo stars](https://img.shields.io/github/stars/lapicidae/vdr-server?color=3c0e7b&logo=github&logoColor=fff&style=for-the-badge)](https://github.com/lapicidae/vdr-server)
+[![Docker Pulls](https://img.shields.io/docker/pulls/lapicidae/vdr-server?color=3c0e7b&label=pulls&logo=docker&logoColor=fff&style=for-the-badge)](https://hub.docker.com/r/lapicidae/vdr-server)
+[![Docker Stars](https://img.shields.io/docker/stars/lapicidae/vdr-server?color=3c0e7b&label=stars&logo=docker&logoColor=fff&style=for-the-badge)](https://hub.docker.com/r/lapicidae/vdr-server)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/lapicidae/vdr-server/docker.yml?logo=github&logoColor=ffffff&style=for-the-badge)](https://github.com/lapicidae/vdr-server/actions/workflows/docker.yml)
 
 
 Image based on [Arch Linux](https://hub.docker.com/_/archlinux), [VDR4Arch](https://github.com/VDR4Arch/vdr4arch) and [s6-overlay](https://github.com/just-containers/s6-overlay).
@@ -204,7 +204,7 @@ A list of VDR channel IDs is automatically created when the container is stopped
 Scan the recordings before 'VDR 2.6.0' for errors (continuity counter), e.g. to display them in the web interface.  
 Just put an empty file named `checkrec` into the main directory of your recordings (`vdr/recordings`).  
 The process is executed at container start and runs until everything is checked.  
-The check is done via [vdr-checkts](https://projects.vdr-developer.org/git/vdr-checkts.git/) by [eTobi](http://e-tobi.net) and the basic script comes from [MarkusE](https://www.vdr-portal.de/forum/index.php?thread/134607-alte-aufzeichnungen-fehlerhaft/&postID=1342589#post1342589).
+The check is done via [vdr-checkts](https://github.com/vdr-projects/vdr-checkts) by [eTobi](http://e-tobi.net) and the basic script comes from [MarkusE](https://www.vdr-portal.de/forum/index.php?thread/134607-alte-aufzeichnungen-fehlerhaft/&postID=1342589#post1342589).
 
 
 ## Thanks
