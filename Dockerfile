@@ -191,6 +191,7 @@ RUN echo "**** configure pacman ****" && \
       chmod 4754 /usr/lib/vdr/bin/vdr-recordingaction && \
       chmod 755 /usr/local/bin/checkrec && \
       chmod 755 /usr/local/bin/contenv2env && \
+      chmod 755 /usr/local/bin/healthy && \
       chmod 755 /usr/local/bin/naludumper && \
       chmod 755 /usr/local/bin/naludumper-cron && \
       chmod 755 /usr/local/bin/picon && \
@@ -245,6 +246,9 @@ RUN echo "**** configure pacman ****" && \
       busybox --install -s
 
 WORKDIR /vdr
+
+HEALTHCHECK --interval=5m --start-period=10s \
+  CMD /usr/local/bin/healthy
 
 LABEL maintainer=$maintainer
 

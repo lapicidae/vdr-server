@@ -1,0 +1,29 @@
+#!/bin/bash
+#/usr/local/bin/healthy
+
+
+## Config
+vdrHost=${vdrHost:-"localhost"}
+svdrpPort=${svdrpPort:-"6419"}
+pingTimeout=${pingTimeout:-"1"}
+svdrp_send=$(command -v svdrpsend)
+tel_net=$(command -v telnet)
+
+
+## Request
+mapfile -t svdrp_out < <( $svdrp_send -d "$vdrHost" -p "$svdrpPort" 'PING' 2>&1 )
+#mapfile -t svdrp_out < <( { echo 'PING' >&5; timeout "$pingTimeout" cat <&5; } 2>&1 5<> /dev/tcp/"$vdrHost"/"$svdrpPort" )
+#mapfile -t svdrp_out < <( { echo 'PING'; sleep "$pingTimeout"; } | $tel_net "$vdrHost" "$svdrpPort" 2>&1 )
+
+
+## Analysis
+if [[ "${svdrp_out[*],,}" =~ 'alive' ]]; then
+    #printf 'VDR is alive... :-D\n'
+	exit 0
+else
+	printf 'Something is wrong here... >:(\n' >&2
+	printf '%s\n' '-------- SVDRP OUTPUT --------' >&2
+	printf '>> %s\n' "${svdrp_out[@]}" >&2
+	printf '%s\n' '------------- END ------------' >&2
+	exit 1
+fi

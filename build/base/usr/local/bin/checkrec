@@ -1,5 +1,5 @@
 #!/bin/bash
-#/usr/bin/checkrec
+#/usr/local/bin/checkrec
 
 ##
 ## Check if the recording contains an error and update the 'info' file.

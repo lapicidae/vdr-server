@@ -1,5 +1,5 @@
 #!/bin/bash
-#/usr/bin/naludumper
+#/usr/local/bin/naludumper
 
 # Check if another instance of script is running
 if pidof --help 2>&1 | grep -i busybox > /dev/null; then	# BusyBox version
