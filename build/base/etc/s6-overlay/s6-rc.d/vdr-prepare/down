@@ -4,8 +4,8 @@ with-contenv
 foreground {
  define cam_data "/var/cache/vdr/cam.data"
  importas -D "false" protect_camdata PROTECT_CAMDATA
- if { s6-test ${protect_camdata} = true }
- if { s6-test -f ${cam_data} }
+ if { eltest ${protect_camdata} = true }
+ if { eltest -f ${cam_data} }
  foreground { s6-chmod 0664 $cam_data }
  s6-echo "cam.data is now unprotected"
 }
@@ -15,7 +15,7 @@ multisubstitute {
  define output "/vdr/cache/channelids.conf"
  define tmp "/tmp/chid.tmp"
 }
-if -t { s6-test -f ${input} }
+if -t { eltest -f ${input} }
  foreground {
   foreground { export LC_ALL C redirfd -w 1 ${tmp} /usr/local/bin/vdr-channelids ${input} }
   foreground { iconv -sc -f UTF-8 -t UTF-8 -o ${output} ${tmp} }

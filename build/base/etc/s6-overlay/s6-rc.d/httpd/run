@@ -1,7 +1,7 @@
 #!/command/execlineb -P
 with-contenv
 importas -D "false" start START_IMAGESERVER
-ifelse { s6-test $start = false }
+ifelse { eltest $start = false }
  {
   foreground { s6-echo "ImageServer (httpd) is not enabled via environment variable" }
   foreground { s6-rmrf /etc/s6-overlay/s6-rc.d/user/contents.d/httpd }

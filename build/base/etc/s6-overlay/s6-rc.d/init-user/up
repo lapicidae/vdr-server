@@ -10,10 +10,10 @@ backtick -E gid {
 importas -D "666" puid PUID
 importas -D "666" pgid PGID
 foreground {
- if { s6-test ${uid} -ne ${puid} }
+ if { eltest ${uid} -ne ${puid} }
   foreground { s6-echo "Change the user ID of user ${user} to ${puid}" }
   usermod --non-unique --uid "${puid}" "${user}"
 }
-if -t { s6-test ${gid} -ne ${pgid} }
+if -t { eltest ${gid} -ne ${pgid} }
  foreground { s6-echo "Change the group ID of group ${group} to ${pgid}" }
  groupmod --non-unique --gid "${pgid}" "${group}"

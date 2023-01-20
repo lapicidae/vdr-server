@@ -18,39 +18,39 @@ foreground { pipeline { printcontenv LANG } pipeline { s6-quote-filter } xargs p
 foreground { pipeline { printcontenv LANGUAGE } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Language:" }
 foreground { pipeline { realpath --relative-to /usr/share/zoneinfo /etc/localtime } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Timezone:" }
 foreground {
- if { s6-test -v PLUGINS }
+ if { eltest -v PLUGINS }
   pipeline { printcontenv PLUGINS } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "VDR Plugins:"
 }
 foreground {
- if { s6-test -v START_CROND }
+ if { eltest -v START_CROND }
   pipeline { printcontenv START_CROND } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Enable Cron-Daemon:"
 }
 foreground {
- if { s6-test -v START_NALUDUMP }
+ if { eltest -v START_NALUDUMP }
   pipeline { printcontenv START_NALUDUMP } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Naludump Cron:"
 }
 foreground {
- if { s6-test -v START_NALUDUMP_AT }
+ if { eltest -v START_NALUDUMP_AT }
   pipeline { printcontenv START_NALUDUMP_AT } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Naludump Cron at:"
 }
 foreground {
- if { s6-test -v START_IMAGESERVER }
+ if { eltest -v START_IMAGESERVER }
   pipeline { printcontenv START_IMAGESERVER } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Image Server:"
 }
 foreground {
- if { s6-test -v LOG2FILE }
+ if { eltest -v LOG2FILE }
   pipeline { printcontenv LOG2FILE } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Log2File:"
 }
 foreground {
- if { s6-test -v PROTECT_CAMDATA }
+ if { eltest -v PROTECT_CAMDATA }
   pipeline { printcontenv PROTECT_CAMDATA } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Protect cam.data:"
 }
 foreground {
- if { s6-test -v DISABLE_WEBINTERFACE }
+ if { eltest -v DISABLE_WEBINTERFACE }
   pipeline { printcontenv DISABLE_WEBINTERFACE } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Disable Webinterface:"
 }
 foreground {
- if { s6-test -v LOGO_COPY }
+ if { eltest -v LOGO_COPY }
   pipeline { printcontenv LOGO_COPY } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Default Channel Logos:"
 }
 s6-echo "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄"

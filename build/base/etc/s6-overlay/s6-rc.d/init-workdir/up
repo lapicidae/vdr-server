@@ -5,7 +5,7 @@ define conf_dir "${main_dir}/config"
 define pkg_dir "${main_dir}/pkgbuild"
 define sys_dir "${main_dir}/system"
 foreground {
- if -n { s6-test -d "${main_dir}" }
+ if -n { eltest -d "${main_dir}" }
   s6-mkdir -p -m 0755 "${main_dir}"
  }
 foreground { s6-echo "Prepare workdir" }

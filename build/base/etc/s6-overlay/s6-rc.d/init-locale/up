@@ -17,7 +17,7 @@ backtick -E -D "${default_lang}" loc_active {
  s6-grep -v "^$"
 }
 foreground {
- if { s6-test -f ${loc_file} }
+ if { eltest -f ${loc_file} }
  if -n { redirfd -w 1 /dev/null expr ${loc_active} : .*${lang}$ }
   foreground {
    foreground { sed -i "/^[a-zA-Z0-9]/ s/^/#/" ${loc_file} }
@@ -28,7 +28,7 @@ foreground {
    s6-echo "Locale set to ${lang}"
   }
 }
-if -tn { s6-test -v LANGUAGE }
+if -tn { eltest -v LANGUAGE }
  foreground {
   backtick -E new_lng {
    pipeline { s6-echo "${lang}" }

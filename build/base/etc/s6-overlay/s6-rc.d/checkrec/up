@@ -1,5 +1,5 @@
 #!/command/execlineb -P
-if -t { s6-test -e /vdr/recordings/checkrec }
+if -t { eltest -e /vdr/recordings/checkrec }
 foreground { s6-echo "Starting CheckRecordings..." }
 s6-setuidgid vdr
 /usr/local/bin/checkrec -ql
