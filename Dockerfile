@@ -108,7 +108,7 @@ RUN echo "**** configure pacman ****" && \
       chown -R builduser:users vdr-checkts && \
       cd vdr-checkts && \
       $pacbuild && \
-    echo "**** install VDR plugins ****" && \
+    echo "**** install VDR plugins ****" && \UPDATE: s6-overlay
       $pacinst --batchinstall \
         vdr-dvbapi \
         vdr-epgsearch \
