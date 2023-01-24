@@ -1,0 +1,557 @@
+#!/bin/bash
+#/usr/local/bin/epgdata2xmltv
+
+
+## Config
+# epgVDR='/mnt/cache/epg.data'		# VDRs 'epg.data' file (default: '/var/cache/vdr/epg.data')
+# epgXMLTV='/mnt/cache/epg.xmltv'	# XMLTV output file (default: '/var/cache/vdr/epg.xmltv')
+# gZIP="true"						# create also a gziped file (same location as epgXMLTV output file)
+
+# epgLang='en'						# Should be the two-letter code such as 'en' or 'fr_FR' (default: de)
+# splitDescription='true'			# Filter description and split into xmltv elements like 'credits' or 'keyword' (currently not supported by kodi) [true/false] (default: false)
+silent='true'						# Silent mode [true/false] (default: false)
+
+
+## Do not change!
+start=$SECONDS
+
+# defaults
+epgVDR="${epgVDR:-"/var/cache/vdr/epg.data"}"
+epgXMLTV="${epgXMLTV:-"/var/cache/vdr/epg.xmltv"}"
+epgLang="${epgLang:-"de"}"
+splitDescription="${splitDescription:-"false"}"
+silent="${silent:-"false"}"
+gZIP="${gZIP:-"false"}"
+
+declare -a arrChannel
+declare -a arrProgram
+declare -A arrProgramme
+
+# Correct arrangement in output file, based on 'https://github.com/XMLTV/xmltv/blob/master/xmltv.dtd'
+declare -a prgrmmArrangement=(start title sub-title desc credits date category keyword language country episode-num video audio rating star-rating review end)
+declare -a crdtsArrangement=(start director actor writer producer composer presenter commentator guest end)
+
+
+## PID handling
+#PIDfile="/run/user/$(id -u)/${0##*/}.pid"
+PIDfile="/tmp/${0##*/}.pid"
+if [ -f "$PIDfile" ] && ps -p "$(cat "$PIDfile")" > /dev/null; then		# ensure only one instance of script is running
+	printf 'ERROR: Another instance of this script is running!\n'
+	exit 1
+else
+	printf '%s' "$$" > "$PIDfile"	# write script's PID to pid-file
+fi
+
+
+## Check input and output file
+outDIR=$(dirname "$epgXMLTV")
+if [ ! -d "$outDIR" ] && [ ! -w "$outDIR" ]; then
+	printf 'ERROR: Directory "%s" does not exist!\n' "$epgVDR"
+	exit 1
+elif [ ! -r "$epgVDR" ]; then
+	printf 'ERROR: File "%s" does not exist!\n' "$epgVDR"
+	exit 1
+fi
+
+
+## CleanUp if killed
+trap 'printf "\n%s\n" "KILLED!"; rm -f $PIDfile; exit 130' INT
+
+
+## Functions
+TEXTtoHTML () {				# Removal/replacement of some unusable characters (hopefully)
+	local input="$1"
+	sed \
+		-e 's/<br\/>/|/g' \
+		-e 's/\&/\&amp;/g' \
+		-e 's/</\&lt;/g' \
+		-e 's/>/\&gt;/g' \
+		-e 's/"/\&quot;/g' \
+		-e 's/'\''/#\&#39;/g' \
+		-e 's/„/\&quot;/g' \
+		-e 's/\“/\&quot;/g' \
+		-e 's/a\#u0308/ä/g' \
+		-e 's/o\#u0308/ö/g' \
+		-e 's/u\#u0308/ü/g' \
+		-e 's/a\x1A/ä/g' \
+		-e 's/o\x1A/ö/g' \
+		-e 's/u\x1A/ü/g' \
+		-e "s/\#\&\#39;/'/g" \
+		-e 's/\xC2\x80/€/g' \
+		-e 's/\xC2\x84/\&quot;/g' \
+		-e 's/\xC2\x86/‰/g' \
+		-e 's/\xC2\x8A/Š/g' \
+		-e "s/\xC2\x91/'/g" \
+		-e 's/\xC2\x93/\&quot;/g' \
+		-e 's/\xC2\x94/\&quot;/g' \
+		-e 's/\xC2\x96/ /g' \
+		-e 's/\xC2\x9A/š/g' \
+		-e 's/\xC2\x9C/œ/g' \
+		-e 's/\xC2\x9E/ž/g' \
+		-e 's/Ã\xC2\x9F/ß/g' \
+		-e 's/\#u0103/ă/g' \
+		-e 's/\#u0107/ć/g' \
+		-e 's/\#u010c/Č/g' \
+		-e 's/\#u010d/č/g' \
+		-e 's/\#u011b/ě/g' \
+		-e 's/\#u013e/ľ/g' \
+		-e 's/\#u016f/ů/g' \
+		-e 's/\#u017c/ż/g' \
+		-e 's/\#u017d/Ž/g' \
+		-e 's/\#u0142/ł/g' \
+		-e 's/\#u0148/ň/g' \
+		-e 's/\#u0159/ř/g' \
+		-e 's/\#u0163/ţ/g' \
+		-e 's/\#u0165/ť/g' \
+		-e 's/\#u01fa/Ǻ/g' \
+		-e 's/\#u011f/ğ/g' \
+		-e 's/\#u015e/Ş/g' \
+		-e 's/\#u013d/Ľ/g' \
+		-e 's/\#u0111/đ/g' \
+		-e 's/\#u015b/ś/g' \
+		-e 's/\#u0144/ń/g' \
+		-e 's/\#u039f/Ο/g' \
+		-e 's/\#u03bb/λ/g' \
+		-e 's/\#u03b9/ι/g' \
+		-e 's/\#u03b2/β/g' \
+		-e 's/\#u03b5/ε/g' \
+		-e 's/\#u03c1/ρ/g' \
+		-e 's/\#u03a0/Π/g' \
+		-e 's/\#u03b1/α/g' \
+		-e 's/\#u03c4/τ/g' \
+		-e 's/\#u014d/ō/g' \
+		-e 's/\#u016b/ū/g' \
+		-e 's/\#u017a/ź/g' \
+		-e 's/\#u0119/ę/g' \
+		-e 's/\#u015a/Ś/g' \
+		-e 's/\#u0106/Ć/g' \
+		-e 's/\#u010f/ď/g' \
+		-e 's/\#u015f/ş/g' \
+		-e 's/\x20\x1C/\&quot;/g' \
+		-e 's/\x20\x1D/\&quot;/g' \
+		-e 's/\x20\xC2\x84/\&quot;/g' \
+		-e 's/\xC2\x85//g' \
+		-e 's/\xC2\x9F/ /g' \
+		-e 's/\xEF\xBF\xBD/ /g' \
+		-e 's/ \{1,\}/ /g' "$input" | iconv --from-code=UTF-8 -c -s
+}
+
+getGenreAsString () {		# Convert hex genre to labels
+	local input="${1^^}"
+	declare -A arrGenres
+	local genreUnknown='Unbekannt'
+	local arrGenres=(
+		['0F']='Undefiniert'
+		['10']='Film Drama (allgemein)'
+		['11']='Detektiv Thriller'
+		['12']='Abenteuer Western Krieg'
+		['13']='Science Fiction Fantasy Horror'
+		['14']='Comedy'
+		['15']='Soap Melodram Folklore'
+		['16']='Romanze'
+		['17']='Klassik Religös Historisch Drama'
+		['18']='Erwachsen Drama'
+		['20']='Nachrichten (allgemein)'
+		['21']='Nachrichten Wetterbericht'
+		['22']='Nachrichten'
+		['23']='Dokumentation'
+		['24']='Diskussion Interview Debatte'
+		['30']='Quizshow (allgemein)'
+		['31']='Quizshow'
+		['32']='Variete Quizshow'
+		['33']='Talk Show'
+		['40']='Sport (allgemein)'
+		['41']='Sportveranstaltung (Olympia, WM, usw.)'
+		['42']='Sportsendung'
+		['43']='Fussball'
+		['44']='Tennis Squash'
+		['45']='Mannschaftssport (ausser Fussball)'
+		['46']='Athletik'
+		['47']='Motorsport'
+		['48']='Wassersport'
+		['49']='Wintersport'
+		['4A']='Reitsport'
+		['4B']='Kampfsport'
+		['50']='Kinder- und Jugendprogramm (allgemein)'
+		['51']='Vorschulprogramm'
+		['52']='Kinderprogramm (6 - 14)'
+		['53']='Kinderprogramm (10 - 16)'
+		['54']='Informations- Schulprogramm'
+		['55']='Trickfilme Puppen'
+		['60']='Musik Ballet Tanz (allgemein)'
+		['61']='Rock Pop'
+		['62']='Klassische Musik'
+		['63']='Volksmusik'
+		['64']='Jazz'
+		['65']='Oper Musical'
+		['66']='Ballett'
+		['70']='Kunst/Kultur'
+		['71']='Darstellende Kunst'
+		['72']='Bildende Kunst'
+		['73']='Religion'
+		['74']='Popkultur/traditionelle Kunst'
+		['75']='Literatur'
+		['76']='Film'
+		['77']='Experimentalfilm'
+		['78']='Live Konferenz'
+		['79']='Neue Medien'
+		['7A']='Kunst &amp; Kultur Magazin'
+		['7B']='Mode'
+		['80']='Sozial/Politik/Wirtschaft'
+		['81']='Magazin/Bericht/Dukumentation'
+		['82']='Wirtschaft/Soziales'
+		['83']='Bemerkenswerte Menschen'
+		['90']='Bildung/Wissenschaft/Sachkunde'
+		['91']='Natur/Tiere/Landschaft'
+		['92']='Technologie/Wissenschaft'
+		['93']='Medizin/Physiologie/Psychologie'
+		['94']='Ausland/Entdeckungsreise'
+		['95']='Sozial/Geisteswissenschaft'
+		['96']='Weiterbildung'
+		['97']='Sprachen'
+		['A0']='Hobby und Freizeit'
+		['A1']='Tourismus und Reise'
+		['A2']='Kunsthandwerk'
+		['A3']='Auto'
+		['A4']='Fitness und Gesundheit'
+		['A5']='Kochen'
+		['A6']='Werbung Shopping'
+		['A7']='Garten'
+		['B0']='Original Sprache'
+		['B1']='Schwarz Weiss'
+		['B2']='Unveröffentlicht'
+		['B3']='Live Übertragung'
+		['B4']='Plano-Stereoskopisch'
+		['B5']='Lokal/Regional'
+	)
+	output=${arrGenres["$input"]}
+
+	if [ -z "$output" ]; then
+		local output=$genreUnknown
+	fi
+
+	#printf '%s' "$output"
+	arrProgramme[category]+='<category lang="'"$epgLang"'">'"$output"'</category>'
+}
+
+descriptionFilter () {		# Breaks down the description to get extended information
+	local input="$1"
+	local credits
+	declare -a unsetArr crdtsActorArr crdtsCommentatorArr crdtsDirectorArr crdtsGuestArr crdtsPresenterArr crdtsProducerArr crdtsWriterArr epgDesc
+
+	mapfile -t epgDesc <<<"$input"
+	for ((DescNum=0; DescNum < ${#epgDesc[@]}; DescNum++)); do
+		case "${epgDesc[DescNum]}" in
+			#'FSK: '* )
+			#	local crdtsFSK=${epgDesc[DescNum]#*: }
+			#	unsetArr+=("$DescNum")
+			#;;
+			'Regie: '* )
+				local crdtsDirector=${epgDesc[DescNum]#*: }
+				crdtsDirector=${crdtsDirector//', '/$'\n'}
+				mapfile -t crdtsDirectorArr <<<"$crdtsDirector"
+				credits='true'
+				unsetArr+=("$DescNum")
+			;;
+			'Gast: '* | 'Gäste: '* )
+				local crdtsGuest=${epgDesc[DescNum]#*: }
+				crdtsGuest=${crdtsGuest//', '/$'\n'}
+				mapfile -t crdtsGuestArr <<<"$crdtsGuest"
+				credits='true'
+				unsetArr+=("$DescNum")
+			;;
+			'Moderator: '* )
+				local crdtsPresenter=${epgDesc[DescNum]#*: }
+				crdtsPresenter=${crdtsPresenter//', '/$'\n'}
+				mapfile -t crdtsPresenterArr <<<"$crdtsPresenter"
+				credits='true'
+				unsetArr+=("$DescNum")
+			;;
+			'Kommentar: '* )
+				local crdtsCommentator=${epgDesc[DescNum]#*: }
+				crdtsCommentator=${crdtsCommentator//', '/$'\n'}
+				mapfile -t crdtsCommentatorArr <<<"$crdtsCommentator"
+				credits='true'
+				unsetArr+=("$DescNum")
+			;;
+			'Darsteller: '* )
+				local crdtsActor=${epgDesc[DescNum]#*: }
+				if [[ $crdtsActor == *'('*')'* ]]; then
+					crdtsActor=${crdtsActor//'), '/$'\n'}
+					crdtsActor=${crdtsActor//' ('/'|'}
+					crdtsActor=${crdtsActor//')'/}
+				else
+					crdtsActor=${crdtsActor//', '/$'\n'}
+				fi
+				mapfile -t crdtsActorArr <<<"$crdtsActor"
+				credits='true'
+				unsetArr+=("$DescNum")
+			;;
+			'Drehbuch: '* | 'Buch: '* | 'Autor: ' | 'Buch/Autor: '* )
+				local crdtsWriter=${epgDesc[DescNum]#*: }
+				crdtsWriter=${crdtsWriter//', '/$'\n'}
+				crdtsWriter=${crdtsWriter//' und '/$'\n'}
+				mapfile -t crdtsWriterArr <<<"$crdtsWriter"
+				credits='true'
+				unsetArr+=("$DescNum")
+			;;
+			'Produzent: '* )
+				local crdtsProducer=${epgDesc[DescNum]#*: }
+				crdtsProducer=${crdtsProducer//', '/$'\n'}
+				mapfile -t crdtsProducerArr <<<"$crdtsProducer"
+				credits='true'
+				unsetArr+=("$DescNum")
+			;;
+			'Musik: '* )
+				local crdtsComposer=${epgDesc[DescNum]#*: }
+				crdtsComposer=${crdtsComposer//', '/$'\n'}
+				mapfile -t crdtsComposerArr <<<"$crdtsComposer"
+				credits='true'
+				unsetArr+=("$DescNum")
+			;;
+			'Jahr: '* )
+				local cprDate=${epgDesc[DescNum]#*: }
+				unsetArr+=("$DescNum")
+			;;
+			'Genre: '* | 'Kategorie: '* )
+				local genCat=${epgDesc[DescNum]#*: }
+				genCat=${genCat//' '/'-'}
+				if [ -n "$keyWord" ]; then
+					keyWord="${genCat,,} $keyWord"
+				else
+					local keyWord=${genCat,,}
+				fi
+				unsetArr+=("$DescNum")
+			;;
+			'Land: '* )
+				local cntryName=${epgDesc[DescNum]#*: }
+				unsetArr+=("$DescNum")
+			;;
+			'Staffel: '* )
+				local nbrSeason=${epgDesc[DescNum]#*: }
+				unsetArr+=("$DescNum")
+			;;
+			'Staffelfolge: '* )
+				local nbrEpisode=${epgDesc[DescNum]#*: }
+				unsetArr+=("$DescNum")
+			;;
+			'Flags: '* )
+				local vdFlag=${epgDesc[DescNum]#*: }
+				vdFlag=${vdFlag//[\[\]]/}
+				if [[ $vdFlag =~ ^[0-9]+:[0-9]+$ ]]; then
+					local vdAspect=$vdFlag
+				else
+					local vdQuality=$vdFlag
+				fi
+				unsetArr+=("$DescNum")
+			;;
+			'Audio: '* )
+				local adStereo=${epgDesc[DescNum]#*: }
+				adStereo=${adStereo,,}
+				unsetArr+=("$DescNum")
+			;;
+			'»GOLDTIPP« '* | '»TOPTIPP« '* | '»TIPP« '* )
+				local strRating='true'
+				local rvwText=${epgDesc[DescNum]#*« }
+				unsetArr+=("$DescNum")
+			;;
+			'Episode: '* | 'Folge: '* | 'Kamera: '* | 'Kurzname: '* | 'Serie: '* | 'Staffelfolgen: '* )		# CleanUp
+				unsetArr+=("$DescNum")
+		esac
+	done
+
+	# remove "Genre (Country YEAR)" line
+	if [[ ${epgDesc[0]} =~ \(.*[[:blank:]][0-9]{4}\)$ ]]; then
+		unsetArr+=(0)
+	fi
+
+	# Remove matches from array
+	for nst in "${unsetArr[@]}"; do
+		unset "epgDesc[$nst]"
+	done
+
+	if [ -n "${epgDesc[*]}" ]; then
+		local epgDescTEXT
+		printf -v epgDescTEXT '%s\n' "${epgDesc[@]}"
+		arrProgramme[desc]+='<desc lang="'"$epgLang"'">\n'"$epgDescTEXT"'</desc>'
+	fi
+
+	# Output credits
+	if [ "$credits" == 'true' ]; then
+		arrProgramme[credits-start]+='<credits>\n'														# start
+		if [ -n "${crdtsDirectorArr[*]}" ]; then
+			for drctr in "${crdtsDirectorArr[@]}"; do
+				arrProgramme[credits-director]+='<director>'"$drctr"'</director>\n'						# director
+			done
+		fi
+		for ctr in "${crdtsActorArr[@]}"; do
+			if [[ $ctr == *'|'* ]]; then
+				arrProgramme[credits-actor]+='<actor role="'"${ctr[*]#*|}"'">'"${ctr%|*}"'</actor>\n'	# actor
+			else
+				arrProgramme[credits-actor]+='<actor>'"$ctr"'</actor>\n'								# actor
+			fi
+		done
+		if [ -n "${crdtsWriterArr[*]}" ]; then
+			for wrtr in "${crdtsWriterArr[@]}"; do
+				arrProgramme[credits-writer]+='<writer>'"$wrtr"'</writer>\n'							# writer
+			done
+		fi
+		if [ -n "${crdtsProducerArr[*]}" ]; then
+			for prdcr in "${crdtsProducerArr[@]}"; do
+				arrProgramme[credits-producer]+='<producer>'"$prdcr"'</producer>\n'						# producer
+			done
+		fi
+		if [ -n "${crdtsComposerArr[*]}" ]; then
+			for cmpsr in "${crdtsComposerArr[@]}"; do
+				arrProgramme[credits-composer]+='<composer>'"$cmpsr"'</composer>\n'						# composer
+			done
+		fi
+		if [ -n "${crdtsPresenterArr[*]}" ]; then
+			for prsntr in "${crdtsPresenterArr[@]}"; do
+				arrProgramme[credits-presenter]+='<presenter>'"$prsntr"'</presenter>\n'					# presenter
+			done
+		fi
+		if [ -n "${crdtsCommentatorArr[*]}" ]; then
+			for cmmnttr in "${crdtsCommentatorArr[@]}"; do
+				arrProgramme[credits-commentator]+='<commentator>'"$cmmnttr"'</commentator>\n'			# commentator
+			done
+		fi
+		if [ -n "${crdtsGuestArr[*]}" ]; then
+			for gst in "${crdtsGuestArr[@]}"; do
+				arrProgramme[credits-guest]+='<guest>'"$gst"'</guest>\n'								# guest
+			done
+		fi			
+		arrProgramme[credits-end]+='</credits>'															# end
+	fi
+
+	#add to credits array
+	for rrngmnt in "${crdtsArrangement[@]}"; do
+		if [ -n "${arrProgramme[credits-$rrngmnt]}"  ]; then
+			arrProgramme[credits]+="${arrProgramme[credits-$rrngmnt]}"
+		fi
+	done
+
+	[ -n "$cprDate" ] && arrProgramme[date]+='<date>'"$cprDate"'</date>'
+	[ -n "$keyWord" ] && arrProgramme[keyword]+='<keyword lang="'"$epgLang"'">'"$keyWord"'</keyword>'
+	[ -n "$cntryName" ] && arrProgramme[country]+='<country lang="'"$epgLang"'">'"$cntryName"'</country>'
+	if [ -n "$nbrSeason" ] && [ -n "$nbrEpisode" ]; then
+		arrProgramme[episode-num]+=$(
+			printf '<episode-num system="xmltv_ns">%d.%d.</episode-num>\n' $(( (nbrSeason-1) < 0 ? 0 : (nbrSeason-1) )) $(( (nbrEpisode-1) < 0 ? 0 : (nbrEpisode-1) )) 
+			printf '<episode-num system="onscreen">S%02dE%02d</episode-num>\n' "$nbrSeason" "$nbrEpisode"
+		)
+	fi
+	[ -n "$vdAspect" ] && arrProgramme[video]+='<video><aspect>'"$vdAspect"'</aspect></video>'
+	[ -n "$vdQuality" ] && arrProgramme[video]+='<video><quality>'"$vdQuality"'</quality></video>'
+	[ -n "$adStereo" ] && arrProgramme[audio]+='<audio><stereo>'"$adStereo"'</stereo></audio>'
+	[ -n "$strRating" ] && arrProgramme[star-rating]+='<star-rating><value>1/1</value></star-rating>'
+	[ -n "$rvwText" ] && arrProgramme[review]+='<review type="text" lang="'"$epgLang"'">'"$rvwText"'</review>'
+}
+
+
+## Convertion
+# Load filtered source file into array
+[ "$silent" != 'true' ] && printf 'Read file: "%s"\n' "$epgVDR"
+mapfile -t arrayFile < <(TEXTtoHTML "$epgVDR")
+
+# Split file array
+[ "$silent" != 'true' ] && printf 'Working on Channel:\n'
+for ((index=0; index < ${#arrayFile[@]}; index++)); do
+	case "${arrayFile[index]::2}" in
+		'C ' )		# Channel
+			if [ "${arrayFile[index+1]::1}" == 'c' ]; then
+				[ "$silent" != 'true' ] && printf '>> SKIPPED: Channel "%s" has no EPG!\n' "${arrayFile[index]:2}"
+				continue
+			fi
+			mapfile -t epgChannel <<<"${arrayFile[index]//' '/$'\n'}"
+			epgChannelID=${epgChannel[1]}
+			epgChannelNAME=${epgChannel[*]:2}
+			[ "$silent" != 'true' ] && printf '>> %s\n' "$epgChannelNAME"
+			arrChannel+=( '<channel id="'"$epgChannelID"'">\n<display-name lang="'"$epgLang"'">'"$epgChannelNAME"'</display-name>\n</channel>' )
+		;;
+		'E ' )		# Event
+			if [ "${arrayFile[index+1]::1}" == 'e' ]; then
+				[ "$silent" != 'true' ] && printf '\t- SKIPPED: Event "%s" is empty!\n' "${arrayFile[index]:2}"
+				skipEvent="true"
+				continue
+			fi
+			mapfile -t epgEvent <<<"${arrayFile[index]//' '/$'\n'}"
+			printf -v epgTimeStart '%(%Y%m%d%H%M%S %z)T' "${epgEvent[2]}"
+			printf -v epgTimeStop '%(%Y%m%d%H%M%S %z)T' "$(("${epgEvent[2]}"+"${epgEvent[3]}"))"
+			arrProgramme[start]+='<programme start="'"$epgTimeStart"'" stop="'"$epgTimeStop"'" channel="'"$epgChannelID"'">'
+		;;
+		'T ' )		# Title
+			epgTitle=${arrayFile[index]:2}
+			arrProgramme[title]+='<title lang="'"$epgLang"'">'"$epgTitle"'</title>'
+		;;
+		'S ' )		# Short Text
+			epgShortText=${arrayFile[index]:2}
+			arrProgramme[sub-title]+='<sub-title lang="'"$epgLang"'">'"$epgShortText"'</sub-title>'
+		;;
+		'D ' )		# Description
+			descInput=${arrayFile[index]}
+			descInput=${descInput//'||/||'/'/'}
+			descInput=${descInput//'|||'/'|'}
+			descInput=${descInput//'||'/'|'}
+			descInput=${descInput//'|'/$'\n'}		# replace | or || (ect.) by one! line break
+			descInput=${descInput:2}
+			if [ "$splitDescription" == 'true' ]; then
+				descriptionFilter "$descInput"
+			elif [ -n "$descInput" ]; then
+				arrProgramme[desc]+='<desc lang="'"$epgLang"'">\n'"$descInput"'\n</desc>'
+			fi
+		;;
+		'G ' )		# Genre
+			mapfile -t epgGenre <<<"${arrayFile[index]//' '/$'\n'}"
+			for gnr in "${epgGenre[@]:1}"; do
+				getGenreAsString "$gnr"				# adds found string to 'arrProgramme[category] (xmltv formated)
+			done
+		;;
+		'R ' )		# Parental Rating
+			epgRating=${arrayFile[index]:2}
+			arrProgramme[rating]+='<rating system="FSK"><value>'"$epgRating"'</value></rating>'
+		;;
+		'e' )		# END (combine programme)
+			if [ "$skipEvent" == "true" ]; then
+				skipEvent="false"
+				continue
+			else
+				arrProgramme[end]+='</programme>'
+				
+				for rrngmnt in "${prgrmmArrangement[@]}"; do
+					if [ -n "${arrProgramme[$rrngmnt]}"  ]; then
+						arrProgram+=( "${arrProgramme[$rrngmnt]}" )
+					fi
+				done
+
+				# reset array
+				unset arrProgramme && declare -A arrProgramme
+			fi
+		;;
+	esac
+done
+
+
+## Construct
+[ "$silent" != 'true' ] && printf 'Write file "%s"\n' "$epgXMLTV"
+{
+	printf '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE tv SYSTEM "xmltv.dtd">\n'
+	printf '<tv generator-info-name="vdr_epg_data_to_xmltv" generator-info-url="https://github.com/lapicidae/vdr-server/">\n'
+	printf "%b\n" "${arrChannel[@]}"
+	printf "%b\n" "${arrProgram[@]}"
+	printf '</tv>\n'
+}  > "$epgXMLTV"
+
+if [ "$gZIP" = 'true' ]; then
+	[ "$silent" != 'true' ] && printf 'Write file "%s"\n' "$epgXMLTV.gz"
+	gzip -9fkq "$epgXMLTV"
+fi
+
+
+## CleanUp
+rm -f "$PIDfile"
+
+
+## Done
+end=$SECONDS
+duration=$(( end - start ))
+[ "$silent" != 'true' ] && TZ=UTC printf 'DONE! [%(%H:%M:%S)T]\n' $duration

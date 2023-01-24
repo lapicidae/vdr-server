@@ -1,0 +1,18 @@
+#!/command/execlineb -P
+with-contenv
+backtick -D "localhost" -E dflt_domain { hostname -s }
+multisubstitute {
+ importas -D "false" start START_XMLTV
+ importas -D $dflt_domain domain XMLTV_DOMAIN_NAME
+ importas -D "3000" portstrm XMLTV_STREAM_PORT
+ importas -D "8099" portlogo XMLTV_LOGO_PORT
+}
+if -t { eltest $start != false }
+ background {
+  s6-nice -n 19
+  export hostName $domain
+  export strmPort $portstrm
+  export logoPort $portlogo
+  /usr/local/bin/channels2m3u
+ }
+ s6-nice -n 19 /usr/local/bin/epgdata2xmltv

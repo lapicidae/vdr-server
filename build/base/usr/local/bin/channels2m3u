@@ -1,0 +1,206 @@
+#!/bin/bash
+#/usr/local/bin/channels2m3u
+
+
+## Config
+# vdrChannels='/mnt/config/channels.conf'		# default: '/var/lib/vdr/channels.conf'
+# m3uChannels='/mnt/cache/channels.m3u'			# default: '/var/cache/vdr/channels.m3u'
+
+# hostName='myVDR'								# default: current hostname
+# strmPort="4567"								# stream (streamdev) url port port (default: 3000)
+# logoPort="7654"								# logo web server port (default: 8099)
+
+# m3uBaseURL='http://example.com:3000/'			# vdr streamdev http (default: 'http://$hostName:$strmPort/')
+
+m3uLogos='true'									# search for logos in "m3uLogoURL" (default: false)
+# m3uLogoTYPE='png'								# png/jpg (default: png)
+# m3uLogoURL='http://example.com/chlogos/'		# channel logo url (default: 'http://$hostName:$logoPort/channellogos/')
+
+# tvgChNo='123'									# Start with Channel Number (default: 1)
+# silent='true'									# Silent mode [true/false] (default: false)
+
+
+## Do not change!
+start=$SECONDS
+
+hostName="${hostName:-$(hostname -s)}"
+strmPort="${strmPort:-"3000"}"
+logoPort="${logoPort:-"8099"}"
+
+vdrChannels="${vdrChannels:-"/var/lib/vdr/channels.conf"}"
+m3uChannels="${m3uChannels:-"/var/cache/vdr/channels.m3u"}"
+m3uBaseURL="${m3uBaseURL:-"http://$hostName:$strmPort/"}"
+
+m3uLogos="${m3uLogos:-"false"}"
+m3uLogoTYPE="${m3uLogoTYPE:-"png"}"
+m3uLogoURL="${m3uLogoURL:-"http://$hostName:$logoPort/channellogos/"}"
+
+tmpFile=$(mktemp --suffix="_vdr.m3u")
+outDir=$(dirname "$m3uChannels")
+tvgChNo="${tvgChNo:-"1"}"
+silent="${silent:-"false"}"
+logVerbose="${logVerbose:-"false"}"
+
+
+## CleanUp if killed
+trap 'printf "\n%s\n" "KILLED!"; rm -f "$tmpFile"; exit 130' INT
+
+
+## Functions
+log() {
+	if [ "$logVerbose" = "true" ]; then
+		logger -e -p info "channels2m3u: $1"
+		printf 'channels2m3u: %s\n' "$1"
+	else
+		logger -e -p info "channels2m3u: $1"
+	fi
+}
+
+rawurlencode() {
+	local input="${1,,}"	# input in lowercase
+
+	if command -v python3 >/dev/null 2>&1; then
+		python3 -c "from urllib.parse import quote, sys; print(quote(sys.argv[1]))" "$input"
+	else
+		local strlen=${#input}
+		local encoded=""
+		local pos c o
+
+		for (( pos=0 ; pos<strlen ; pos++ )); do
+			c=${input:$pos:1}
+			case "$c" in
+				[-_.~a-zA-Z0-9] )	o="$c" ;;
+				\ * )				printf -v o '%%%02x' "'$c" ;;
+				* )					o=$(printf '%s' "$c" | hexdump -v -e '/1 "_%02X"')
+									o=${o//'_'/'%'}
+			esac
+			encoded+="$o"
+		done
+		printf '%s' "$encoded"
+	fi
+}
+
+CheckURL () {
+	local input="$1"
+
+	if command -v wget >/dev/null 2>&1; then
+		wget --spider "$input" >/dev/null 2>&1		# wget seems to be faster (tested with busybox wget)
+	elif command -v curl >/dev/null 2>&1; then
+		curl --output /dev/null --silent --head --insecure --fail "$input"
+	else
+		return 1
+	fi
+	return $?
+}
+
+
+## Start
+log "Starting the creation of '$m3uChannels'"
+
+
+## Channels Array
+if [ -r "$vdrChannels" ]; then
+	mapfile -t arrayChannel < "$vdrChannels"
+else
+	log "Error: '$vdrChannels' not found or not readable!"
+	exit 1
+fi
+
+
+## Remove slash at the end of URLs (if present)
+if [[ "${m3uBaseURL}" == */ ]]; then
+	m3uBaseURL="${m3uBaseURL::-1}"
+fi
+if [[ "${m3uLogoURL}" == */ ]]; then
+	m3uLogoURL="${m3uLogoURL::-1}"
+fi
+
+
+## Prepare Output File
+printf '%s\n' '#EXTM3U tvg-shift="0"' > "$tmpFile"
+
+for i in "${arrayChannel[@]}"; do
+	if [[ $i == ':'* ]]; then						# GroupTitle
+		tvgGroupTitle=$(sed -r 's/^@[0-9]* //' <<<"${i:1}")
+	elif [[ $i == *'OBSOLETE'* ]]; then	
+		[ "$silent" != 'true' ] && printf 'SKIP!\n'
+		continue
+	else
+		mapfile -d ':' -t chanArr <<<"$i"
+
+		# Channel & Bouquet Name
+		if [[ ${chanArr[0]} == *';'* ]]; then		# channel name present
+			mapfile -d ';' -t ChBouqArr <<<"${chanArr[0]//$','/';'}"	# replace commas with semicolons
+			tvgName="${ChBouqArr[0]}"
+			tvgBouquet="${ChBouqArr[-1]//$'\n'/}"	# always latest item & removed trailing line break (added by bash's here-string)
+		else	# use bouquet name as channel name
+			tvgName="${chanArr[0]}"
+			tvgBouquet="${chanArr[0]}"
+		fi
+
+		# ID
+		tvgID="${chanArr[3]}-${chanArr[10]}-${chanArr[11]}-${chanArr[9]}"
+
+		# GroupTitle
+		if [ -z "$tvgGroupTitle" ]; then			# bouquet name as goup title, if empty
+			tvgGroupTitle="$tvgBouquet"
+		fi
+
+		# Radio
+		if [ "${chanArr[5]}" == '0' ] || [ "${chanArr[5]}" == '1' ]; then
+			radio='true'
+		else
+			radio='false'
+		fi
+
+		# Logo
+		tvgLogo='-1'
+		if [ "$m3uLogos" != 'false' ]; then
+			tvgNameClean=${tvgName//'/'/'_'}		# replace '/' with '_'
+			LogoURL="$m3uLogoURL/$(rawurlencode "$tvgNameClean").$m3uLogoTYPE"
+			if CheckURL "$LogoURL"; then
+				tvgLogo="$LogoURL"
+			fi
+		fi
+
+		# Merge
+		if [ "${radio}" != 'true' ]; then
+			printf -v m3uExtInf '#EXTINF:-1 tvg-id="%s" tvg-chno="%s" tvg-name="%s" tvg-logo="%s" group-title="%s",%s' "$tvgID" "$tvgChNo" "$tvgName" "$tvgLogo" "$tvgGroupTitle" "$tvgName"
+		else
+			printf -v m3uExtInf '#EXTINF:-1 tvg-id="%s" tvg-chno="%s" tvg-name="%s" radio="%s" tvg-logo="%s" group-title="%s",%s' "$tvgID" "$tvgChNo" "$tvgName" "$radio" "$tvgLogo" "$tvgGroupTitle" "$tvgName"
+		fi
+
+        m3uURL="$m3uBaseURL/$tvgID"
+
+		# Output
+		printf '%s\n%s\n' "$m3uExtInf" "$m3uURL" >> "$tmpFile"
+
+		# Messages
+		if [ "$silent" != 'true' ] && [ "$logVerbose" = "true" ]; then
+			log "$tvgChNo | $tvgGroupTitle | $tvgName | $tvgBouquet | $radio | $tvgID"
+			[ "$m3uLogos" != 'false' ] && log "Logo URL: $LogoURL"
+		fi
+
+		((tvgChNo++))
+	fi
+done
+
+
+## copy file to out dir
+if [ -s "$tmpFile" ] && [ -w "$outDir" ]; then		# $tmpFile not empty & $outDir writable
+	#mv -b "$tmpFile" "$m3uChannels"
+	cp -b --no-preserve=mode,ownership "$tmpFile" "$m3uChannels"
+else
+	log "Error: cannot write into '$outDir' or empty output file '$tmpFile'!"
+	exit 1
+fi
+
+
+## CleanUp
+rm -f "$tmpFile"
+
+
+## Done
+end=$SECONDS
+duration=$(( end - start ))
+log "$(TZ=UTC printf 'DONE! [%(%H:%M:%S)T]\n' $duration)"
