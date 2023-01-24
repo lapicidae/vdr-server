@@ -1,9 +1,9 @@
 FROM archlinux:latest
 
 ARG LANGUAGE="en_US:en_GB:en" \
-    pacinst="sudo -u builduser paru --nouseask --removemake --cleanafter --noconfirm --clonedir /var/cache/paru -S" \
+    pacinst="sudo -u builduser paru --nouseask --removemake --cleanafter --noconfirm --clonedir /var/cache/paru --mflags --skipinteg -S" \
     pacdown="sudo -u builduser paru --getpkgbuild --noprogressbar --clonedir /var/cache/paru" \
-    pacbuild="sudo -u builduser makepkg --clean --install --noconfirm --noprogressbar --syncdeps" \
+    pacbuild="sudo -u builduser makepkg --clean --install --noconfirm --noprogressbar --syncdeps --skipinteg" \
     buildDir="/var/cache/paru" \
     buildOptimize="true" \
     maintainer="lapicidae <github.com/lapicidae>" \
