@@ -6,10 +6,11 @@ set -e
 
 ## Ideally, change these variables via 'docker build-arg'
 # e.g.: docker build --tag vdr-server --build-arg miniVers=true .
+buildOptimize=${buildOptimize:-"false"}
+inVM=${inVM:-"false"}
+maintainer=${maintainer:-"lapicidae <github.com/lapicidae>"}
 miniVers=${miniVers:-"false"}   # build without ffmpeg & vdr-live
 S6VER=${S6VER:-"none"}
-maintainer=${maintainer:-"lapicidae <github.com/lapicidae>"}
-buildOptimize=${buildOptimize:-"false"}
 
 
 ## Do not change!
@@ -304,7 +305,7 @@ busybox --install -s
 
 
 ## Delete this script if it is running in a Docker container
-if [ -f '/.dockerenv' ] || [ "${inVM:-"false"}" = 'true' ]; then
+if [ -f '/.dockerenv' ] || [ "$inVM" = 'true' ]; then
     _ntfy "delete this installer ($0)"
     rm -- "$0"
 fi
