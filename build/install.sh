@@ -230,22 +230,28 @@ chmod 4754 \
     /usr/lib/vdr/bin/shutdown-wrapper \
     /usr/lib/vdr/bin/vdr-recordingaction
 chmod 755 \
+    /usr/local/bin/channels2m3u \
     /usr/local/bin/checkrec \
     /usr/local/bin/contenv2env \
+    /usr/local/bin/epgdata2xmltv \
     /usr/local/bin/healthy \
     /usr/local/bin/naludumper \
     /usr/local/bin/naludumper-cron \
     /usr/local/bin/picon \
-    /usr/local/bin/vdr-channelids
+    /usr/local/bin/vdr-channelids \
+    /usr/local/bin/xmltv-cron
 chmod 600 /var/spool/cron/crontabs/*
 chown root:root \
+    /usr/local/bin/channels2m3u \
     /usr/local/bin/checkrec \
     /usr/local/bin/contenv2env \
+    /usr/local/bin/epgdata2xmltv \
     /usr/local/bin/healthy \
     /usr/local/bin/naludumper \
     /usr/local/bin/naludumper-cron \
     /usr/local/bin/picon \
-    /usr/local/bin/vdr-channelids
+    /usr/local/bin/vdr-channelids \
+    /usr/local/bin/xmltv-cron
 chown root:vdr /usr/lib/vdr/bin/shutdown-wrapper
 chown vdr:vdr /usr/lib/vdr/bin/vdr-recordingaction
 
