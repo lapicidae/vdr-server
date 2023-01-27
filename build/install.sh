@@ -32,7 +32,7 @@ trap 'printf "\n\e[31;1;2m> %s\nCommand terminated with exit code %s.\e[m\n" "$B
 
 
 ## Profit!
-_ntfy "configure pacman"
+_ntfy 'prepare pacman'
 sed -i '/NoExtract.*=.*[^\n]*/,$!b;//{x;//p;g};//!H;$!d;x;s//&\nNoExtract   = !usr\/share\/locale\/*\/LC_MESSAGES\/vdr*/' /etc/pacman.conf
 sed -i 's|!usr/share/\*locales/en_??|!usr/share/\*locales/*|g' /etc/pacman.conf
 if [ "$buildOptimize" = "true" ]; then
@@ -214,11 +214,11 @@ cp -Rlf /defaults/system/* /etc/vdr
 
 _ntfy 'get png channellogos'
 curl -s 'https://api.github.com/repos/lapicidae/svg-channellogos/releases/latest' | \
-  grep "browser_download_url" | \
-  grep -Eo 'https://[^\"]*' | \
-  grep -v 'nolinks' | \
-  grep -e 'light.*square' | \
-  xargs curl -s -L -o /defaults/channellogos.tar.xz
+    grep "browser_download_url" | \
+    grep -Eo 'https://[^\"]*' | \
+    grep -v 'nolinks' | \
+    grep -e 'light.*square' | \
+    xargs curl -s -L -o /defaults/channellogos.tar.xz
 curl -o /usr/local/bin/picon 'https://raw.githubusercontent.com/lapicidae/svg-channellogos/master/tools/picon'
 
 _ntfy 'change permissions'
@@ -262,29 +262,29 @@ if [ "$buildOptimize" = "true" ]; then
     sed -i 's/^MAKEFLAGS=.*/#&/' "/etc/makepkg.conf"
 fi
 rm -rf \
-  /tmp/* \
-  /var/tmp/*
+    /tmp/* \
+    /var/tmp/*
 pacman -R --noconfirm \
-  argon2 \
-  base \
-  cryptsetup \
-  dbus \
-  device-mapper \
-  iproute2 \
-  iptables \
-  kbd \
-  kmod \
-  libmnl \
-  libnetfilter_conntrack \
-  libnfnetlink \
-  libnftnl \
-  libnl \
-  libpcap \
-  pacman-contrib \
-  pciutils \
-  popt \
-  systemd \
-  systemd-sysvcompat
+    argon2 \
+    base \
+    cryptsetup \
+    dbus \
+    device-mapper \
+    iproute2 \
+    iptables \
+    kbd \
+    kmod \
+    libmnl \
+    libnetfilter_conntrack \
+    libnfnetlink \
+    libnftnl \
+    libnl \
+    libpcap \
+    pacman-contrib \
+    pciutils \
+    popt \
+    systemd \
+    systemd-sysvcompat
 pacman --noconfirm -R "$(pacman -Qtdq)" 2>/dev/null || true
 yes | pacman -Scc
 find /etc -type f -name "*.pacnew" -delete
