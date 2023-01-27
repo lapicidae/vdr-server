@@ -295,7 +295,7 @@ _ntfy 'install busybox'
 busybox --install -s
 
 ## Delete this script if it is running in a Docker container
-if [ -f '/.dockerenv' ] || grep -q docker '/proc/1/cgroup'; then
+if [ -f '/.dockerenv' ]; then
     _ntfy "delete this installer ($0)"
     rm -- "$0"
 fi
