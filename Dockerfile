@@ -3,6 +3,7 @@ FROM archlinux:latest
 ARG maintainer="lapicidae <github.com/lapicidae>" \
     S6VER="3.1.3.0" \
     miniVers="false" \
+    inVM="true" \
     LANGUAGE="en_US:en_GB:en"
 
 ENV PATH="$PATH:/command:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl"

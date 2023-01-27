@@ -101,6 +101,14 @@ patch /etc/s6-overlay/s6-rc.d/syslogd-log/run /tmp/syslogd-log_run.patch
 useradd --system --no-create-home --shell /bin/false syslog
 useradd --system --no-create-home --shell /bin/false sysllog
 
+_ntfy "detect envivroment"
+$pacinst virt-what
+mapfile -t virtWhat < <(virt-what)
+if [ ${#virtWhat[@]} -gt 0 ]; then
+    inVM='true'
+    printf '\e[95;1;5mCurrently running in a VM!\e[m\n'
+fi
+
 _ntfy 'install dependencies & tools'
 $pacinst \
     busybox \
@@ -294,8 +302,9 @@ find "$buildDir" -mindepth 1 -maxdepth 1 -type d -not -path '*/\.*' -exec rm -rf
 _ntfy 'install busybox'
 busybox --install -s
 
+
 ## Delete this script if it is running in a Docker container
-if [ -f '/.dockerenv' ]; then
+if [ -f '/.dockerenv' ] || [ "${inVM:-"false"}" = 'true' ]; then
     _ntfy "delete this installer ($0)"
     rm -- "$0"
 fi
