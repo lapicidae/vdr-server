@@ -9,7 +9,8 @@
 
 # epgLang='en'						# Should be the two-letter code such as 'en' or 'fr_FR' (default: de)
 # splitDescription='true'			# Filter description and split into xmltv elements like 'credits' or 'keyword' (currently not supported by kodi) [true/false] (default: false)
-silent='true'						# Silent mode [true/false] (default: false)
+# silent='true'						# Silent mode - no log output [true/false] (default: false)
+# logVerbose='true'					# More log output and also print to stdout [true/false] (default: false)
 
 
 ## Do not change!
@@ -22,6 +23,7 @@ epgLang="${epgLang:-"de"}"
 splitDescription="${splitDescription:-"false"}"
 silent="${silent:-"false"}"
 gZIP="${gZIP:-"false"}"
+logVerbose="${logVerbose:-"false"}"
 
 declare -a arrChannel
 declare -a arrProgram
@@ -59,7 +61,23 @@ trap 'printf "\n%s\n" "KILLED!"; rm -f $PIDfile; exit 130' INT
 
 
 ## Functions
-TEXTtoHTML () {				# Removal/replacement of some unusable characters (hopefully)
+_log () {
+	local input=${2:-"$1"}
+	local name='epgdata2xmltv'
+	if [ "$silent" != 'true' ]; then
+		case "$1" in
+			dbg )	if [ "$logVerbose" = 'true' ]; then
+						printf '%s\n' "$input"
+						logger -e -p info "$name: $input"
+					fi
+					;;
+			* )		logger -e -p info "$name: $input"
+					[ "$logVerbose" = 'true' ] && printf '%s\n' "$input"
+		esac
+	fi
+}
+
+_TEXTtoHTML () {				# Removal/replacement of some unusable characters (hopefully)
 	local input="$1"
 	sed \
 		-e 's/<br\/>/|/g' \
@@ -136,7 +154,7 @@ TEXTtoHTML () {				# Removal/replacement of some unusable characters (hopefully)
 		-e 's/ \{1,\}/ /g' "$input" | iconv --from-code=UTF-8 -c -s
 }
 
-getGenreAsString () {		# Convert hex genre to labels
+_getGenreAsString () {		# Convert hex genre to labels
 	local input="${1^^}"
 	declare -A arrGenres
 	local genreUnknown='Unbekannt'
@@ -234,7 +252,7 @@ getGenreAsString () {		# Convert hex genre to labels
 	arrProgramme[category]+='<category lang="'"$epgLang"'">'"$output"'</category>'
 }
 
-descriptionFilter () {		# Breaks down the description to get extended information
+_descriptionFilter () {		# Breaks down the description to get extended information
 	local input="$1"
 	local credits
 	declare -a unsetArr crdtsActorArr crdtsCommentatorArr crdtsDirectorArr crdtsGuestArr crdtsPresenterArr crdtsProducerArr crdtsWriterArr epgDesc
@@ -450,27 +468,28 @@ descriptionFilter () {		# Breaks down the description to get extended informatio
 
 ## Convertion
 # Load filtered source file into array
-[ "$silent" != 'true' ] && printf 'Read file: "%s"\n' "$epgVDR"
-mapfile -t arrayFile < <(TEXTtoHTML "$epgVDR")
+_log "Read file: $epgVDR"
+mapfile -t arrayFile < <(_TEXTtoHTML "$epgVDR")
 
 # Split file array
-[ "$silent" != 'true' ] && printf 'Working on Channel:\n'
+_log 'Converting...'
+_log dbg 'Working on Channel:'
 for ((index=0; index < ${#arrayFile[@]}; index++)); do
 	case "${arrayFile[index]::2}" in
 		'C ' )		# Channel
 			if [ "${arrayFile[index+1]::1}" == 'c' ]; then
-				[ "$silent" != 'true' ] && printf '>> SKIPPED: Channel "%s" has no EPG!\n' "${arrayFile[index]:2}"
+				_log dbg ">> SKIPPED: Channel '${arrayFile[index]:2}' has no EPG!"
 				continue
 			fi
 			mapfile -t epgChannel <<<"${arrayFile[index]//' '/$'\n'}"
 			epgChannelID=${epgChannel[1]}
 			epgChannelNAME=${epgChannel[*]:2}
-			[ "$silent" != 'true' ] && printf '>> %s\n' "$epgChannelNAME"
+			_log dbg ">> $epgChannelNAME"
 			arrChannel+=( '<channel id="'"$epgChannelID"'">\n<display-name lang="'"$epgLang"'">'"$epgChannelNAME"'</display-name>\n</channel>' )
 		;;
 		'E ' )		# Event
 			if [ "${arrayFile[index+1]::1}" == 'e' ]; then
-				[ "$silent" != 'true' ] && printf '\t- SKIPPED: Event "%s" is empty!\n' "${arrayFile[index]:2}"
+				_log dbg "\t- SKIPPED: Event '${arrayFile[index]:2}' is empty!"
 				skipEvent="true"
 				continue
 			fi
@@ -492,10 +511,10 @@ for ((index=0; index < ${#arrayFile[@]}; index++)); do
 			descInput=${descInput//'||/||'/'/'}
 			descInput=${descInput//'|||'/'|'}
 			descInput=${descInput//'||'/'|'}
-			descInput=${descInput//'|'/$'\n'}		# replace | or || (ect.) by one! line break
+			descInput=${descInput//'|'/$'\n'}			# replace | or || (ect.) by one! line break
 			descInput=${descInput:2}
 			if [ "$splitDescription" == 'true' ]; then
-				descriptionFilter "$descInput"
+				_descriptionFilter "$descInput"
 			elif [ -n "$descInput" ]; then
 				arrProgramme[desc]+='<desc lang="'"$epgLang"'">\n'"$descInput"'\n</desc>'
 			fi
@@ -503,7 +522,7 @@ for ((index=0; index < ${#arrayFile[@]}; index++)); do
 		'G ' )		# Genre
 			mapfile -t epgGenre <<<"${arrayFile[index]//' '/$'\n'}"
 			for gnr in "${epgGenre[@]:1}"; do
-				getGenreAsString "$gnr"				# adds found string to 'arrProgramme[category] (xmltv formated)
+				_getGenreAsString "$gnr"				# adds found string to 'arrProgramme[category] (xmltv formated)
 			done
 		;;
 		'R ' )		# Parental Rating
@@ -532,7 +551,7 @@ done
 
 
 ## Construct
-[ "$silent" != 'true' ] && printf 'Write file "%s"\n' "$epgXMLTV"
+_log "Write file $epgXMLTV"
 {
 	printf '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE tv SYSTEM "xmltv.dtd">\n'
 	printf '<tv generator-info-name="vdr_epg_data_to_xmltv" generator-info-url="https://github.com/lapicidae/vdr-server/">\n'
@@ -542,7 +561,7 @@ done
 }  > "$epgXMLTV"
 
 if [ "$gZIP" = 'true' ]; then
-	[ "$silent" != 'true' ] && printf 'Write file "%s"\n' "$epgXMLTV.gz"
+	_log "Write file $epgXMLTV.gz"
 	gzip -9fkq "$epgXMLTV"
 fi
 
@@ -554,4 +573,4 @@ rm -f "$PIDfile"
 ## Done
 end=$SECONDS
 duration=$(( end - start ))
-[ "$silent" != 'true' ] && TZ=UTC printf 'DONE! [%(%H:%M:%S)T]\n' $duration
+_log "$(TZ=UTC printf 'DONE! [%(%H:%M:%S)T]\n' $duration)"

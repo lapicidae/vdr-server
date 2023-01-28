@@ -12,17 +12,19 @@
 
 # m3uBaseURL='http://example.com:3000/'			# vdr streamdev http (default: 'http://$hostName:$strmPort/')
 
-m3uLogos='true'									# search for logos in "m3uLogoURL" (default: false)
+# m3uLogos='false'								# search for logos in "m3uLogoURL" (default: true)
 # m3uLogoTYPE='png'								# png/jpg (default: png)
 # m3uLogoURL='http://example.com/chlogos/'		# channel logo url (default: 'http://$hostName:$logoPort/channellogos/')
 
 # tvgChNo='123'									# Start with Channel Number (default: 1)
-# silent='true'									# Silent mode [true/false] (default: false)
+# silent='true'									# Silent mode - no log output [true/false] (default: false)
+# logVerbose='true'								# More log output and also print to stdout [true/false] (default: false)
 
 
 ## Do not change!
 start=$SECONDS
 
+# defaults
 hostName="${hostName:-$(hostname -s)}"
 strmPort="${strmPort:-"3000"}"
 logoPort="${logoPort:-"8099"}"
@@ -31,7 +33,7 @@ vdrChannels="${vdrChannels:-"/var/lib/vdr/channels.conf"}"
 m3uChannels="${m3uChannels:-"/var/cache/vdr/channels.m3u"}"
 m3uBaseURL="${m3uBaseURL:-"http://$hostName:$strmPort/"}"
 
-m3uLogos="${m3uLogos:-"false"}"
+m3uLogos="${m3uLogos:-"true"}"
 m3uLogoTYPE="${m3uLogoTYPE:-"png"}"
 m3uLogoURL="${m3uLogoURL:-"http://$hostName:$logoPort/channellogos/"}"
 
@@ -47,16 +49,27 @@ trap 'printf "\n%s\n" "KILLED!"; rm -f "$tmpFile"; exit 130' INT
 
 
 ## Functions
-log() {
-	if [ "$logVerbose" = "true" ]; then
-		logger -e -p info "channels2m3u: $1"
-		printf 'channels2m3u: %s\n' "$1"
-	else
-		logger -e -p info "channels2m3u: $1"
+_log() {
+	local input=${2:-"$1"}
+	local name='channels2m3u'
+
+	if [ "$silent" != 'true' ] || [ "$1" = 'err' ]; then
+		case "$1" in
+			err )	logger -e -p error "$name: $input"
+					printf 'ERROR: %s\n' "$input"
+					;;
+			dbg )	if [ "$logVerbose" = 'true' ]; then
+						printf '%s\n' "$input"
+						logger -e -p info "$name: $input"
+					fi
+					;;
+			* )		logger -e -p info "$name: $input"
+					[ "$logVerbose" = 'true' ] && printf '%s\n' "$input"
+		esac
 	fi
 }
 
-rawurlencode() {
+_rawurlencode() {
 	local input="${1,,}"	# input in lowercase
 
 	if command -v python3 >/dev/null 2>&1; then
@@ -80,7 +93,7 @@ rawurlencode() {
 	fi
 }
 
-CheckURL () {
+_CheckURL () {
 	local input="$1"
 
 	if command -v wget >/dev/null 2>&1; then
@@ -95,14 +108,14 @@ CheckURL () {
 
 
 ## Start
-log "Starting the creation of '$m3uChannels'"
+_log "Starting the creation of '$m3uChannels'"
 
 
 ## Channels Array
 if [ -r "$vdrChannels" ]; then
 	mapfile -t arrayChannel < "$vdrChannels"
 else
-	log "Error: '$vdrChannels' not found or not readable!"
+	_log err "'$vdrChannels' not found or not readable!"
 	exit 1
 fi
 
@@ -123,7 +136,7 @@ for i in "${arrayChannel[@]}"; do
 	if [[ $i == ':'* ]]; then						# GroupTitle
 		tvgGroupTitle=$(sed -r 's/^@[0-9]* //' <<<"${i:1}")
 	elif [[ $i == *'OBSOLETE'* ]]; then	
-		[ "$silent" != 'true' ] && printf 'SKIP!\n'
+		_log dbg 'SKIP!'
 		continue
 	else
 		mapfile -d ':' -t chanArr <<<"$i"
@@ -157,8 +170,8 @@ for i in "${arrayChannel[@]}"; do
 		tvgLogo='-1'
 		if [ "$m3uLogos" != 'false' ]; then
 			tvgNameClean=${tvgName//'/'/'_'}		# replace '/' with '_'
-			LogoURL="$m3uLogoURL/$(rawurlencode "$tvgNameClean").$m3uLogoTYPE"
-			if CheckURL "$LogoURL"; then
+			LogoURL="$m3uLogoURL/$(_rawurlencode "$tvgNameClean").$m3uLogoTYPE"
+			if _CheckURL "$LogoURL"; then
 				tvgLogo="$LogoURL"
 			fi
 		fi
@@ -175,11 +188,9 @@ for i in "${arrayChannel[@]}"; do
 		# Output
 		printf '%s\n%s\n' "$m3uExtInf" "$m3uURL" >> "$tmpFile"
 
-		# Messages
-		if [ "$silent" != 'true' ] && [ "$logVerbose" = "true" ]; then
-			log "$tvgChNo | $tvgGroupTitle | $tvgName | $tvgBouquet | $radio | $tvgID"
-			[ "$m3uLogos" != 'false' ] && log "Logo URL: $LogoURL"
-		fi
+		# Debug
+		_log dbg "$tvgChNo | $tvgGroupTitle | $tvgName | $tvgBouquet | $radio | $tvgID"
+		[ "$m3uLogos" != 'false' ] && _log dbg "Logo URL: $LogoURL"
 
 		((tvgChNo++))
 	fi
@@ -203,4 +214,4 @@ rm -f "$tmpFile"
 ## Done
 end=$SECONDS
 duration=$(( end - start ))
-log "$(TZ=UTC printf 'DONE! [%(%H:%M:%S)T]\n' $duration)"
+_log "$(TZ=UTC printf 'DONE! [%(%H:%M:%S)T]\n' $duration)"

@@ -1,5 +1,5 @@
 --- /etc/s6-overlay/s6-rc.d/syslogd-log/run	2022-08-26 17:57:50.000000000 +0200
-+++ /etc/s6-overlay/s6-rc.d/syslogd-log/run.new	2022-08-28 20:23:36.637010356 +0200
++++ /etc/s6-overlay/s6-rc.d/syslogd-log/run.new	2023-01-28 07:49:26.637010356 +0200
 @@ -2,12 +2,15 @@
  
  s6-envuidgid -D 32761:32761: -- sysllog
@@ -21,5 +21,5 @@
   - +mail\\.  $T ${dir}/mail
   - +user\\.  $T ${dir}/user
   - +^[[:alnum:]]*\\.info: +^[[:alnum:]]*\\.notice: +^[[:alnum:]]*\\.warn: -^auth\\. -^authpriv\\. -^cron\\. -daemon\\. -mail\\.  $T ${dir}/messages
-+ - +^[[:alnum:]].*[[:space:]]vdr: +^[[:alnum:]].*[[:space:]]recordingaction: +^[[:alnum:]].*[[:space:]]CheckRecording: +^[[:alnum:]].*[[:space:]]NaluDumper:  ${LOGDIR_VDR}
++ - +^[[:alnum:]].*[[:space:]]vdr: +^[[:alnum:]].*[[:space:]]recordingaction: +^[[:alnum:]].*[[:space:]]CheckRecording: +^[[:alnum:]].*[[:space:]]NaluDumper: +^[[:alnum:]].*[[:space:]]epgdata2xmltv: +^[[:alnum:]].*[[:space:]]channels2m3u:  ${LOGDIR_VDR}
   + -^auth\\. -^authpriv\\.  $T ${dir}/everything
