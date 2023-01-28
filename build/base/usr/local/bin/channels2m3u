@@ -37,15 +37,15 @@ m3uLogos="${m3uLogos:-"true"}"
 m3uLogoTYPE="${m3uLogoTYPE:-"png"}"
 m3uLogoURL="${m3uLogoURL:-"http://$hostName:$logoPort/channellogos/"}"
 
-tmpFile=$(mktemp --suffix="_vdr.m3u")
-outDir=$(dirname "$m3uChannels")
 tvgChNo="${tvgChNo:-"1"}"
 silent="${silent:-"false"}"
 logVerbose="${logVerbose:-"false"}"
 
+declare -a arrOutput
+
 
 ## CleanUp if killed
-trap 'printf "\n%s\n" "KILLED!"; rm -f "$tmpFile"; exit 130' INT
+trap 'printf "\n%s\n" "KILLED!"; exit 130' INT
 
 
 ## Functions
@@ -129,9 +129,7 @@ if [[ "${m3uLogoURL}" == */ ]]; then
 fi
 
 
-## Prepare Output File
-printf '%s\n' '#EXTM3U tvg-shift="0"' > "$tmpFile"
-
+## Prepare Output
 for i in "${arrayChannel[@]}"; do
 	if [[ $i == ':'* ]]; then						# GroupTitle
 		tvgGroupTitle=$(sed -r 's/^@[0-9]* //' <<<"${i:1}")
@@ -186,7 +184,8 @@ for i in "${arrayChannel[@]}"; do
         m3uURL="$m3uBaseURL/$tvgID"
 
 		# Output
-		printf '%s\n%s\n' "$m3uExtInf" "$m3uURL" >> "$tmpFile"
+		arrOutput+=( "$m3uExtInf" )
+		arrOutput+=( "$m3uURL" )
 
 		# Debug
 		_log dbg "$tvgChNo | $tvgGroupTitle | $tvgName | $tvgBouquet | $radio | $tvgID"
@@ -197,18 +196,12 @@ for i in "${arrayChannel[@]}"; do
 done
 
 
-## copy file to out dir
-if [ -s "$tmpFile" ] && [ -w "$outDir" ]; then		# $tmpFile not empty & $outDir writable
-	#mv -b "$tmpFile" "$m3uChannels"
-	cp -b --no-preserve=mode,ownership "$tmpFile" "$m3uChannels"
-else
-	log "Error: cannot write into '$outDir' or empty output file '$tmpFile'!"
-	exit 1
-fi
-
-
-## CleanUp
-rm -f "$tmpFile"
+## Construct
+_log "Write file $m3uChannels"
+{
+	printf '#EXTM3U tvg-shift="0"\n'
+	printf "%b\n" "${arrOutput[@]}"
+}  > "$m3uChannels"
 
 
 ## Done
