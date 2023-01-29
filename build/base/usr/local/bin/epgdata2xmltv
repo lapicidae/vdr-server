@@ -21,8 +21,9 @@ epgVDR="${epgVDR:-"/var/cache/vdr/epg.data"}"
 epgXMLTV="${epgXMLTV:-"/var/cache/vdr/epg.xmltv"}"
 epgLang="${epgLang:-"de"}"
 splitDescription="${splitDescription:-"false"}"
-silent="${silent:-"false"}"
+outDIR=$(dirname "$epgXMLTV")
 gZIP="${gZIP:-"false"}"
+silent="${silent:-"false"}"
 logVerbose="${logVerbose:-"false"}"
 
 declare -a arrChannel
@@ -34,28 +35,6 @@ declare -a prgrmmArrangement=(start title sub-title desc credits date category k
 declare -a crdtsArrangement=(start director actor writer producer composer presenter commentator guest end)
 
 
-## PID handling
-#PIDfile="/run/user/$(id -u)/${0##*/}.pid"
-PIDfile="/tmp/${0##*/}.pid"
-if [ -f "$PIDfile" ] && ps -p "$(cat "$PIDfile")" > /dev/null; then		# ensure only one instance of script is running
-	printf 'ERROR: Another instance of this script is running!\n'
-	exit 1
-else
-	printf '%s' "$$" > "$PIDfile"	# write script's PID to pid-file
-fi
-
-
-## Check input and output file
-outDIR=$(dirname "$epgXMLTV")
-if [ ! -d "$outDIR" ] && [ ! -w "$outDIR" ]; then
-	printf 'ERROR: Directory "%s" does not exist!\n' "$epgVDR"
-	exit 1
-elif [ ! -r "$epgVDR" ]; then
-	printf 'ERROR: File "%s" does not exist!\n' "$epgVDR"
-	exit 1
-fi
-
-
 ## CleanUp if killed
 trap 'printf "\n%s\n" "KILLED!"; rm -f $PIDfile; exit 130' INT
 
@@ -64,8 +43,12 @@ trap 'printf "\n%s\n" "KILLED!"; rm -f $PIDfile; exit 130' INT
 _log () {
 	local input=${2:-"$1"}
 	local name='epgdata2xmltv'
-	if [ "$silent" != 'true' ]; then
+	if [ "$silent" != 'true' ] || [ "$1" = 'err' ]; then
 		case "$1" in
+			err )	logger -e -p error "$name: $input"
+					printf 'ERROR: %s\n' "$input"
+					exit 1
+					;;
 			dbg )	if [ "$logVerbose" = 'true' ]; then
 						printf '%s\n' "$input"
 						logger -e -p info "$name: $input"
@@ -75,6 +58,7 @@ _log () {
 					[ "$logVerbose" = 'true' ] && printf '%s\n' "$input"
 		esac
 	fi
+	[ "$3" = 'exit' ] && exit 1
 }
 
 _TEXTtoHTML () {				# Removal/replacement of some unusable characters (hopefully)
@@ -464,6 +448,22 @@ _descriptionFilter () {		# Breaks down the description to get extended informati
 	[ -n "$strRating" ] && arrProgramme[star-rating]+='<star-rating><value>1/1</value></star-rating>'
 	[ -n "$rvwText" ] && arrProgramme[review]+='<review type="text" lang="'"$epgLang"'">'"$rvwText"'</review>'
 }
+
+
+## PID handling
+#PIDfile="/run/user/$(id -u)/${0##*/}.pid"
+PIDfile="/tmp/${0##*/}.pid"
+if [ -f "$PIDfile" ] && ps -p "$(cat "$PIDfile")" > /dev/null; then		# ensure only one instance of script is running
+	_log err 'Another instance of this script is running!\n' exit
+else
+	printf '%s' "$$" > "$PIDfile"	# write script's PID to pid-file
+fi
+
+
+## Check input and output file/dir
+[ ! -r "$epgVDR" ] && _log err "cannot read '$epgVDR'!" exit
+[ ! -w "$outDIR" ] && _log err "cannot write into '$outDIR'!" exit
+[ -e "$epgXMLTV" ] && [ ! -w "$epgXMLTV" ] && _log err "'$epgXMLTV' is not writable!" exit
 
 
 ## Convertion
