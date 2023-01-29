@@ -116,11 +116,8 @@ _CheckURL () {
 [ -e "$m3uChannels" ] && [ ! -w "$m3uChannels" ] && _log err "'$m3uChannels' is not writable!" exit
 
 
-## Start
-_log "Starting the creation of '$m3uChannels'"
-
-
 ## Channels Array
+_log "Read file: $vdrChannels"
 mapfile -t arrayChannel < "$vdrChannels"
 
 
@@ -134,6 +131,7 @@ fi
 
 
 ## Prepare Output
+_log 'Converting...'
 for i in "${arrayChannel[@]}"; do
 	if [[ $i == ':'* ]]; then						# GroupTitle
 		tvgGroupTitle=$(sed -r 's/^@[0-9]* //' <<<"${i:1}")
