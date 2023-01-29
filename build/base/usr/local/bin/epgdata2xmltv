@@ -47,7 +47,6 @@ _log () {
 		case "$1" in
 			err )	logger -e -p error "$name: $input"
 					printf 'ERROR: %s\n' "$input"
-					exit 1
 					;;
 			dbg )	if [ "$logVerbose" = 'true' ]; then
 						printf '%s\n' "$input"
