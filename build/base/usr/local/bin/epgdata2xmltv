@@ -25,6 +25,7 @@ outDIR=$(dirname "$epgXMLTV")
 gZIP="${gZIP:-"false"}"
 silent="${silent:-"false"}"
 logVerbose="${logVerbose:-"false"}"
+PIDfile="/tmp/${0##*/}.pid"
 
 declare -a arrChannel
 declare -a arrProgram
@@ -36,7 +37,7 @@ declare -a crdtsArrangement=(start director actor writer producer composer prese
 
 
 ## CleanUp if killed
-trap 'printf "\n%s\n" "KILLED!"; rm -f $PIDfile; exit 130' INT
+trap 'printf "\n%s\n" "KILLED!"; rm -f "$PIDfile"; exit 130' INT
 
 
 ## Functions
@@ -450,8 +451,6 @@ _descriptionFilter () {		# Breaks down the description to get extended informati
 
 
 ## PID handling
-#PIDfile="/run/user/$(id -u)/${0##*/}.pid"
-PIDfile="/tmp/${0##*/}.pid"
 if [ -f "$PIDfile" ] && ps -p "$(cat "$PIDfile")" > /dev/null; then		# ensure only one instance of script is running
 	_log err 'Another instance of this script is running!\n' exit
 else
@@ -461,6 +460,7 @@ fi
 
 ## Check input and output file/dir
 [ ! -r "$epgVDR" ] && _log err "cannot read '$epgVDR'!" exit
+[ ! -s "$epgVDR" ] && _log err "'$epgVDR' is empty!" exit
 [ ! -w "$outDIR" ] && _log err "cannot write into '$outDIR'!" exit
 [ -e "$epgXMLTV" ] && [ ! -w "$epgXMLTV" ] && _log err "'$epgXMLTV' is not writable!" exit
 
