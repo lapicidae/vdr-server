@@ -7,12 +7,14 @@ multisubstitute {
  importas -D "3000" portstrm XMLTV_STREAM_PORT
  importas -D "8099" portlogo XMLTV_LOGO_PORT
 }
+importas -D "http://${domain}:${portlogo}/channellogos/" urllogo XMLTV_LOGO_URL
 if -t { eltest $start != false }
  background {
   s6-nice -n 19
   export hostName $domain
   export strmPort $portstrm
   export logoPort $portlogo
+  export m3uLogoURL $urllogo
   /usr/local/bin/channels2m3u
  }
  s6-nice -n 19 /usr/local/bin/epgdata2xmltv

@@ -58,6 +58,10 @@ foreground {
   pipeline { printcontenv XMLTV_LOGO_PORT } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "XMLTV Logo Port:"
 }
 foreground {
+ if { eltest -v XMLTV_LOGO_URL }
+  pipeline { printcontenv XMLTV_LOGO_URL } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "XMLTV Logo URL:"
+}
+foreground {
  if { eltest -v LOG2FILE }
   pipeline { printcontenv LOG2FILE } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Log2File:"
 }

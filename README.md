@@ -133,7 +133,8 @@ For example, `-p 8080:80` would expose port `80` from inside the container to be
 | `-e START_XMLTV_AT=0 6 * * *` | Optional - Crontab schedule for starting the creation of m3u and xmltv files ([examples](https://crontab.guru/)) |
 | `-e XMLTV_DOMAIN_NAME=example.com` | Optional - Change the default domain name used in the m3u file (must be available within the container) |
 | `-e XMLTV_STREAM_PORT=4561` | Optional - Video stream (streamdev http) port in m3u (default: `3000`) |
-| `-e XMLTV_LOGO_PORT=1654` | Optional - Web server port for channel logos in m3u (default: `8099`) |
+| `-e XMLTV_LOGO_PORT=1654` | Optional - Web server port for station logos in m3u (default: `8099`) |
+| `-e XMLTV_LOGO_URL=https://example.com/logos` | Optional - Use external png station logos (filename ≙ lower case channel name) |
 | `-e LOG2FILE=true` | Optional - Write log to file in `/vdr/log` |
 | `-e PROTECT_CAMDATA=true` | Optional - Write protect `cam.data` to avoid unwanted changes |
 | `-e DISABLE_WEBINTERFACE=true` | Optional - Disable web interface (live plugin) |
