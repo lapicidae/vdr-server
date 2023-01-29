@@ -15,6 +15,10 @@ if -t { eltest $start != false }
   export strmPort $portstrm
   export logoPort $portlogo
   export m3uLogoURL $urllogo
+  export vdrChannels "/vdr/config/channels.conf"
+  export m3uChannels "/vdr/cache/channels.m3u"
   /usr/local/bin/channels2m3u
  }
+ export epgVDR "/vdr/cache/epg.data"
+ export epgXMLTV "/vdr/cache/epg.xmltv"
  s6-nice -n 19 /usr/local/bin/epgdata2xmltv
