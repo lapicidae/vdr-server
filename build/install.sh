@@ -213,11 +213,10 @@ cp -Rlf /defaults/config/* /var/lib/vdr
 cp -Rlf /defaults/system/* /etc/vdr
 
 _ntfy 'get png channellogos'
-curl -s 'https://api.github.com/repos/lapicidae/svg-channellogos/releases/latest' | \
-    grep "browser_download_url" | \
-    grep -Eo 'https://[^\"]*' | \
-    grep -v 'nolinks' | \
-    grep -e 'light.*square' | \
+curl -s -L 'https://github.com/lapicidae/svg-channellogos/releases/expanded_assets/latest' | \
+    grep -Po '(?<=href=")[^"]*(?=")' | \
+    grep -e 'light.*square.*nolinks' | \
+    sed 's/^/https:\/\/github.com/' | \
     xargs curl -s -L -o /defaults/channellogos.tar.xz
 curl -o /usr/local/bin/picon 'https://raw.githubusercontent.com/lapicidae/svg-channellogos/master/tools/picon'
 
