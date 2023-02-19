@@ -59,15 +59,15 @@ _log() {
 	if [ "$silent" != 'true' ] || [ "$1" = 'err' ]; then
 		case "$1" in
 			err )	logger -e -p error "$name: $input"
-					printf 'ERROR: %s\n' "$input"
+					printf 'ERROR: %s\n' "$input" 1>&2
 					;;
 			dbg )	if [ "$logVerbose" = 'true' ]; then
 						printf '%s\n' "$input"
-						logger -e -p info "$name: $input"
+						logger -e -p debug "$name: $input"
 					fi
 					;;
 			* )		logger -e -p info "$name: $input"
-					[ "$logVerbose" = 'true' ] && printf '%s\n' "$input"
+					[ "$logVerbose" = 'true' ] && printf '%s\n' "$input" 1>&2
 		esac
 	fi
 
