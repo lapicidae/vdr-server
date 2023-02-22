@@ -12,8 +12,12 @@ importas -D "666" pgid PGID
 foreground {
  if { eltest ${uid} -ne ${puid} }
   foreground { s6-echo "Change the user ID of user ${user} to ${puid}" }
-  usermod --non-unique --uid "${puid}" "${user}"
+  foreground { usermod --non-unique --uid "${puid}" "${user}" }
+  if -n { redirfd -w 2 /dev/null find / -user "${uid}" -not -path "/proc/*" -exec chown -h "${user}" {} \; }
+   s6-true
 }
-if -t { eltest ${gid} -ne ${pgid} }
- foreground { s6-echo "Change the group ID of group ${group} to ${pgid}" }
- groupmod --non-unique --gid "${pgid}" "${group}"
+ if -t { eltest ${gid} -ne ${pgid} }
+  foreground { s6-echo "Change the group ID of group ${group} to ${pgid}" }
+  foreground { groupmod --non-unique --gid "${pgid}" "${group}" }
+  if -nt { redirfd -w 2 /dev/null find / -group "${gid}" -not -path "/proc/*" -exec chgrp -h "${group}" {} \; }
+   s6-true
