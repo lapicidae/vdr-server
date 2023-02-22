@@ -123,7 +123,18 @@ if [ "$miniVers" != 'true' ]; then
 fi
 
 _ntfy 'install VDR'
-$pacinst vdr
+cd $buildDir || exit 1
+$pacdown vdr
+cp --update /tmp/vdr-eit.patch vdr/eit.patch
+cd vdr || exit 1
+sed -i "s/pkgrel=.*/pkgrel=2/g" PKGBUILD
+sed -i "/^  *'00-vdr.conf'.*/i \ \ \ \ \ \ \ \ 'eit.patch'" PKGBUILD
+sed -i "/Don't install plugins with VDR.*/i \ \ # epg2vdr Patch\n \ patch -p1 -i \"\$srcdir/eit.patch\"\n" PKGBUILD
+sudo -u builduser updpkgsums
+sudo -u builduser makepkg --printsrcinfo | sudo tee .SRCINFO > /dev/null
+chown -R builduser:users .
+$pacbuild
+pacman --noconfirm -R vdr-examples 2>/dev/null || true
 
 _ntfy 'install VDR tools'
 $pacinst \
