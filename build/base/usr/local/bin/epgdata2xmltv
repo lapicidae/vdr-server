@@ -10,7 +10,7 @@
 # epgLang='en'						# Should be the two-letter code such as 'en' or 'fr_FR' (default: de)
 # splitDescription='true'			# Filter description and split into xmltv elements like 'credits' or 'keyword' (currently not supported by kodi) [true/false] (default: false)
 # silent='true'						# Silent mode - no log output [true/false] (default: false)
-# logVerbose='true'					# More log output and also print to stdout [true/false] (default: false)
+# logVerbose='true'					# More log output and also print to stderr [true/false] (default: false)
 
 
 ## Do not change!

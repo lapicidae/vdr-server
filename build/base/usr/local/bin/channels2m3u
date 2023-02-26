@@ -18,7 +18,7 @@
 
 # tvgChNo='123'									# Start with Channel Number (default: 1)
 # silent='true'									# Silent mode - no log output [true/false] (default: false)
-# logVerbose='true'								# More log output and also print to stdout [true/false] (default: false)
+# logVerbose='true'								# More log output and also print to stderr [true/false] (default: false)
 
 
 ## Do not change!
