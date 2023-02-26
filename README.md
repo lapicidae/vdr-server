@@ -155,7 +155,7 @@ If you want to use VDRs `"SetSystemTime = 1"` use parameter `"--cap-add=SYS_TIME
 [^1]: Simple interface is avalable at `http://<your-ip>:3000`
 [^2]: When the server is running instructions available at: `http://<your-ip>:8099`
 [^3]: WARNING: The whole process has been designed to be as safe as possible! Nevertheless, there is no guarantee that the recordings will not be damaged during the cleanup.
-[^4]: Plugin `streamdev-server` is required for playback. The default server in m3u for channels and channel images is the [network alias](https://docs.docker.com/engine/reference/run/#network-settings) of the container.
+[^4]: Plugin `streamdev-server` is required for playback. The default server in m3u for channels and channel images is the [network alias](https://docs.docker.com/engine/reference/run/#network-settings) of the container. Currently, only the German language is fully supported when converting to XMLTV format.
 
 ### User / Group Identifiers
 When using volumes (`-v` flags) permissions issues can arise between the host OS and the container, we avoid this issue by allowing you to specify the user `PUID` and group `PGID`.
