@@ -20,6 +20,7 @@ cat << EOH
 	<style>
 		#git-link{position:fixed;display:block;right:0;bottom:0;margin-right:40px;margin-bottom:40px;z-index:900}
 		#filelist .mdl-list__item{padding:0 !important;min-height:30px !important}
+		.mdl-layout__tab-bar,.mdl-layout__tab-bar-button{background-color:#1A2669}
 		.ribbon{width:100%;height:40vh;background-color:#3F51B5;flex-shrink:0}
 		.main{margin-top:-35vh;flex-shrink:0;padding-bottom:100px}
 		.header .mdl-layout__header-row{padding-left:40px}
@@ -37,6 +38,11 @@ cat << EOH
 		<header class="header mdl-layout__header mdl-layout__header--scroll mdl-color--grey-100 mdl-color-text--grey-800">
 			<div class="mdl-layout__header-row">
 				<span class="mdl-layout-title">VDR Images Server</span>
+			</div>
+			<div class="mdl-layout__tab-bar mdl-js-ripple-effect">
+				<a href="../index.html" class="mdl-layout__tab">Home</a>
+				<a href="../channellogos/" class="mdl-layout__tab">Channel Logos</a>
+				<a href="../epgimages/" class="mdl-layout__tab">EPG Images</a>
 			</div>
 		</header>
 		<div class="ribbon"></div>
@@ -83,7 +89,6 @@ cat << EOF
 			<footer class="footer mdl-mini-footer">
 				<div class="mdl-mini-footer--left-section">
 					<ul class="mdl-mini-footer--link-list">
-						<li><a href="https://github.com/pipelka/roboTV">Help</a></li>
 						<li><a href="https://policies.google.com/">Privacy and Terms</a></li>
 						<li><a href="https://getmdl.io/">Material Design Lite</a></li>
 					</ul>
