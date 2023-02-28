@@ -22,7 +22,7 @@ Image based on [Arch Linux](https://hub.docker.com/_/archlinux), [VDR4Arch](http
 * eMail notifications via [msmtprc](https://marlam.de/msmtp/) - a very simple and easy to use SMTP client
 * built-in png [channel logos](https://github.com/lapicidae/svg-channellogos)
 * daily [naludump](https://www.udo-richter.de/vdr/naludump.html) cron
-* simple [http server](https://git.busybox.net/busybox/tree/networking/httpd.c) to provide channel logos and epg images (e.g. for [plugin-roboTV](https://github.com/pipelka/vdr-plugin-robotv/))
+* simple [web server](https://git.busybox.net/busybox/tree/networking/httpd.c) to provide channel logos, epg images (e.g. for [plugin-roboTV](https://github.com/pipelka/vdr-plugin-robotv/)), m3u channel list and XMLTV file (e.g. for [Jellyfin](https://jellyfin.org/)).
 * integrate your own PKGBUILD packages
 * log to file with built-in log rotation
 * creation of a VDR channel ID list
@@ -69,7 +69,7 @@ services:
       - 6419:6419 #optional
       - 6419:6419/udp #optional
       - 34890:34890 #optional
-      - 8099:8099 #optional
+      - 8099:8099 #optional (extra)
     devices:
       - /dev/dvb:/dev/dvb #optional
     cap_add:
@@ -90,7 +90,7 @@ docker run -d \
   -p 6419:6419 `#optional` \
   -p 6419:6419/udp `#optional` \
   -p 34890:34890 `#optional` \
-  -p 8099:8099 `#optional`
+  -p 8099:8099 `#optional (extra)`
   -v /path/to/system:/vdr/system \
   -v /path/to/config:/vdr/config \
   -v /path/to/recordings:/vdr/recordings \
@@ -114,21 +114,17 @@ For example, `-p 8080:80` would expose port `80` from inside the container to be
 | Parameter | Function |
 | :----: | --- |
 | `-p 8008` | Http VDR-Live plugin. |
-| `-p 3000` | Streamdev Server (HTTP Streaming) [^1] |
-| `-p 8009` | Optional - Https VDR-Live plugin (you need to set up your own certificate) |
+| `-p 3000` | Streamdev Server (http Streaming) [^1] |
+| `-p 8009` | Optional - https VDR-Live plugin (you need to set up your own certificate) |
 | `-p 6419` | Optional - Simple VDR Protocol (SVDRP) |
 | `-p 6419/udp` | Optional - SVDRP Peering |
 | `-p 2004` | Optional - Streamdev Server (VDR-to-VDR Streaming) |
 | `-p 34890` | Optional - [Kodi](https://kodi.wiki/view/Add-on:VDR_VNSI_Client) VDR-Network-Streaming-Interface (VNSI) |
-| `-p 8099` | Optional - Image Server for e.g. roboTV (must be enabled) [^2] |
 | `-e PUID=1000` | for UserID - see below for explanation |
 | `-e PGID=1000` | for GroupID - see below for explanation |
 | `-e TZ=Europe/London` | Specify a [timezone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List) to use (e.g. Europe/London) |
 | `-e LANG=en_US.UTF-8` | Default locale; see [list](https://sourceware.org/git/?p=glibc.git;a=blob_plain;f=localedata/SUPPORTED;hb=HEAD) (e.g. en_US.UTF-8) |
 | `-e PLUGINS=epgsearch live streamdev-server vnsiserver` | Optional - **Space separated** list of [VDR Plugins](https://github.com/VDR4Arch/vdr4arch/tree/master/plugins) (default: `epgsearch live streamdev-server vnsiserver`) |
-| `-e START_NALUDUMP=true` | Optional - Start [naludump](https://www.udo-richter.de/vdr/naludump.html) every day at 4 am (via cron) [^3] |
-| `-e START_NALUDUMP_AT=0 4 * * *` | Optional - Crontab schedule for the start of naludump ([examples](https://crontab.guru/)) |
-| `-e START_IMAGESERVER=true` | Optional - Image Server: provision of station logos and epg images via http |
 | `-e LOG2FILE=true` | Optional - Write log to file in `/vdr/log` |
 | `-e PROTECT_CAMDATA=true` | Optional - Write protect `cam.data` to avoid unwanted changes |
 | `-e DISABLE_WEBINTERFACE=true` | Optional - Disable web interface (live plugin) |
@@ -142,12 +138,24 @@ For example, `-p 8080:80` would expose port `80` from inside the container to be
 | `-v /vdr/timeshift` | VNSI Time-Shift buffer directory |
 | `-v /vdr/pkgbuild` | Build packages: [README](build/base/defaults/pkgbuild/README.md) |
 | `--device /dev/dvb` | Only needed if you want to pass through a DVB card to the container |
+| **Extras** |  |
+| `-e START_NALUDUMP=true` | *naludump:* start [naludump](https://www.udo-richter.de/vdr/naludump.html) every day at 4 am (via cron) [^3] |
+| `-e START_NALUDUMP_AT=0 4 * * *` | *naludump:* crontab schedule for the start of naludump ([examples](https://crontab.guru/)) |
+| `-e START_WEBSERVER=true` | *Web server:* provision of station logos, epg images, m3u channel list and xmltv file via http [^2] |
+| `-p 8099` | *Web server:* http port of the simple web server [^2] |
+| `-e START_XMLTV=true` | *XMLTV:* start m3u and [XMLTV](http://xmltv.org/) file generation to `/vdr/cache` every day at 12 am (via cron) [^4] |
+| `-e START_XMLTV_AT=0 6 * * *` | *XMLTV:* crontab schedule for starting the creation of m3u and xmltv files ([examples](https://crontab.guru/)) |
+| `-e XMLTV_DOMAIN_NAME=example.com` | *XMLTV:* change the default domain name used in the m3u file (must be available within the container) |
+| `-e XMLTV_STREAM_PORT=4561` | *XMLTV:* video stream (streamdev http) port in m3u (default: `3000`) |
+| `-e XMLTV_LOGO_PORT=1654` | *XMLTV:* web server port for station logos in m3u (default: `8099`) |
+| `-e XMLTV_LOGO_URL=https://example.com/logos` | *XMLTV:* use external **png** station logos (filename ≙ lower case channel name) |
 
 #### *Hint*
 If you want to use VDRs `"SetSystemTime = 1"` use parameter `"--cap-add=SYS_TIME"` **(untested)**
 [^1]: Simple interface is avalable at `http://<your-ip>:3000`
 [^2]: When the server is running instructions available at: `http://<your-ip>:8099`
 [^3]: WARNING: The whole process has been designed to be as safe as possible! Nevertheless, there is no guarantee that the recordings will not be damaged during the cleanup.
+[^4]: Plugin `streamdev-server` is required for playback. The default server in m3u for channels and channel images is the [network alias](https://docs.docker.com/engine/reference/run/#network-settings) of the container. Currently, only the German language is fully supported when converting to XMLTV format.
 
 ### User / Group Identifiers
 When using volumes (`-v` flags) permissions issues can arise between the host OS and the container, we avoid this issue by allowing you to specify the user `PUID` and group `PGID`.

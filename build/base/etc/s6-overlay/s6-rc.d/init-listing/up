@@ -22,6 +22,10 @@ foreground {
   pipeline { printcontenv PLUGINS } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "VDR Plugins:"
 }
 foreground {
+ if { eltest -v START_WEBSERVER }
+  pipeline { printcontenv START_WEBSERVER } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Enable Webserver:"
+}
+foreground {
  if { eltest -v START_CROND }
   pipeline { printcontenv START_CROND } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Enable Cron-Daemon:"
 }
@@ -34,8 +38,28 @@ foreground {
   pipeline { printcontenv START_NALUDUMP_AT } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Naludump Cron at:"
 }
 foreground {
- if { eltest -v START_IMAGESERVER }
-  pipeline { printcontenv START_IMAGESERVER } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Image Server:"
+ if { eltest -v START_XMLTV }
+  pipeline { printcontenv START_XMLTV } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "XMLTV Cron:"
+}
+foreground {
+ if { eltest -v START_XMLTV_AT }
+  pipeline { printcontenv START_XMLTV_AT } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "XMLTV Cron at:"
+}
+foreground {
+ if { eltest -v XMLTV_DOMAIN_NAME }
+  pipeline { printcontenv XMLTV_DOMAIN_NAME } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "XMLTV Domain Name:"
+}
+foreground {
+ if { eltest -v XMLTV_STREAM_PORT }
+  pipeline { printcontenv XMLTV_STREAM_PORT } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "XMLTV Stream Port:"
+}
+foreground {
+ if { eltest -v XMLTV_LOGO_PORT }
+  pipeline { printcontenv XMLTV_LOGO_PORT } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "XMLTV Logo Port:"
+}
+foreground {
+ if { eltest -v XMLTV_LOGO_URL }
+  pipeline { printcontenv XMLTV_LOGO_URL } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "XMLTV Logo URL:"
 }
 foreground {
  if { eltest -v LOG2FILE }

@@ -1,4 +1,5 @@
 #!/command/with-contenv bash
+# shellcheck shell=bash
 
 
 main_dir="/vdr"
@@ -36,34 +37,6 @@ if [ -d "$sys_dir" ]; then
 fi
 
 
-# crontab naludump
-if [ "${START_CROND:='true'}" != "false" ] && [ "${START_NALUDUMP:="false"}" != "false" ] && [ -n "$START_NALUDUMP_AT" ]; then
-	TMP_CRON=$(mktemp --suffix=".crontab")
-	busybox crontab -u vdr -l > "$TMP_CRON"
-	mapfile -d ' ' -t ctab_old < <(grep 'naludump' "$TMP_CRON" | tr -d '\n')
-
-	if [[ "${ctab_old[0]}" = '@'* ]]; then
-		ctab_time="$(printf '%s' "${ctab_old[0]}")"
-		ctab_command="$(printf '%s' "${ctab_old[*]:1}")"
-	else
-		ctab_time="$(printf '%s' "${ctab_old[*]:0:5}")"
-		ctab_command="$(printf '%s' "${ctab_old[*]:5}")"
-	fi
-
-	if [ "$START_NALUDUMP_AT" != "$ctab_time" ]; then
-		echo "naludump crontab: set start to '$START_NALUDUMP_AT'"
-		sed -i '/naludump/d' "$TMP_CRON"
-		echo "$START_NALUDUMP_AT $ctab_command" >> "$TMP_CRON"
-		chown vdr:vdr "$TMP_CRON"
-		busybox crontab -u vdr "$TMP_CRON"
-	#else
-	#	echo "naludump crontab: desired ($START_NALUDUMP_AT) and current ($ctab_time) start time are identical"
-	fi
-
-	rm -f "$TMP_CRON"
-fi
-
-
 # protect cam.data
 cam_data="/var/cache/vdr/cam.data"
 if [ -f "$cam_data" ]; then
@@ -90,7 +63,7 @@ if [ "$(_isEnabled "epgsearch")" = "0" ]; then
 	fi
 	if [ -f "$confl_templ" ] && [ ! -L "$confl_templ" ]; then
 		tmp_templ="/tmp/epgsearchconflmail.templ"
-		curl -s -o $tmp_templ https://projects.vdr-developer.org/git/vdr-plugin-epgsearch.git/plain/conf/epgsearchconflmail.templ
+		curl -s -o $tmp_templ 'https://raw.githubusercontent.com/vdr-projects/vdr-plugin-epgsearch/master/conf/epgsearchconflmail.templ'
 		if cmp -s "$confl_templ" "$tmp_templ"; then
 			mkdir -p $plug_dir/i18n
 			confl_templ_us="i18n/epgsearchconflmail-en_US.templ"
@@ -103,13 +76,13 @@ fi
 
 # vdrmanager
 if [ "$(_isEnabled "vdrmanager")" = "0" ]; then
-	plug_dir="/vdr/config/plugins/vdrmanager"
-	if [ ! -d "$plug_dir" ]; then
-		mkdir -p $plug_dir
+	vdrmngr_dir="/vdr/config/plugins/vdrmanager"
+	if [ ! -d "$vdrmngr_dir" ]; then
+		mkdir -p $vdrmngr_dir
 	fi
-	if [ ! -e "$plug_dir/vdrmanager.pem" ]; then
-		openssl req -newkey rsa:2048 -new -nodes -x509 -days 7300 -keyout $plug_dir/vdrmanager.key -out $plug_dir/vdrmanager.pem -batch
-		rm -f $plug_dir/{vdrmanager.crt,vdrmanager.key}
+	if [ ! -e "$vdrmngr_dir/vdrmanager.pem" ]; then
+		openssl req -newkey rsa:2048 -new -nodes -x509 -days 7300 -keyout $vdrmngr_dir/vdrmanager.key -out $vdrmngr_dir/vdrmanager.pem -batch
+		rm -f $vdrmngr_dir/{vdrmanager.crt,vdrmanager.key}
 	fi
 fi
 
@@ -123,7 +96,7 @@ if [ -f "$live_dir/live-key.pem" ]; then
 fi
 
 # ciplus
-ci_plus="/vdr/cache/plugins/ciplus/"
-if [ -d "$ci_plus" ] && [ -n "$(ls -A $ci_plus)" ]; then
-	chmod -f ug+rw -- *.auth || true
+cipls_dir="/vdr/cache/plugins/ciplus/"
+if [ -d "$cipls_dir" ] && [ -n "$(ls -A $cipls_dir)" ]; then
+	chmod -f ug+rw -- $cipls_dir/*.auth || true
 fi

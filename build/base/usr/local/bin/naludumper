@@ -1,6 +1,7 @@
 #!/bin/bash
 #/usr/local/bin/naludumper
 
+
 # Check if another instance of script is running
 if pidof --help 2>&1 | grep -i busybox > /dev/null; then	# BusyBox version
 	pidof -s -o %PPID "$(basename "$0")" >/dev/null && echo >&2 "ERROR: Script '$(basename "$0")' already running" && exit 1

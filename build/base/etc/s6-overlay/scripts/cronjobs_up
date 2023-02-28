@@ -1,0 +1,59 @@
+#!/command/with-contenv bash
+# shellcheck shell=bash
+
+
+_chngCron() {		# change time of cronjob
+	if [ -n "$1" ]; then
+		local command=$1
+		local user=${3:-"vdr"}
+		local group=${4:-"$user"}
+		local tmpCron
+		
+		tmpCron=$(mktemp --suffix=".crontab")
+
+		busybox crontab -u "$user" -l > "$tmpCron"
+		mapfile -d ' ' -t ctab_old < <(grep "$command" "$tmpCron" | tr -d '\n')
+
+		if [[ "${ctab_old[0]}" = '@'* ]]; then
+			ctab_time="${ctab_old[0]}"
+			ctab_command="${ctab_old[*]:1}"
+		else
+			ctab_time="${ctab_old[*]:0:5}"
+			ctab_command="${ctab_old[*]:5}"
+		fi
+
+		if [ -z "$ctab_command" ] || [ -z "$ctab_time" ]; then
+			return 0
+		fi
+
+		local time="${2:-"$ctab_time"}"	# use $ctab_time if $2 is empty
+
+		if [ "$time" != "$ctab_time" ]; then
+			printf '%s crontab: set start to %s\n' "$command" "$time"
+			sed -i "/$command/d" "$tmpCron"
+			echo "$time $ctab_command" >> "$tmpCron"
+			chown "$user":"$group" "$tmpCron"
+			busybox crontab -u "$user" "$tmpCron"
+		#else
+		#	printf '%s crontab: desired (%s) and current (%s) start time are identical\n' "$command" "$time" "$ctab_time"
+		fi
+
+		rm -f "$tmpCron"
+	fi
+}
+
+
+# cronjobs
+if [ "${START_CROND:='true'}" != "false" ]; then
+
+	# naludump
+	if [ "${START_NALUDUMP:="false"}" != "false" ] && [ -n "$START_NALUDUMP_AT" ]; then
+		_chngCron 'naludump' "$START_NALUDUMP_AT"
+	fi
+
+	# xmltv
+	if [ "${START_XMLTV:="false"}" != "false" ] && [ -n "$START_XMLTV_AT" ]; then
+		_chngCron 'xmltv' "$START_XMLTV_AT"
+	fi
+
+fi

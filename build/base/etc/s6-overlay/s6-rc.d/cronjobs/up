@@ -1,0 +1,7 @@
+#!/command/execlineb -P
+with-contenv
+importas -D "true" start START_CROND
+define dir "/etc/s6-overlay/scripts"
+define script "cronjobs_up"
+if -t { eltest $start != false }
+ exec "${dir}/${script}"

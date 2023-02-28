@@ -1,1 +1,2 @@
 0 4 * * * /usr/local/bin/naludumper-cron
+@daily /usr/local/bin/xmltv-cron &>/dev/null

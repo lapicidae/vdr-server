@@ -222,11 +222,10 @@ cp -Rlf /defaults/config/* /var/lib/vdr
 cp -Rlf /defaults/system/* /etc/vdr
 
 _ntfy 'get png channellogos'
-curl -s 'https://api.github.com/repos/lapicidae/svg-channellogos/releases/latest' | \
-    grep "browser_download_url" | \
-    grep -Eo 'https://[^\"]*' | \
-    grep -v 'nolinks' | \
-    grep -e 'light.*square' | \
+curl -s -L 'https://github.com/lapicidae/svg-channellogos/releases/expanded_assets/latest' | \
+    grep -Po '(?<=href=")[^"]*(?=")' | \
+    grep -e 'light.*square.*nolinks' | \
+    sed 's/^/https:\/\/github.com/' | \
     xargs curl -s -L -o /defaults/channellogos.tar.xz
 curl -o /usr/local/bin/picon 'https://raw.githubusercontent.com/lapicidae/svg-channellogos/master/tools/picon'
 
@@ -239,22 +238,28 @@ chmod 4754 \
     /usr/lib/vdr/bin/shutdown-wrapper \
     /usr/lib/vdr/bin/vdr-recordingaction
 chmod 755 \
+    /usr/local/bin/channels2m3u \
     /usr/local/bin/checkrec \
     /usr/local/bin/contenv2env \
+    /usr/local/bin/epgdata2xmltv \
     /usr/local/bin/healthy \
     /usr/local/bin/naludumper \
     /usr/local/bin/naludumper-cron \
     /usr/local/bin/picon \
-    /usr/local/bin/vdr-channelids
+    /usr/local/bin/vdr-channelids \
+    /usr/local/bin/xmltv-cron
 chmod 600 /var/spool/cron/crontabs/*
 chown root:root \
+    /usr/local/bin/channels2m3u \
     /usr/local/bin/checkrec \
     /usr/local/bin/contenv2env \
+    /usr/local/bin/epgdata2xmltv \
     /usr/local/bin/healthy \
     /usr/local/bin/naludumper \
     /usr/local/bin/naludumper-cron \
     /usr/local/bin/picon \
-    /usr/local/bin/vdr-channelids
+    /usr/local/bin/vdr-channelids \
+    /usr/local/bin/xmltv-cron
 chown root:vdr /usr/lib/vdr/bin/shutdown-wrapper
 chown vdr:vdr /usr/lib/vdr/bin/vdr-recordingaction
 
