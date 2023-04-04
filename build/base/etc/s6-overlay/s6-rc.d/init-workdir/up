@@ -11,4 +11,5 @@ foreground {
 foreground { s6-echo "Prepare workdir" }
 foreground { cp -RPpn /defaults/config/. "${conf_dir}" }
 foreground { cp -RPpn /defaults/pkgbuild/. "${pkg_dir}" }
-cp -RPpn /defaults/system/. "${sys_dir}"
+foreground { cp -RPpn /defaults/system/. "${sys_dir}" }
+s6-true
