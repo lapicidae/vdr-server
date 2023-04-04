@@ -1,7 +1,7 @@
 FROM archlinux:latest
 
 ARG maintainer="lapicidae <github.com/lapicidae>" \
-    S6VER="3.1.4.1" \
+    S6VER="3.1.4.2" \
     miniVers="false" \
     inVM="true" \
     LANGUAGE="en_US:en_GB:en"
