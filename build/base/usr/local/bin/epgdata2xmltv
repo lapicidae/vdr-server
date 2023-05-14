@@ -135,6 +135,7 @@ _TEXTtoHTML () {				# Removal/replacement of some unusable characters (hopefully
 		-e 's/\xC2\x85//g' \
 		-e 's/\xC2\x9F/ /g' \
 		-e 's/\xEF\xBF\xBD/ /g' \
+		-e 's/[^[:print:]\r\t]//g' \
 		-e 's/ \{1,\}/ /g' "$input" | iconv --from-code=UTF-8 -c -s
 }
 
