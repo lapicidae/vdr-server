@@ -145,6 +145,7 @@ For example, `-p 8080:80` would expose port `80` from inside the container to be
 | `-p 8099` | *Web server:* http port of the simple web server [^2] |
 | `-e START_XMLTV=true` | *XMLTV:* start m3u and [XMLTV](http://xmltv.org/) file generation to `/vdr/cache` every day at 12 am (via cron) [^4] |
 | `-e START_XMLTV_AT=0 6 * * *` | *XMLTV:* crontab schedule for starting the creation of m3u and xmltv files ([examples](https://crontab.guru/)) |
+| `-e XMLTV_DAYS=3` | *XMLTV:* number of days to be available in the xmltv file (default: `7`) |
 | `-e XMLTV_DOMAIN_NAME=example.com` | *XMLTV:* change the default domain name used in the m3u file (must be available within the container) |
 | `-e XMLTV_STREAM_PORT=4561` | *XMLTV:* video stream (streamdev http) port in m3u (default: `3000`) |
 | `-e XMLTV_LOGO_PORT=1654` | *XMLTV:* web server port for station logos in m3u (default: `8099`) |

@@ -8,6 +8,7 @@
 # gZIP="true"						# create also a gziped file (same location as epgXMLTV output file)
 
 # epgLang='en'						# Should be the two-letter code such as 'en' or 'fr_FR' (default: de)
+# epgDays='14'						# Number of days for which epg is to be generated (default: 7)
 # splitDescription='true'			# Filter description and split into xmltv elements like 'credits' or 'keyword' (currently not supported by kodi) [true/false] (default: false)
 # silent='true'						# Silent mode - no log output [true/false] (default: false)
 # logVerbose='true'					# More log output and also print to stderr [true/false] (default: false)
@@ -20,12 +21,16 @@ start=$SECONDS
 epgVDR="${epgVDR:-"/var/cache/vdr/epg.data"}"
 epgXMLTV="${epgXMLTV:-"/var/cache/vdr/epg.xmltv"}"
 epgLang="${epgLang:-"de"}"
+epgDays="${epgDays:-"7"}"
 splitDescription="${splitDescription:-"false"}"
 outDIR=$(dirname "$epgXMLTV")
 gZIP="${gZIP:-"false"}"
 silent="${silent:-"false"}"
 logVerbose="${logVerbose:-"false"}"
 PIDfile="/tmp/${0##*/}.pid"
+
+epochToday=$(date -d "$(date +'%Y-%m-%d')" +%s)
+epgUntil=$((epochToday + (epgDays * 86400)))		# epoch today (00:00) + epgDays in seconds
 
 declare -a arrChannel
 declare -a arrProgram
@@ -50,8 +55,8 @@ _log () {
 					printf 'ERROR: %s\n' "$input" 1>&2
 					;;
 			dbg )	if [ "$logVerbose" = 'true' ]; then
-						printf '%s\n' "$input"
-						logger -e -p debug "$name: $input"
+						printf '%b\n' "$input"
+						logger -e -p debug "$name: ${input//\\t}"
 					fi
 					;;
 			* )		logger -e -p info "$name: $input"
@@ -489,11 +494,16 @@ for ((index=0; index < ${#arrayFile[@]}; index++)); do
 		;;
 		'E ' )		# Event
 			if [ "${arrayFile[index+1]::1}" == 'e' ]; then
-				_log dbg "\t- SKIPPED: Event '${arrayFile[index]:2}' is empty!"
+				_log dbg "\tSKIPPED: Event '${arrayFile[index]:2}' is empty!"
 				skipEvent="true"
 				continue
 			fi
 			mapfile -t epgEvent <<<"${arrayFile[index]//' '/$'\n'}"
+			if [ $epgUntil -lt "${epgEvent[2]}" ]; then
+				_log dbg "\tSKIPPED: Event '${arrayFile[index]:2}' is more than '$epgDays' Day(s) in the future."
+				skipEvent="true"
+				continue
+			fi
 			printf -v epgTimeStart '%(%Y%m%d%H%M%S %z)T' "${epgEvent[2]}"
 			printf -v epgTimeStop '%(%Y%m%d%H%M%S %z)T' "$(("${epgEvent[2]}"+"${epgEvent[3]}"))"
 			arrProgramme[start]+='<programme start="'"$epgTimeStart"'" stop="'"$epgTimeStop"'" channel="'"$epgChannelID"'">'
@@ -532,7 +542,7 @@ for ((index=0; index < ${#arrayFile[@]}; index++)); do
 		'e' )		# END (combine programme)
 			if [ "$skipEvent" == "true" ]; then
 				skipEvent="false"
-				continue
+				#continue
 			else
 				arrProgramme[end]+='</programme>'
 				
@@ -541,10 +551,9 @@ for ((index=0; index < ${#arrayFile[@]}; index++)); do
 						arrProgram+=( "${arrProgramme[$rrngmnt]}" )
 					fi
 				done
-
-				# reset array
-				unset arrProgramme && declare -A arrProgramme
 			fi
+			# reset array
+			unset arrProgramme && declare -A arrProgramme
 		;;
 	esac
 done

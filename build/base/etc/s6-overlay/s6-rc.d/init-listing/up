@@ -46,6 +46,10 @@ foreground {
   pipeline { printcontenv START_XMLTV_AT } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "XMLTV Cron at:"
 }
 foreground {
+ if { eltest -v XMLTV_DAYS }
+  pipeline { printcontenv XMLTV_DAYS } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "XMLTV Days:"
+}
+foreground {
  if { eltest -v XMLTV_DOMAIN_NAME }
   pipeline { printcontenv XMLTV_DOMAIN_NAME } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "XMLTV Domain Name:"
 }
