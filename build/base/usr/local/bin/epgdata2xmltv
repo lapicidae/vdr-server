@@ -32,6 +32,8 @@ PIDfile="/tmp/${0##*/}.pid"
 epochToday=$(date -d "$(date +'%Y-%m-%d')" +%s)
 epgUntil=$((epochToday + (epgDays * 86400)))		# epoch today (00:00) + epgDays in seconds
 
+TMPfile=$(mktemp --suffix="_epg.xmltv")
+
 declare -a arrChannel
 declare -a arrProgram
 declare -A arrProgramme
@@ -42,7 +44,7 @@ declare -a crdtsArrangement=(start director actor writer producer composer prese
 
 
 ## CleanUp if killed
-trap 'printf "\n%s\n" "KILLED!"; rm -f "$PIDfile"; exit 130' INT
+trap 'printf "\n%s\n" "KILLED!"; rm -f "$PIDfile" "$TMPfile"; exit 130' INT
 
 
 ## Functions
@@ -567,7 +569,9 @@ _log "Write file $epgXMLTV"
 	printf "%b\n" "${arrChannel[@]}"
 	printf "%b\n" "${arrProgram[@]}"
 	printf '</tv>\n'
-}  > "$epgXMLTV"
+}  > "$TMPfile"
+
+sed -e 's/[^[:print:]\r\t]//g' "$TMPfile" > "$epgXMLTV"		# remove non-printable characters... again
 
 if [ "$gZIP" = 'true' ]; then
 	_log "Write file $epgXMLTV.gz"
@@ -576,7 +580,7 @@ fi
 
 
 ## CleanUp
-rm -f "$PIDfile"
+rm -f "$PIDfile" "$TMPfile"
 
 
 ## Done
