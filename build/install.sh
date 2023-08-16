@@ -6,7 +6,7 @@ set -e
 
 ## Ideally, change these variables via 'docker build-arg'
 # e.g.: docker build --tag vdr-server --build-arg miniVers=true .
-buildOptimize=${buildOptimize:-"false"}
+buildOptimize=${buildOptimize:-"true"}
 inVM=${inVM:-"false"}
 maintainer=${maintainer:-"lapicidae <github.com/lapicidae>"}
 miniVers=${miniVers:-"false"}   # build without ffmpeg & vdr-live
@@ -18,7 +18,6 @@ pacinst="sudo -u builduser paru --failfast --nouseask --removemake --cleanafter 
 pacdown="sudo -u builduser paru --getpkgbuild --noprogressbar --clonedir /var/cache/paru"
 pacbuild="sudo -u builduser makepkg --clean --install --noconfirm --noprogressbar --syncdeps"
 buildDir="/var/cache/paru"
-buildOptimize="true"
 
 
 ## colored notifications
@@ -30,6 +29,31 @@ _ntfy() {
 ## error messages before exiting
 trap 'printf "\n\e[35;1;2m%s\e[m\n" "KILLED!"; exit 130' INT
 trap 'printf "\n\e[31;1;2m> %s\nCommand terminated with exit code %s.\e[m\n" "$BASH_COMMAND" "$?"' ERR
+
+
+## uninstall only if there is no dependency
+_uninst () {
+    local input lengthArr uninstErr
+    local uninstErr=0
+
+    input=$(printf '%s' "$*" | xargs -n1)
+    mapfile -t inArr < <(printf '%b' "$input")
+    local lengthArr=${#inArr[@]}
+
+    for ((i=0;;i++)); do    # infinite loop
+        local pkg="${inArr[i%${#inArr[@]}]}"
+        if LANG=C pacman -Qi "$pkg" 2> /dev/null | grep 'Required By' | cut -d ':' -f 2 | xargs | grep -qi 'none'; then
+            uninstErr=0                             # reset uninstall error count to try again on all packets
+            pacman -R --noconfirm "$pkg"
+        else
+            uninstErr=$((uninstErr+1))              # increase uninstall error count by 1
+        fi
+
+        if [ "$lengthArr" = "$uninstErr" ]; then    # stop loop if the number of uninstall errors is equal to the number of array elements
+            break
+        fi
+    done
+}
 
 
 ## Profit!
@@ -267,7 +291,7 @@ fi
 rm -rf \
     /tmp/* \
     /var/tmp/*
-pacman -R --noconfirm \
+_uninst \
     argon2 \
     base \
     cryptsetup \
@@ -275,6 +299,7 @@ pacman -R --noconfirm \
     device-mapper \
     iproute2 \
     iptables \
+    jack2 \
     kbd \
     kmod \
     libmnl \
