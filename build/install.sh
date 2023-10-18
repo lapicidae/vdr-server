@@ -141,17 +141,15 @@ $pacinst \
     ttf-vdrsymbols \
     naludump
 if [ "$miniVers" != 'true' ]; then
-    $pacinst \
-        libva-headless \
-        ffmpeg-headless
+    $pacinst libva-headless
+    $pacinst ffmpeg-headless
 fi
 
 _ntfy 'install VDR'
 $pacinst vdr
 
 _ntfy 'install VDR tools'
-$pacinst \
-    vdrctl
+$pacinst vdrctl
 cd $buildDir || exit 1
 $pacdown vdr-checkts
 sed -i "s/projects.vdr-developer.org\/git/github.com\/vdr-projects/g" vdr-checkts/PKGBUILD
