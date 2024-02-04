@@ -5,9 +5,9 @@
 ## Config
 vdrHost=${vdrHost:-"localhost"}
 svdrpPort=${svdrpPort:-"6419"}
-pingTimeout=${pingTimeout:-"1"}
+#pingTimeout=${pingTimeout:-"1"}
 svdrp_send=$(command -v svdrpsend)
-tel_net=$(command -v telnet)
+#tel_net=$(command -v telnet)
 
 
 ## Request
@@ -22,8 +22,8 @@ if [[ "${svdrp_out[*],,}" =~ 'alive' ]]; then
 	exit 0
 else
 	printf 'Something is wrong here... >:(\n' >&2
-	printf '%s\n' '-------- SVDRP OUTPUT --------' >&2
+	printf '-------- SVDRP OUTPUT --------\n' >&2
 	printf '>> %s\n' "${svdrp_out[@]}" >&2
-	printf '%s\n' '------------- END ------------' >&2
+	printf '------------- END ------------\n' >&2
 	exit 1
 fi

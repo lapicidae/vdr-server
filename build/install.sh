@@ -105,7 +105,7 @@ _ntfy 'install paru-bin'
 cd $buildDir || exit 1
 git clone 'https://aur.archlinux.org/paru-bin.git' paru-bin
 chown -R builduser:users paru-bin
-cd paru-bin || exit
+cd paru-bin || exit 1
 $pacbuild
 sed -i "/^\[options\].*/a SkipReview" /etc/paru.conf
 sed -i "/^\[options\].*/a CloneDir = /var/cache/paru" /etc/paru.conf

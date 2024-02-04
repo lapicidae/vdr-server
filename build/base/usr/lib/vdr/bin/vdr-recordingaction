@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 #
-# VDR Recording Action Script  - Tobias Grimm <tg@e-tobi.net>
+# VDR Recording Action Script - Tobias Grimm <tg@e-tobi.net>
 # ---------------------------
 #
 # This script gets executed by VDR before a recording starts, after a
@@ -27,12 +27,12 @@
 
 REC_HOOKS_DIR="/etc/vdr/recording-hooks"
 
-recordinghooks=`find "$REC_HOOKS_DIR" -maxdepth 1 -xtype f | sort`
+mapfile -t recordinghooks < <(find "$REC_HOOKS_DIR" -maxdepth 1 -xtype f | sort)
 
-for recordinghook in $recordinghooks; do
+for recordinghook in "${recordinghooks[@]}"; do
 	case $1 in
 		before|after|started|deleted)
-			action="$(echo $1 | tr '[:lower:]' '[:upper:]') recording $2"
+			action="${1^^} recording $2"
 			;;
 		edited)
 			action="after cutting recording $2 from $3"
@@ -41,12 +41,18 @@ for recordinghook in $recordinghooks; do
 			continue
 			;;
 	esac
-	if [ -x $recordinghook ]; then
+
+	if [ -x "$recordinghook" ]; then
 		logger -t recordingaction "executing $recordinghook $action"
-		$recordinghook "$@"
+		$recordinghook "$@" || hookFailed='true'
 	else
 		logger -t recordingaction "executing $recordinghook $action as shell script"
-		/bin/sh $recordinghook "$@"
+		/bin/bash "$recordinghook" "$@" || hookFailed='true'
 	fi
-	[ $? -ne 0 ] && logger -t recordingaction "error when executing $recordinghook"
+
+	if [ "$hookFailed" = 'true' ]; then
+		logger -t recordingaction "error when executing $recordinghook"
+	fi
+
+	unset hookFailed
 done
