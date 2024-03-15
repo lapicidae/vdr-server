@@ -11,6 +11,8 @@ inVM=${inVM:-"false"}
 maintainer=${maintainer:-"lapicidae <github.com/lapicidae>"}
 miniVers=${miniVers:-"false"}   # build without ffmpeg & vdr-live
 S6VER=${S6VER:-"none"}
+LANG=${LANG:-"en_US.UTF-8"}
+TZ=${TZ:-"Europe/London"}
 
 
 ## Do not change!
@@ -77,11 +79,12 @@ pacman -S glibc --overwrite=* --noconfirm
 rm -f /etc/localtime
 ln -s /usr/share/zoneinfo/"$TZ" /etc/localtime
 echo "$TZ" > /etc/timezone
-curl -o /etc/locale.gen 'https://sourceware.org/git/?p=glibc.git;a=blob_plain;f=localedata/SUPPORTED;hb=HEAD'
-sed -i -e '1,3d' -e 's|/| |g' -e 's|\\| |g' -e 's|^|#|g' /etc/locale.gen
-sed -i '/#  /d' /etc/locale.gen
+#curl -o /etc/locale.gen 'https://sourceware.org/git/?p=glibc.git;a=blob_plain;f=localedata/SUPPORTED;hb=HEAD'
+#sed -i -e '1,3d' -e 's|/| |g' -e 's|\\| |g' -e 's|^|#|g' /etc/locale.gen
+sed -i '/^# /d' /etc/locale.gen
+sed -i '/^#$/d' /etc/locale.gen
 sed -i '/en_US.UTF-8/s/^# *//' /etc/locale.gen
-sed -i "/$LANG/s/^# *//" /etc/locale.gen
+sed -i "/^#$LANG/s/^# *//" /etc/locale.gen
 echo "LANG=$LANG" > /etc/locale.conf
 locale-gen
 
@@ -113,7 +116,6 @@ sed -i "/CleanAfter/s/^# *//" /etc/paru.conf
 sed -i "/RemoveMake/s/^# *//" /etc/paru.conf
 chmod 775 $buildDir
 chgrp users $buildDir
-cd /tmp || exit 1
 
 _ntfy "s6-overlay ($S6VER)"
 cd /tmp || exit 1
@@ -153,7 +155,7 @@ $pacinst vdrctl
 cd $buildDir || exit 1
 $pacdown vdr-checkts
 sed -i "s/projects.vdr-developer.org\/git/github.com\/vdr-projects/g" vdr-checkts/PKGBUILD
-chown -R builduser:users vdr-checkts
+#chown -R builduser:users vdr-checkts
 cd vdr-checkts || exit 1
 $pacbuild
 
@@ -174,6 +176,7 @@ awk '1;/prepare()/{c=2}c&&!--c{print "  patch -p1 < ../../addlib.patch"}' vdr-ci
 chown -R builduser:users vdr-ciplus
 cd vdr-ciplus || exit 1
 $pacbuild
+
 if [ "$miniVers" != 'true' ]; then
     _ntfy 'install VDR plugin live'
     $pacinst \
@@ -311,7 +314,7 @@ _uninst \
     popt \
     systemd \
     systemd-sysvcompat
-pacman --noconfirm -R "$(pacman -Qtdq)" 2>/dev/null || true
+pacman --noconfirm -Rns "$(pacman -Qtdq)" 2>/dev/null || true
 yes | pacman -Scc
 find /etc -type f -name "*.pacnew" -delete
 find /etc -type f -name "*.pacsave" -delete

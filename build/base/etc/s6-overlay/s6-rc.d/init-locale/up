@@ -21,8 +21,8 @@ foreground {
  if -n { redirfd -w 1 /dev/null expr ${loc_active} : .*${lang}$ }
   foreground {
    foreground { sed -i "/^[a-zA-Z0-9]/ s/^/#/" ${loc_file} }
-   foreground { sed -i "/${lang}/s/^# *//" ${loc_file} }
-   foreground { sed -i "/${default_loc}/s/^# *//" ${loc_file} }
+   foreground { sed -i "/^#${lang}/s/^# *//" ${loc_file} }
+   foreground { sed -i "/^#${default_loc}/s/^# *//" ${loc_file} }
    foreground { redirfd -w 1 /etc/locale.conf s6-echo "LANG=${lang}" }
    foreground { redirfd -w 1 /dev/null locale-gen }
    s6-echo "Locale set to ${lang}"
