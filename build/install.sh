@@ -149,6 +149,7 @@ fi
 
 _ntfy 'install VDR'
 $pacinst vdr
+usermod -a -G mail vdr
 
 _ntfy 'install VDR tools'
 $pacinst vdrctl
@@ -218,6 +219,7 @@ chmod 600 /var/spool/cron/crontabs/*
 _ntfy 'SMTP client'
 $pacinst msmtp-mta
 curl -o /etc/msmtprc 'https://git.marlam.de/gitweb/?p=msmtp.git;a=blob_plain;f=doc/msmtprc-system.example'
+chown root:mail /etc/msmtprc
 chmod 640 /etc/msmtprc
 
 _ntfy 'backup default files'
