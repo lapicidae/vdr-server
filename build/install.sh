@@ -225,8 +225,8 @@ chmod 640 /etc/msmtprc
 _ntfy 'backup default files'
 mkdir -p /defaults/config
 mkdir -p /defaults/system
-cp -Ran /var/lib/vdr/* /defaults/config
-cp -Ran /etc/vdr/* /defaults/system
+cp -Ra --update=none /var/lib/vdr/* /defaults/config
+cp -Ra --update=none /etc/vdr/* /defaults/system
 
 _ntfy 'move provided files'
 find /base -type d -exec chmod 755 {} \;
