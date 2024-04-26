@@ -285,7 +285,9 @@ pacman -D --asexplicit \
     shadow
 
 _ntfy 'Versioning'
-paru -Gp vdr | grep -i pkgver= | cut -d = -f 2 > /vdr/VERSION
+#paru -Gp vdr | grep -i pkgver= | cut -d = -f 2 > /vdr/VERSION
+printf 'VDR=%s\n' "$(pacman -Q vdr | cut -d ' ' -f 2 | xargs)" > /vdr/VERSION
+printf 'ARCH_%s\n' "$(grep -i version /etc/os-release)" >> /vdr/VERSION
 
 _ntfy 'CleanUp'
 if [ "$buildOptimize" = "true" ]; then
