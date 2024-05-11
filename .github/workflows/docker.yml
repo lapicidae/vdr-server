@@ -47,6 +47,12 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push
         uses: docker/build-push-action@v5
         with:
@@ -56,8 +62,11 @@ jobs:
             vdrVersion=${{ steps.get_arg.outputs.vdrVersion }}
             baseDigest=${{ steps.get_arg.outputs.baseDigest }}
           no-cache: true
+          platforms: linux/amd64
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.REPOSITORY }}:${{ env.TAGNAME }}
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.imageNAME }}:${{ env.latestTAG }}
+            ghcr.io/${{ github.repository }}:${{ env.latestTAG }}
       - name: Send mail
         if: github.event_name == 'workflow_dispatch'
         uses: dawidd6/action-send-mail@v3
@@ -88,5 +97,5 @@ jobs:
             </html>
           priority: low
     env:
-      REPOSITORY: vdr-server
-      TAGNAME: latest
+      imageNAME: vdr-server
+      latestTAG: latest
