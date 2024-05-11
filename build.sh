@@ -4,7 +4,7 @@ imageTag=${imageTag:-"vdr-server"}
 miniVers=${miniVers:-"false"}
 
 printf -v vdrVersion '%s' "$(curl -s 'https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=vdr' | grep -i '^pkgver' | cut -d = -f 2)"
-printf -v dateTime '%s' "$(date +%Y-%m-%dT%H:%M:%S%z)"
+printf -v dateTime '%(%Y-%m-%dT%H:%M:%S%z)T'
 printf -v vdrRevision '%s' "$(git ls-remote -t 'git://git.tvdr.de/vdr.git' "${vdrVersion}" | cut -f 1)"
 printf -v baseDigest '%s' "$(docker image pull archlinux:latest | grep -i digest | cut -d ' ' -f 2)"
 

@@ -27,17 +27,17 @@ jobs:
         id: get_arg
         run: |
           vdrVersion="$(curl -s 'https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=vdr' | grep -i '^pkgver' | cut -d = -f 2)"
-          printf 'dateTime=%s\n' "$(date +%Y-%m-%dT%H:%M:%S%z)" >> $GITHUB_OUTPUT
+          printf 'dateTime=%(%Y-%m-%dT%H:%M:%S%z)T\n' >> $GITHUB_OUTPUT
           printf 'vdrRevision=%s\n' "$(git ls-remote -t 'git://git.tvdr.de/vdr.git' ${vdrVersion} | cut -f 1)" >> $GITHUB_OUTPUT
           printf 'vdrVersion=%s\n' "${vdrVersion}" >> $GITHUB_OUTPUT
           printf 'baseDigest=%s\n' "$(docker image pull archlinux:latest | grep -i digest | cut -d ' ' -f 2)" >> $GITHUB_OUTPUT
       - name: Info
         run: |
           printf '<<<<<<<<< BUILD ARGUMENTS >>>>>>>>>\n'
-          printf 'Build Timestamp:\t%s\n' ${{ steps.get_arg.outputs.dateTime }}
-          printf 'VDR Version:\t\t%s\n' ${{ steps.get_arg.outputs.vdrVersion }}
-          printf 'VDR Revision:\t\t%s\n' ${{ steps.get_arg.outputs.vdrRevision }}
-          printf 'Base Image Digest:\t%s\n' ${{ steps.get_arg.outputs.baseDigest }}
+          printf 'Build Timestamp:\t%s\n' "${{ steps.get_arg.outputs.dateTime }}"
+          printf 'VDR Version:\t\t%s\n' "${{ steps.get_arg.outputs.vdrVersion }}"
+          printf 'VDR Revision:\t\t%s\n' "${{ steps.get_arg.outputs.vdrRevision }}"
+          printf 'Base Image Digest:\t%s\n' "${{ steps.get_arg.outputs.baseDigest }}"
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
