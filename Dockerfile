@@ -4,7 +4,7 @@ ARG inVM="true" \
     LANGUAGE="en_US:en_GB:en" \
     authors="A. Hemmerle <github.com/lapicidae>" \
     miniVers="false" \
-    S6VER="3.1.6.2" \
+    S6VER="3.2.0.0" \
     baseDigest \
     dateTime \
     vdrRevision \
@@ -14,7 +14,6 @@ ENV PATH="$PATH:/command:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_p
 ENV LANG="en_US.UTF-8" \
     TZ="Europe/London" \
     DISABLE_WEBINTERFACE="${miniVers}" \
-    S6_CMD_WAIT_FOR_SERVICES_MAXTIME="0" \
     S6_VERBOSITY="1"
 
 ADD https://github.com/just-containers/s6-overlay/releases/download/v$S6VER/s6-overlay-noarch.tar.xz /tmp
