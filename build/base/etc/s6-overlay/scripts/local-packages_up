@@ -2,108 +2,123 @@
 # shellcheck shell=bash
 
 
-# quit if AUR is disabled
-if [ "$AUR" = "false" ]; then
-	echo "AUR is disabled!"
+# quit if AUR is disabled or if no internet connection
+if [ "${AUR:-"true"}" = 'false' ]; then
+	printf 'AUR is disabled!\n'
+	exit 0
+elif [ "${NO_INET:-"false"}" = 'true' ]; then
+	printf 'No internet connection!\n'
 	exit 0
 fi
 
 
 # read pkg extension
-makepkg_conf="/etc/makepkg.conf"
+makepkg_conf='/etc/makepkg.conf'
 
 if [ -f "$makepkg_conf" ]; then
-	pacext=$(grep -v "^#" "$makepkg_conf" | grep -w "^PKGEXT=" | cut -d "=" -f 2 | tr -d "'")
+	pacext=$(grep -v '^#' "$makepkg_conf" | grep -w '^PKGEXT=' | cut -d '=' -f 2 | tr -d "'")
 	if [ -z "$pacext" ]; then
-		echo "Package extension not found, use default: '.pkg.tar.zst'"
-		pacext=".pkg.tar.zst"
+		pacext='.pkg.tar.zst'
+		printf 'Package extension not found, use default: "%s"\n' "$pacext"
 	fi
 fi
 
 
-bUser="builduser"
-pkgb_dir="/etc/PKGBUILD.d"
-buildDir="/var/cache/paru/user_pkg"
-vdrplug_conf="/etc/conf.d/user_plugins.conf"
-pacbuild="sudo -u $bUser makepkg --clean --install --noconfirm --noprogressbar --syncdeps --rmdeps"
-pacinst="paru --nouseask --noconfirm --noprogressbar --overwrite ´/usr/bin/*´ -U *$pacext"
+bUser='builduser'
+pkgb_dir='/etc/PKGBUILD.d'
+buildDir='/var/cache/paru/user_pkg'
+vdrplug_conf='/etc/conf.d/user_plugins.conf'
+
+
+_pacbuild() {		# buildDIR (buildUSER)
+	local bDIR="$1"
+	local bUSR=${2:-"$bUser"}
+	cd "$bDIR" || return 1
+	sudo -u "${bUSR}" makepkg --clean --noconfirm --noprogressbar --syncdeps --rmdeps
+}
+
+_pacinst() {		# packages to install
+	paru --nouseask --noconfirm --noprogressbar --overwrite '/usr/bin/*' -U "$@"
+}
 
 
 # array of subdirs sorted alphabetically
 mapfile -t package < <(find "$pkgb_dir/" -mindepth 1 -maxdepth 1 -type d | LC_ALL=C sort -f)
 
 
+# Profit!
 for DIR in  "${package[@]}"; do
 
 	pacname=$(basename "$DIR")
 	dirmd5=$(find "$DIR" -type f \( ! -iname "rebuild" \) | LC_ALL=C sort | tar --mode="664" --owner="65534" --group="65534" -cf - -T - 2>/dev/null | md5sum | cut -d " " -f 1)
 
-	echo "****** USER PACKAGE: $pacname ******"
+	printf '****** USER PACKAGE: %s ******\n' "$pacname"
 
 	# detox dir name
-	pacname=$(echo "$pacname" | sed -e 's/[^A-Za-z0-9._-]/_/g' | sed 's/^_//g' | sed 's/_$//g')
-	pacdir="$buildDir/$pacname"
-	md5file="$pacdir/md5sum"
-
+	pacname=$(printf '%s' "$pacname" | sed -e 's/[^A-Za-z0-9._-]/_/g' | sed 's/^_//g' | sed 's/_$//g')
+	pacdir="${buildDir}/${pacname}"
+	md5file="${pacdir}/md5sum"
 
 	# skip if md5sum matches or if PKGBUILD is missing
 	if [ -f "$md5file" ] && [ "$dirmd5" = "$(cat "$md5file" 2>/dev/null)" ] && [ ! -f "$DIR/rebuild" ]; then
-		echo "Nothing to do!"
+		printf 'Nothing to do!\n'
 		continue
 	elif [ ! -f "$DIR/PKGBUILD" ]; then
-		echo "Missing PKGBUILD file!"
+		printf 'Missing PKGBUILD file!\n'
 		continue
 	fi
 
-
+	# prepare build directory
 	if [ ! -d "$pacdir" ]; then
-		echo "create build dir..."
+		printf 'create build dir...\n'
 		mkdir -p "$pacdir"
 		chown -R $bUser:users "$buildDir"
 	else
-		echo "clear build dir..."
+		printf 'clear build dir...\n'
 		rm -rf "${pacdir:?}/"{*,.*} 2>/dev/null
 	fi
 
-	echo "copy to build dir..."
+	# copy everything to build directory
+	printf 'copy to build dir...\n'
 	cp -a "$DIR/." "$pacdir/"
 	chown -R $bUser:users "$pacdir"
-	cd "$pacdir" || exit 1
 
+	# forced dependencies handling
 	if [ -f "$DIR/forcedeps" ]; then
-		echo "force install dependencies..."
+		printf 'force install dependencies...\n'
 		mapfile -t mkdeps < <(< "$pacdir/PKGBUILD" awk "/.*makedepends=\(/,/\)/" | sed "s/makedepends=(//g" | sed "s/)//g" | xargs -n 1)
-		pacman -S --overwrite "/usr/bin/*" --needed --asdeps --noconfirm "${mkdeps[@]}"
-		forcedeps="true"
+		pacman -S --overwrite '/usr/bin/*' --needed --asdeps --noconfirm "${mkdeps[@]}"
+		forcedeps='true'
 	fi
 
-	echo "build package..."
-	$pacbuild || continue
+	# build
+	printf 'build package...\n'
+	_pacbuild "$pacdir" || continue
 
-	echo "install package..."
-	$pacinst || continue
+	# install
+	printf 'install package...\n'
+	_pacinst "${pacdir}"/*"${pacext}" || continue
 
-	echo "cleanup..."
+	# cleanup and removal of forced dependencies
+	printf 'cleanup...\n'
 	rm -rf "${pacdir:?}/"{*,.*} 2>/dev/null
 	rm -f "$DIR/rebuild"
-	echo "$dirmd5" > "$md5file"
-	if [ ${forcedeps:="false"} = "true" ]; then
+	printf '%s' "$dirmd5" > "$md5file"
+	if [ "${forcedeps:="false"}" = 'true' ]; then
 		pacman --noconfirm -R "$(pacman -Qtdq)" 2>/dev/null || true
 	fi
 
-
 	# enable VDR plugin if control file exists
-	#if [ 0 -lt "$(ls "$DIR/vdrplug-"* 2>/dev/null | wc -w)" ]; then
 	if [ 0 -lt "$(find "$DIR" -maxdepth 1 -type f -name 'vdrplug-*' 2>/dev/null | wc -w)" ]; then
-		vdrplug=$(find "$DIR" -maxdepth 1 -type f -name "vdrplug-*" -exec basename {} \; | LC_ALL=C sort -f | head -n 1 | sed 's/^vdrplug-//')
+		vdrplug=$(find "$DIR" -maxdepth 1 -type f -name 'vdrplug-*' -exec basename {} \; | LC_ALL=C sort -f | head -n 1 | sed 's/^vdrplug-//')
 		if ! grep -q "$vdrplug" "$vdrplug_conf"; then
-			echo "enable vdr-plugin $vdrplug..."
-			echo "$vdrplug" >> "$vdrplug_conf"
+			printf 'enable vdr-plugin %s...\n' "$vdrplug"
+			printf '%s\n' "$vdrplug" >> "$vdrplug_conf"
 			# only enable if disabled
-			enabled=$(vdrctl list --enabled | grep "^epg2vdr$" &>/dev/null && echo "true")
-			if [ "$enabled" != "true" ]; then
+			enabled=$(vdrctl list --enabled | grep "^$vdrplug$" &>/dev/null && printf 'true')
+			if [ "$enabled" != 'true' ]; then
 				vdrctl enable "$vdrplug" && \
-				echo "VDR-Plugin $vdrplug enabled."
+				printf 'VDR-Plugin %s enabled.\n' "$vdrplug"
 			fi
 		fi
 	fi
