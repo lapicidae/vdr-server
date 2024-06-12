@@ -81,4 +81,8 @@ foreground {
  if { eltest -v LOGO_COPY }
   pipeline { printcontenv LOGO_COPY } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Default Channel Logos:"
 }
+foreground {
+ if { eltest -v NO_INET }
+  pipeline { printcontenv NO_INET } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "No Internet Connection:"
+}
 s6-echo "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄"

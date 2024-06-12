@@ -1,0 +1,20 @@
+#!/command/execlineb -P
+define server1 "archlinux.org"
+define server2 "kernel.org"
+define env_file "/var/run/s6/container_environment/NO_INET"
+foreground { s6-echo "The system checks whether there is an internet connection..." }
+ifthenelse -X {
+ if -nt { redirfd -w 2 /dev/null nc -zw5 ${server1} 443 }
+  redirfd -w 2 /dev/null nc -zw5 ${server2} 443
+ }
+ {
+  foreground {
+    if { eltest -f ${env_file} }
+     s6-rmrf ${env_file}
+  }
+  s6-echo "Internet connection is available"
+ }
+ {
+  foreground { redirfd -w 1 ${env_file} s6-echo -n "true" }
+  s6-echo "WARNING: No internet connection available!"
+ }
