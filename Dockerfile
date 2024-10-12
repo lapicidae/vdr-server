@@ -4,7 +4,7 @@ ARG inVM="true" \
     LANGUAGE="en_US:en_GB:en" \
     authors="A. Hemmerle <github.com/lapicidae>" \
     miniVers="false" \
-    S6VER="3.2.0.0" \
+    S6VER="3.2.0.2" \
     baseDigest \
     dateTime \
     vdrRevision \
