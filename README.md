@@ -45,10 +45,9 @@ Here are some example snippets to help you get started creating a container.
 #### *docker-compose (recommended)*
 Compatible with docker-compose v2 schemas.
 ```yaml
-version: "2.1"
 services:
   vdr-server:
-    image: lapicidae/vdr-server
+    image: ghcr.io/lapicidae/vdr-server
     container_name: vdr-server
     environment:
       - PUID=1000
@@ -85,7 +84,7 @@ docker run -d \
   -e PUID=1000 \
   -e PGID=1000 \
   -e TZ=Europe/London \
-  -e PLUGINS=epgsearch live streamdev-server vnsiserver `#optional` \
+  -e PLUGINS="epgsearch live streamdev-server vnsiserver" `#optional` \
   -p 8008:8008 \
   -p 6419:6419 `#optional` \
   -p 6419:6419/udp `#optional` \
@@ -103,7 +102,7 @@ docker run -d \
   --restart unless-stopped \
   --cap-add=SYS_TIME `#optional: read hint!` \
   --stop-timeout 60 `#important` \
-  lapicidae/vdr-server
+  ghcr.io/lapicidae/vdr-server
 ```
 
 ### Parameters
