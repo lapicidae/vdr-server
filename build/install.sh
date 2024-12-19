@@ -62,6 +62,7 @@ _uninst () {
 _ntfy 'prepare pacman'
 sed -i '/NoExtract.*=.*[^\n]*/,$!b;//{x;//p;g};//!H;$!d;x;s//&\nNoExtract   = !usr\/share\/locale\/*\/LC_MESSAGES\/vdr*/' /etc/pacman.conf
 sed -i 's|!usr/share/\*locales/en_??|!usr/share/\*locales/*|g' /etc/pacman.conf
+sed -i '/^#DisableSandbox$/ s/^#//' '/etc/pacman.conf'
 if [ "$buildOptimize" = "true" ]; then
     # shellcheck disable=SC2016
 	sed -i '/^#MAKEFLAGS=.*/a MAKEFLAGS="-j$(nproc)"' '/etc/makepkg.conf'
