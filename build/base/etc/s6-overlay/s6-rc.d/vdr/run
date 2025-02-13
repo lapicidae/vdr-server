@@ -1,6 +1,8 @@
 #!/command/execlineb -P
 with-contenv
 foreground { s6-echo "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄⚟ Start VDR ⚞┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄" }
+emptyenv -p
+export HOME /vdr
 s6-setuidgid vdr
 fdmove -c 2 1
 /usr/bin/vdr
