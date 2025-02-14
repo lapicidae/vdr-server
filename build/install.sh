@@ -17,6 +17,7 @@ TZ=${TZ:-"Europe/London"}
 
 ## Do not change!
 pacinst="sudo -u builduser paru --failfast --nouseask --removemake --cleanafter --noconfirm --clonedir /var/cache/paru -S"
+# shellcheck disable=SC2034		# unused variable was left for later use
 pacdown="sudo -u builduser paru --getpkgbuild --noprogressbar --clonedir /var/cache/paru"
 pacbuild="sudo -u builduser makepkg --clean --install --noconfirm --noprogressbar --syncdeps"
 buildDir="/var/cache/paru"
@@ -153,13 +154,7 @@ $pacinst vdr
 usermod -a -G mail vdr
 
 _ntfy 'install VDR tools'
-$pacinst vdrctl
-cd $buildDir || exit 1
-$pacdown vdr-checkts
-sed -i "s/projects.vdr-developer.org\/git/github.com\/vdr-projects/g" vdr-checkts/PKGBUILD
-#chown -R builduser:users vdr-checkts
-cd vdr-checkts || exit 1
-$pacbuild
+$pacinst vdrctl vdr-checkts
 
 _ntfy 'install VDR plugins'
 $pacinst --batchinstall \
