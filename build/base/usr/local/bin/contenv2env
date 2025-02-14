@@ -3,7 +3,7 @@
 
 ## Workaround:
 ## Making subsequently defined container variables available in shell.
-## in bashrc: [ -r /usr/bin/contenv2env ] && . /usr/bin/contenv2env
+## in bashrc: [ -r /usr/local/bin/contenv2env ] && . /usr/local/bin/contenv2env
 
 ENVDIR="/var/run/s6/container_environment"
 
