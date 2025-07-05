@@ -15,8 +15,8 @@ function chmown {
 	elif [ -d "$path" ]; then
 		echo "Reassign permissions: $path"
 		chown -HR "$usr":"$grp" "$path"
-		find -H "$path" -type d -exec chmod "$perm_dir" {} \;
-		find -H "$path" -type f -exec chmod "$perm_file" {} \;
+		find -H "$path" -type d -exec chmod "$perm_dir" {} +
+		find -H "$path" -type f -exec chmod "$perm_file" {} +
 	fi
 }
 
