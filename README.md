@@ -72,6 +72,7 @@ services:
     devices:
       - /dev/dvb:/dev/dvb #optional
     cap_add:
+      - SYS_NICE #optional: to adjust the niceness and I/O scheduling priority
       - SYS_TIME #optional: read hint!
     restart: unless-stopped
     stop_grace_period: 60s #important
@@ -100,6 +101,7 @@ docker run -d \
   -v /path/to/pkgbuild:/vdr/pkgbuild `#optional` \
   --device /dev/dvb:/dev/dvb `#optional` \
   --restart unless-stopped \
+  --cap-add=SYS_NICE `#optional: to adjust the niceness and I/O scheduling priority` \
   --cap-add=SYS_TIME `#optional: read hint!` \
   --stop-timeout 60 `#important` \
   ghcr.io/lapicidae/vdr-server
@@ -137,7 +139,11 @@ For example, `-p 8080:80` would expose port `80` from inside the container to be
 | `-v /vdr/timeshift` | VNSI Time-Shift buffer directory |
 | `-v /vdr/pkgbuild` | Build packages: [README](build/base/defaults/pkgbuild/README.md) |
 | `--device /dev/dvb` | Only needed if you want to pass through a DVB card to the container |
-| **Extras** |  |
+| **Priority (optional)** | *The `SYS_NICE` capability is required* |
+| `-e NICE=-1` | Adjusted niceness via [renice](https://man.archlinux.org/man/renice.1) (default: `0`) |
+| `-e IONICE_CLASS=2` | I/O scheduling class via [ionice](https://man.archlinux.org/man/ionice.1) (default: `0`) |
+| `-e IONICE_PRIO=3` | I/O scheduling priority via [ionice](https://man.archlinux.org/man/ionice.1) (default: `0`) |
+| **Extras (optional)** |  |
 | `-e START_NALUDUMP=true` | *naludump:* start [naludump](https://www.udo-richter.de/vdr/naludump.html) every day at 4 am (via cron) [^3] |
 | `-e START_NALUDUMP_AT=0 4 * * *` | *naludump:* crontab schedule for the start of naludump ([examples](https://crontab.guru/)) |
 | `-e START_WEBSERVER=true` | *Web server:* provision of station logos, epg images, m3u channel list and xmltv file via http [^2] |

@@ -1,0 +1,47 @@
+#!/command/execlineb -P
+with-contenv
+backtick -E pid { pgrep vdr }
+backtick -E vdr_nice {
+ pipeline { ps --no-headers -o ni ${pid} }
+ tr -d [:blank:]
+}
+backtick -E -D "0" vdr_ionice_class_str {
+ pipeline { ionice -p ${pid} }
+ s6-cut -d ":" -f 1
+}
+backtick -E vdr_ionice_class {
+ case -s -- ${vdr_ionice_class_str}
+ {
+   "none" { s6-echo -n "0" }
+   "realtime" { s6-echo -n "1" }
+   "best-effort" { s6-echo -n "2" }
+   "idle" { s6-echo -n "3" }
+ }
+ s6-echo -n "0"
+}
+backtick -E vdr_ionice_prio {
+ ifelse { eltest ${vdr_ionice_class} -eq "1" -o ${vdr_ionice_class} -eq "2" }
+  {
+   pipeline { ionice -p ${pid} }
+   s6-cut -d " " -f 3
+  }
+  s6-echo -n "0"
+}
+importas -D "0" nice NICE
+importas -D "0" ionice_class IONICE_CLASS
+importas -D "0" ionice_prio IONICE_PRIO
+foreground { s6-echo "PID: ${pid} NICE: ${nice} IONICE_CLASS: ${ionice_class} IONICE_PRIO: ${ionice_prio} vdr_nice: ${vdr_nice} vdr_ionice_prio: ${vdr_ionice_prio} vdr_ionice_class: ${vdr_ionice_class}" }
+ifelse -Xn {
+ pipeline { capsh --print }
+ s6-grep -qi "cap_sys_nice"
+}
+ { fdswap 1 2 s6-echo "WARNING: The process priority cannot be changed! The SYS_NICE capability is missing." }
+ foreground {
+  if -t { eltest ${nice} -ne ${vdr_nice} }
+   foreground { s6-echo "Change the process priority of vdr to ${nice}" }
+   redirfd -w 1 /dev/null renice -n ${nice} --pid ${pid}
+ }
+ if -t { eltest ${ionice_prio} -ne ${vdr_ionice_prio} -o ${ionice_class} -ne ${vdr_ionice_class} }
+  ifelse -X { redirfd -w 1 /dev/null fdswap 2 1 ionice -c ${ionice_class} -n ${ionice_prio} -p ${pid} }
+   { s6-echo "Change the IO priority of vdr to ${ionice_prio} and the class to ${ionice_class}" }
+   fdswap 1 2 s6-echo "ERROR: Changing the IO priority failed!"
