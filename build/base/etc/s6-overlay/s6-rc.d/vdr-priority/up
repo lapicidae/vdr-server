@@ -30,7 +30,6 @@ backtick -E vdr_ionice_prio {
 importas -D "0" nice NICE
 importas -D "0" ionice_class IONICE_CLASS
 importas -D "0" ionice_prio IONICE_PRIO
-foreground { s6-echo "PID: ${pid} NICE: ${nice} IONICE_CLASS: ${ionice_class} IONICE_PRIO: ${ionice_prio} vdr_nice: ${vdr_nice} vdr_ionice_prio: ${vdr_ionice_prio} vdr_ionice_class: ${vdr_ionice_class}" }
 ifelse -Xn {
  pipeline { capsh --print }
  s6-grep -qi "cap_sys_nice"

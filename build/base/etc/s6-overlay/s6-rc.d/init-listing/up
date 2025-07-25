@@ -22,6 +22,18 @@ foreground {
   pipeline { printcontenv PLUGINS } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "VDR Plugins:"
 }
 foreground {
+ if { eltest -v NICE }
+  pipeline { printcontenv NICE } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "VDR Niceness:"
+}
+foreground {
+ ifelse { eltest -v IONICE_CLASS -a IONICE_PRIO }
+  { pipeline { foreground { printcontenv IONICE_CLASS } printcontenv IONICE_PRIO } pipeline { s6-quote-filter } xargs printf "%-26sclass %s, prio %s\n" "VDR I/O scheduling:" }
+ ifelse { eltest -v IONICE_CLASS }
+  { pipeline { printcontenv IONICE_CLASS } pipeline { s6-quote-filter } xargs printf "%-26sclass %s\n" "VDR I/O scheduling:" }
+ if { eltest -v IONICE_PRIO }
+  pipeline { printcontenv IONICE_PRIO } pipeline { s6-quote-filter } xargs printf "%-26sprio %s\n" "VDR I/O scheduling:"
+}
+foreground {
  if { eltest -v START_WEBSERVER }
   pipeline { printcontenv START_WEBSERVER } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Enable Webserver:"
 }

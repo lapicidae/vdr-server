@@ -20,6 +20,7 @@ Image based on [Arch Linux](https://hub.docker.com/_/archlinux), [VDR4Arch](http
 * easy user mappings (PGID, PUID)
 * plugin [ciplus](https://github.com/ciminus/vdr-plugin-ciplus), [ddci2](https://github.com/jasmin-j/vdr-plugin-ddci2) and [dvbapi](https://github.com/manio/vdr-plugin-dvbapi) support
 * eMail notifications via [msmtprc](https://marlam.de/msmtp/) - a very simple and easy to use SMTP client
+* adjustable niceness and I/O scheduling priority
 * built-in png [channel logos](https://github.com/lapicidae/svg-channellogos)
 * daily [naludump](https://www.udo-richter.de/vdr/naludump.html) cron
 * simple [web server](https://git.busybox.net/busybox/tree/networking/httpd.c) to provide channel logos, epg images (e.g. for [plugin-roboTV](https://github.com/pipelka/vdr-plugin-robotv/)), m3u channel list and XMLTV file (e.g. for [Jellyfin](https://jellyfin.org/)).
