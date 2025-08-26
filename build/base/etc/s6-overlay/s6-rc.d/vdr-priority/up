@@ -1,5 +1,6 @@
 #!/command/execlineb -P
 with-contenv
+s6-sleep 5
 backtick -E pid { pgrep vdr }
 backtick -E vdr_nice {
  pipeline { ps --no-headers -o ni ${pid} }
