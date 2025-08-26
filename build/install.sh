@@ -259,6 +259,7 @@ chmod 755 \
     /usr/local/bin/naludumper-cron \
     /usr/local/bin/picon \
     /usr/local/bin/vdr-channelids \
+    /usr/local/bin/w_scan_cpp \
     /usr/local/bin/xmltv-cron
 chmod 600 /var/spool/cron/crontabs/*
 chown root:root \
@@ -271,6 +272,7 @@ chown root:root \
     /usr/local/bin/naludumper-cron \
     /usr/local/bin/picon \
     /usr/local/bin/vdr-channelids \
+    /usr/local/bin/w_scan_cpp \
     /usr/local/bin/xmltv-cron
 chown root:vdr /usr/lib/vdr/bin/shutdown-wrapper
 chown vdr:vdr /usr/lib/vdr/bin/vdr-recordingaction

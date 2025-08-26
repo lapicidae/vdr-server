@@ -1,0 +1,85 @@
+#!/bin/sh
+# /usr/local/bin/w_scan_cpp
+
+# Wrapper script for the w_scan_cpp program.
+# Checks if the program is installed and performs the installation
+# automatically if it's missing.
+
+
+program_name="w_scan_cpp"
+package_name="w_scan_cpp"
+aur_helper="paru"
+
+
+# find_binary_from_package: Finds the main executable file installed by the package.
+find_binary_from_package() {
+	installed_files=$(pacman -Ql "$package_name")
+
+	printf '%s' "$installed_files" | while read -r _ path; do
+		if [ -x "$path" ] && [ ! -d "$path" ] && [ "$(basename "$path")" = "$program_name" ]; then
+			printf '%s' "$path"
+			return 0
+		fi
+	done
+	return 1
+}
+
+
+# printf 'Checking if "%s" is installed...\n' "$program_name"
+
+if pacman -Q "$package_name" >/dev/null 2>&1; then
+	# printf '"%s" is already installed. Starting the program...\n' "$program_name"
+	
+	program_path=$(find_binary_from_package)
+
+	if [ -n "$program_path" ]; then
+		exec "$program_path" "$@"
+		exit 0
+	else
+		printf 'ERROR: The program "%s" is installed but its binary could not be found or is not executable.\n' "$program_name" >&2
+		exit 1
+	fi
+fi
+
+printf '"%s" was not found or the package is not installed.\n' "$program_name"
+
+printf '\nWould you like to install "%s"? [Y/n] ' "$program_name"
+read -r REPLY
+
+REPLY=$(printf "%s" "$REPLY" | cut -c 1 | tr '[:upper:]' '[:lower:]')
+
+if [ "$REPLY" != "y" ] && [ "$REPLY" != "j" ]; then
+	printf 'Exiting...\n'
+	exit 1
+fi
+
+printf 'Performing installation using "%s".\n  This may take a while.\n\n' "$aur_helper"
+
+aur_helper_path=$(command -v "$aur_helper")
+
+if [ -z "$aur_helper_path" ]; then
+	printf 'ERROR: "%s" was not found. Please install it manually.\n' "$aur_helper" >&2
+	exit 1
+fi
+
+# Use sudo to run the AUR helper as a different user.
+sudo -u builduser "$aur_helper_path" --nouseask --removemake --cleanafter --noprogressbar --noconfirm -S "$package_name"
+
+if pacman -Q "$package_name" >/dev/null 2>&1; then
+	printf '"%s" was successfully installed. Starting the program...\n' "$program_name"
+	program_path=$(find_binary_from_package)
+	if [ -n "$program_path" ]; then
+		exec "$program_path" "$@"
+		exit 0
+	else
+		printf 'ERROR: The program "%s" was installed but its binary could not be found or is not executable.\n' "$program_name" >&2
+		exit 1
+	fi
+else
+	printf 'Error during installation of "%s".\n' "$program_name" >&2
+	exit 1
+fi
+
+
+# vim: ts=4 sw=4 noet:
+# kate: space-indent off; indent-width 4; mixed-indent off;
