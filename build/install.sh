@@ -106,11 +106,11 @@ useradd --system --create-home --no-user-group --home-dir $buildDir/.user --shel
 echo -e "root ALL=(ALL) ALL\nbuilduser ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers
 sudo -u builduser git config --global --add safe.directory '*'
 
-_ntfy 'install paru-bin'
+_ntfy 'install paru'
 cd $buildDir || exit 1
-git clone 'https://aur.archlinux.org/paru-bin.git' paru-bin
-chown -R builduser:users paru-bin
-cd paru-bin || exit 1
+git clone 'https://aur.archlinux.org/paru.git' paru
+chown -R builduser:users paru
+cd paru || exit 1
 $pacbuild
 sed -i "/^\[options\].*/a SkipReview" /etc/paru.conf
 sed -i "/^\[options\].*/a CloneDir = /var/cache/paru" /etc/paru.conf
@@ -332,3 +332,7 @@ fi
 
 _ntfy 'all done'
 printf '\e[32;1;2m>>> DONE! <<<\e[m\n'
+
+
+# vim: ts=4 sw=4 et:
+# kate: space-indent on; indent-width 4; mixed-indent off;
