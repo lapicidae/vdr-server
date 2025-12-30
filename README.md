@@ -53,7 +53,8 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=Europe/London
+      - LANG=de_DE.UTF-8
+      - TZ=Europe/Berlin
       - PLUGINS=epgsearch live streamdev-server vnsiserver #optional
     volumes:
       - /path/to/system:/vdr/system
@@ -85,7 +86,8 @@ docker run -d \
   --name=vdr-server \
   -e PUID=1000 \
   -e PGID=1000 \
-  -e TZ=Europe/London \
+  -e LANG=de_DE.UTF-8 \
+  -e TZ=Europe/Berlin \
   -e PLUGINS="epgsearch live streamdev-server vnsiserver" `#optional` \
   -p 8008:8008 \
   -p 6419:6419 `#optional` \
