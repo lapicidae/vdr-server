@@ -27,11 +27,18 @@ jobs:
       - name: Build Arguments
         id: get_arg
         run: |
-          vdrVersion="$(curl -s 'https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=vdr' | grep -i '^pkgver' | cut -d = -f 2)"
+          vdrVersion="$(curl -s 'https://aur.archlinux.org/cgit/aur.git/plain/PKGBUILD?h=vdr' | grep -i '^pkgver' | cut -d = -f 2 | tr -d '\r\n')"
+          # Fallback: If the first source failed, try GitHub's AUR mirror.
+          if [[ -z "${vdrVersion}" ]]; then
+            vdrVersion=$(curl -s 'https://raw.githubusercontent.com/archlinux/aur/vdr/PKGBUILD' | grep -i '^pkgver' | cut -d = -f 2 | tr -d '\r\n')
+          fi
+          vdrRevision="$(git ls-remote -t 'git://git.tvdr.de/vdr.git' "${vdrVersion}" | head -n1 | cut -f1 | tr -d '\r\n')"
+          baseDigest="$(docker image pull archlinux:latest > /dev/null 2>&1 && \
+            docker inspect --format='{{index .RepoDigests 0}}' archlinux:latest 2>/dev/null | cut -d'@' -f2 | tr -cd '[:alnum:]:')"
           printf 'dateTime=%(%Y-%m-%dT%H:%M:%S%z)T\n' >> $GITHUB_OUTPUT
-          printf 'vdrRevision=%s\n' "$(git ls-remote -t 'git://git.tvdr.de/vdr.git' ${vdrVersion} | cut -f 1)" >> $GITHUB_OUTPUT
+          printf 'vdrRevision=%s\n' "${vdrRevision}" >> $GITHUB_OUTPUT
           printf 'vdrVersion=%s\n' "${vdrVersion}" >> $GITHUB_OUTPUT
-          printf 'baseDigest=%s\n' "$(docker image pull archlinux:latest | grep -i digest | cut -d ' ' -f 2)" >> $GITHUB_OUTPUT
+          printf 'baseDigest=%s\n' "$baseDigest" >> $GITHUB_OUTPUT
       - name: Info
         run: |
           printf '<<<<<<<<< BUILD ARGUMENTS >>>>>>>>>\n'
