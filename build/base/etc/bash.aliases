@@ -1,6 +1,6 @@
 # /etc/bash.aliases
 
-alias la='ls -lah --color=auto'
+alias la='ls -lAh --color=auto'
 alias ls='ls --color=auto'
 alias tailf='tail -f'
 
