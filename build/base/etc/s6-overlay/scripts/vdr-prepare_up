@@ -1,37 +1,52 @@
 #!/command/with-contenv bash
 # shellcheck shell=bash
+#
+# Script to configure and maintain VDR system directories, plugins and email config.
 
 
-main_dir="/vdr"
-sys_dir="$main_dir/system"	# "/etc/vdr" equivalent
+# Constants
+readonly MAIN_DIR="/vdr"
+readonly SYS_DIR="${MAIN_DIR}/system"	# '/etc/vdr' equivalent
+readonly PLUGIN_CONFIG_BASE="${MAIN_DIR}/config/plugins"
 
 
-_isEnabled() {
-	plugin=$1;
-	enabled=$(vdrctl list --enabled | grep "^$1$")
-	if [[ "$enabled" =~ $plugin ]]; then
-		echo 0	# Success
-	else
-		echo 1	# Error
+#######################################
+# Checks if a VDR plugin is currently enabled using vdrctl.
+#
+# Arguments:
+#   Plugin_name: The name of the plugin to check (string).
+# Returns:
+#   0 if the plugin is enabled.
+#   1 if the plugin is disabled or not found.
+#######################################
+is_plugin_enabled() {
+	local plugin="${1}"
+
+	# Perform a silent search (-q) to set the exit code without stdout.
+	# We use ^ and $ to ensure an exact match of the plugin name.
+	if vdrctl list --enabled | grep -q "^${plugin}$"; then
+		return 0
 	fi
+
+	return 1
 }
 
 
 # system
-if [ -d "$sys_dir" ]; then
-	# delete orphaned vdr plugin links
-	find "$sys_dir/conf.d" -xtype l -delete
+if [[ -d "${SYS_DIR}" ]]; then
+	# Delete orphaned vdr plugin links.
+	find "${SYS_DIR}/conf.d" -xtype l -delete
 
 	# eMail config (msmtp)
 	msmtp_conf="/etc/msmtprc"
-	msmtp_conf_new="$sys_dir/eMail.conf"
-	if [ -f "$msmtp_conf_new" ]; then
-		CONF_COMP="$(cmp --silent $msmtp_conf $msmtp_conf_new; echo $?)"
-		if [ "$CONF_COMP" != "0" ]; then	# only if files are not the same
-			echo "Copy new eMail config"
-			cp -f "$msmtp_conf_new" "$msmtp_conf"
-			chown root:mail $msmtp_conf
-			chmod 640 $msmtp_conf
+	msmtp_conf_new="${SYS_DIR}/eMail.conf"
+	if [[ -f "${msmtp_conf_new}" ]]; then
+		# Only if files are not the same
+		if ! cmp --silent "${msmtp_conf}" "${msmtp_conf_new}"; then
+			echo "Copying new eMail config..."
+			cp -f "${msmtp_conf_new}" "${msmtp_conf}"
+			chown root:mail "${msmtp_conf}"
+			chmod 640 "${msmtp_conf}"
 		fi
 	fi
 fi
@@ -39,11 +54,11 @@ fi
 
 # protect cam.data
 cam_data="/var/cache/vdr/cam.data"
-if [ -f "$cam_data" ]; then
-	if [ "$PROTECT_CAMDATA" = "true" ]; then
-		chmod 0444 $cam_data
+if [[ -f "${cam_data}" ]]; then
+	if [[ "${PROTECT_CAMDATA:-false}" == "true" ]]; then
+		chmod 0444 "${cam_data}"
 	else
-		chmod 0664 $cam_data
+		chmod 0664 "${cam_data}"
 	fi
 fi
 
@@ -52,51 +67,65 @@ fi
 ## VDR Plugins ##
 
 # epgsearch
-if [ "$(_isEnabled "epgsearch")" = "0" ]; then
-	plug_dir="/vdr/config/plugins/epgsearch"
-	#loc=$(echo "$LANG" | cut -d "." -f 1)
-	confl_templ="$plug_dir/epgsearchconflmail.templ"
-	#confl_templ_loc="$plug_dir/epgsearchconflmail-$loc.templ"
-	#upd_templ="$plug_dir/epgsearchupdmail.templ"
-	if [ ! -d $plug_dir ]; then
-		mkdir -p $plug_dir
-	fi
-	if [ -f "$confl_templ" ] && [ ! -L "$confl_templ" ]; then
+if is_plugin_enabled "epgsearch"; then
+	epgsrch_dir="${PLUGIN_CONFIG_BASE}/epgsearch"
+	#loc=$(echo "${LANG}" | cut -d "." -f 1)
+	confl_templ="${epgsrch_dir}/epgsearchconflmail.templ"
+	#confl_templ_loc="${epgsrch_dir}/epgsearchconflmail-${loc}.templ"
+	#upd_templ="${epgsrch_dir}/epgsearchupdmail.templ"
+
+	[[ -d "${epgsrch_dir}" ]] || mkdir -p "${epgsrch_dir}"
+
+	if [[ -f "${confl_templ}" && ! -L "${confl_templ}" ]]; then
 		tmp_templ="/tmp/epgsearchconflmail.templ"
-		curl -s -o $tmp_templ 'https://raw.githubusercontent.com/vdr-projects/vdr-plugin-epgsearch/master/conf/epgsearchconflmail.templ'
-		if cmp -s "$confl_templ" "$tmp_templ"; then
-			mkdir -p $plug_dir/i18n
-			confl_templ_us="i18n/epgsearchconflmail-en_US.templ"
-			rm $tmp_templ
-			mv $confl_templ $plug_dir/$confl_templ_us
-			ln -s $confl_templ_us $confl_templ
+		templ_url='https://raw.githubusercontent.com/vdr-projects/vdr-plugin-epgsearch/master/conf/epgsearchconflmail.templ'
+		if curl -s --connect-timeout 5 --max-time 10 --retry 3 -o "${tmp_templ}" "${templ_url}"; then
+			if cmp -s "${confl_templ}" "${tmp_templ}"; then
+				mkdir -p "${epgsrch_dir}/i18n"
+				confl_templ_us="i18n/epgsearchconflmail-en_US.templ"
+				mv "${confl_templ}" "${epgsrch_dir}/${confl_templ_us}"
+				ln -s "${confl_templ_us}" "${confl_templ}"
+			fi
+			rm -f "${tmp_templ}"
+		else
+			echo "Warning: Failed to download epgsearch template." >&2
 		fi
 	fi
 fi
 
-# vdrmanager
-if [ "$(_isEnabled "vdrmanager")" = "0" ]; then
-	vdrmngr_dir="/vdr/config/plugins/vdrmanager"
-	if [ ! -d "$vdrmngr_dir" ]; then
-		mkdir -p $vdrmngr_dir
+# streamdev
+if is_plugin_enabled "streamdev-server"; then
+	strmdv_dir="${PLUGIN_CONFIG_BASE}/streamdev-server"
+	if [[ -f "${strmdv_dir}/externremux.sh" ]]; then
+		chmod +x "${strmdv_dir}/externremux.sh"
 	fi
-	if [ ! -e "$vdrmngr_dir/vdrmanager.pem" ]; then
-		openssl req -newkey rsa:2048 -new -nodes -x509 -days 7300 -keyout $vdrmngr_dir/vdrmanager.key -out $vdrmngr_dir/vdrmanager.pem -batch
-		rm -f $vdrmngr_dir/{vdrmanager.crt,vdrmanager.key}
+fi
+
+# vdrmanager
+if is_plugin_enabled "vdrmanager"; then
+	vdrmngr_dir="${PLUGIN_CONFIG_BASE}/vdrmanager"
+	[[ -d "${vdrmngr_dir}" ]] || mkdir -p "${vdrmngr_dir}"
+	if [[ ! -e "${vdrmngr_dir}/vdrmanager.pem" ]]; then
+		# Generating certificate, ensuring it fails gracefully if openssl is missing
+		if openssl req -newkey rsa:2048 -new -nodes -x509 -days 7300 -keyout "${vdrmngr_dir}/vdrmanager.key" -out "${vdrmngr_dir}/vdrmanager.pem" -batch 2>/dev/null; then
+			rm -f "${vdrmngr_dir}/"{vdrmanager.crt,vdrmanager.key}
+		else
+			echo "Error: Failed to generate SSL certificate for vdrmanager." >&2
+		fi
 	fi
 fi
 
 # live
-live_dir="/vdr/config/plugins/live"
-if [ -f "$live_dir/live.pem" ]; then
-	chmod ug+r $live_dir/live.pem
-fi
-if [ -f "$live_dir/live-key.pem" ]; then
-	chmod ug+r $live_dir/live-key.pem
-fi
+live_dir="${PLUGIN_CONFIG_BASE}/live"
+[[ -f "${live_dir}/live.pem" ]] && chmod ug+r "${live_dir}/live.pem"
+[[ -f "${live_dir}/live-key.pem" ]] && chmod ug+r "${live_dir}/live-key.pem"
 
 # ciplus
-cipls_dir="/vdr/cache/plugins/ciplus/"
-if [ -d "$cipls_dir" ] && [ -n "$(ls -A $cipls_dir)" ]; then
-	chmod -f ug+rw -- $cipls_dir/*.auth || true
+cipls_dir="/vdr/cache/plugins/ciplus"
+if [[ -d "${cipls_dir}" ]]; then
+	find "${cipls_dir}" -maxdepth 1 -name "*.auth" -exec chmod ug+rw {} + 2>/dev/null || true
 fi
+
+
+# vim: ts=4 sw=4 noet:
+# kate: space-indent off; indent-width 4; mixed-indent off;
