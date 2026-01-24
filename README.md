@@ -41,7 +41,7 @@ The image is automatically rebuilt when any of the following sources receive an 
 Here are some example snippets to help you get started creating a container.
 
 > :warning: **WARNING: The first start might be slow.**  
-> The first start can take longer, as non-integrated plugins are built from the AUR.
+> The first start can take longer, as non-integrated plugins are built from the [AUR](https://aur.archlinux.org/).
 
 #### *docker-compose (recommended)*
 Compatible with docker-compose v2 schemas.
@@ -55,32 +55,36 @@ services:
       - PGID=1000
       - LANG=de_DE.UTF-8
       - TZ=Europe/Berlin
-      - PLUGINS=epgsearch live streamdev-server vnsiserver #optional
+      - PLUGINS=epgsearch live streamdev-server vnsiserver    #optional
     volumes:
       - /path/to/system:/vdr/system
       - /path/to/config:/vdr/config
       - /path/to/recordings:/vdr/recordings
       - /path/to/cache:/vdr/cache
-      - /path/to/channellogos:/vdr/channellogos #optional
-      - /path/to/log:/vdr/log #optional
-      - /path/to/timeshift:/vdr/timeshift #optional
-      - /path/to/pkgbuild:/vdr/pkgbuild #optional
     ports:
       - 8008:8008
-      - 6419:6419 #optional
-      - 6419:6419/udp #optional
-      - 34890:34890 #optional
-      - 8099:8099 #optional (extra)
+      - 3000:3000
+      - 34890:34890
     devices:
-      - /dev/dvb:/dev/dvb #optional
+      - /dev/dvb:/dev/dvb     #optional
+    # -------------------- STRICTLY NECESSARY --------------------
     cap_add:
-      - SYS_NICE #optional: to adjust the niceness and I/O scheduling priority
-      - SYS_TIME #optional: read hint!
+      - SYS_NICE 
+    security_opt:
+      - "seccomp=unconfined"
+    ulimits:
+      nice:
+        soft: -20
+        hard: -20
+      rtprio:
+        soft: 99
+        hard: 99
+    stop_grace_period: 60s    # Required for clean shutdown
+    # ------------------------------------------------------------
     restart: unless-stopped
-    stop_grace_period: 60s #important
 ```
 
-#### *docker cli*
+#### *docker cli (example)*
 ```bash
 docker run -d \
   --name=vdr-server \
@@ -88,27 +92,36 @@ docker run -d \
   -e PGID=1000 \
   -e LANG=de_DE.UTF-8 \
   -e TZ=Europe/Berlin \
-  -e PLUGINS="epgsearch live streamdev-server vnsiserver" `#optional` \
+  -e PLUGINS="epgsearch live streamdev-server vnsiserver" \
   -p 8008:8008 \
-  -p 6419:6419 `#optional` \
-  -p 6419:6419/udp `#optional` \
-  -p 34890:34890 `#optional` \
-  -p 8099:8099 `#optional (extra)`
+  -p 3000:3000 \
+  -p 34890:34890 \
   -v /path/to/system:/vdr/system \
   -v /path/to/config:/vdr/config \
   -v /path/to/recordings:/vdr/recordings \
   -v /path/to/cache:/vdr/cache \
-  -v /path/to/channellogos:/vdr/channellogos `#optional` \
-  -v /path/to/log:/vdr/log `#optional` \
-  -v /path/to/timeshift:/vdr/timeshift `#optional` \
-  -v /path/to/pkgbuild:/vdr/pkgbuild `#optional` \
-  --device /dev/dvb:/dev/dvb `#optional` \
+  --device /dev/dvb:/dev/dvb \
+  --cap-add=SYS_NICE \
+  --security-opt seccomp=unconfined \
+  --ulimit nice=-20:-20 \
+  --ulimit rtprio=99:99 \
+  --stop-timeout 60 \
   --restart unless-stopped \
-  --cap-add=SYS_NICE `#optional: to adjust the niceness and I/O scheduling priority` \
-  --cap-add=SYS_TIME `#optional: read hint!` \
-  --stop-timeout 60 `#important` \
   ghcr.io/lapicidae/vdr-server
 ```
+
+#### ***Important: Permissions and Threading***
+To ensure smooth video processing and prevent dropped frames, VDR attempts to set higher-priority scheduling for its internal threads.  
+Without specific configuration, for example, the error `ERROR (thread.c,259): Permission denied` will appear in your logs.  
+Furthermore, a proper shutdown window is essential to avoid data loss.
+
+The following options are **strictly necessary**:
+
+  * `cap_add - SYS_NICE`: Grants the container the kernel capability to raise process priority and set real-time scheduling policies.
+  * `security_opt - "seccomp=unconfined"`: Bypasses the default Docker security profile that often restricts the `sched_setscheduler` system call.
+  * `ulimits - nice`: Defines the range of "niceness" available to the container. Setting this to `-20` allows VDR to reach the highest possible priority.
+  * `ulimits - rtprio`: Allows VDR to use Real-Time (RT) scheduling, critical for handling DVB data streams without interruption.
+  * `stop_grace_period / --stop-timeout`: VDR requires time to stop active recordings and save its state properly. Setting this to `60s` prevents the container from being killed prematurely.
 
 ### Parameters
 Container images are configured using parameters passed at runtime.  
@@ -116,55 +129,59 @@ These parameters are separated by a colon and indicate `<external>:<internal>` r
 For example, `-p 8080:80` would expose port `80` from inside the container to be accessible from the host's IP on port `8080` outside the container.
 
 | Parameter | Function |
-| :----: | --- |
-| `-p 8008` | Http VDR-Live plugin. |
-| `-p 3000` | Streamdev Server (http Streaming) [^1] |
-| `-p 8009` | Optional - https VDR-Live plugin (you need to set up your own certificate) |
-| `-p 6419` | Optional - Simple VDR Protocol (SVDRP) |
-| `-p 6419/udp` | Optional - SVDRP Peering |
-| `-p 2004` | Optional - Streamdev Server (VDR-to-VDR Streaming) |
-| `-p 34890` | Optional - [Kodi](https://kodi.wiki/view/Add-on:VDR_VNSI_Client) VDR-Network-Streaming-Interface (VNSI) |
-| `-e PUID=1000` | for UserID - see below for explanation |
-| `-e PGID=1000` | for GroupID - see below for explanation |
-| `-e TZ=Europe/London` | Specify a [timezone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List) to use (e.g. Europe/London) |
-| `-e LANG=en_US.UTF-8` | Default locale; see [list](https://sourceware.org/git/?p=glibc.git;a=blob_plain;f=localedata/SUPPORTED;hb=HEAD) (e.g. en_US.UTF-8) |
-| `-e PLUGINS=epgsearch live streamdev-server vnsiserver` | Optional - **Space separated** list of [VDR Plugins](https://github.com/VDR4Arch/vdr4arch/tree/master/plugins) (default: `epgsearch live streamdev-server vnsiserver`) |
-| `-e LOG2FILE=true` | Optional - Write log to file in `/vdr/log` |
-| `-e PROTECT_CAMDATA=true` | Optional - Write protect `cam.data` to avoid unwanted changes |
-| `-e DISABLE_WEBINTERFACE=true` | Optional - Disable web interface (live plugin) |
-| `-e LOGO_COPY=false` | Optional - Use your own station logos in /vdr/channellogos |
+| :--- | :--- |
+| **Required** | |
+| `--cap-add=SYS_NICE` | Allows adjusting niceness and real-time scheduling priorities |
+| `--security-opt seccomp=unconfined` | Required for the kernel to apply scheduling and priority changes |
+| `--ulimit nice=-20:-20` | Sets the priority range (soft:hard) to the highest level |
+| `--ulimit rtprio=99:99` | Sets the real-time priority limit (soft:hard) for DVB streaming |
+| `--stop-timeout 60` | Ensures VDR can finish recordings and save state before stopping |
+| **System** | |
+| `-e PUID=1000` | [UserID](#user--group-identifiers) for file permissions |
+| `-e PGID=1000` | [GroupID](#user--group-identifiers) for file permissions |
+| `-e TZ=Europe/London` | Specify a [timezone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones#List) |
+| `-e LANG=en_US.UTF-8` | Default locale; see [list](https://sourceware.org/git/?p=glibc.git;a=blob_plain;f=localedata/SUPPORTED;hb=HEAD) |
 | `-v /vdr/system` | Start parameters, recording hooks and msmtprc config |
 | `-v /vdr/config` | Config files (e.g. `setup.conf` or `channels.conf`) |
-| `-v /vdr/recordings` | Recording directory (aka video directory) |
+| `-v /vdr/recordings` | Recording directory (video directory) |
 | `-v /vdr/cache` | Cache files (e.g. `epgimages` or `cam.data`) |
+| `--device /dev/dvb` | Passthrough for DVB hardware (required for reception) |
+| **Networking** | |
+| `-p 8008` | HTTP VDR-Live plugin |
+| `-p 3000` | Streamdev Server (http Streaming) [^1] |
+| `-p 8009` | HTTPS VDR-Live plugin (requires your own certificate) |
+| `-p 6419` | Simple VDR Protocol (SVDRP) |
+| `-p 6419/udp` | SVDRP Peering |
+| `-p 2004` | Streamdev Server (VDR-to-VDR Streaming) |
+| `-p 34890` | [Kodi](https://kodi.wiki/view/Add-on:VDR_VNSI_Client) VDR-Network-Streaming-Interface (VNSI) |
+| `-p 8099` | HTTP port for the simple web server [^2] |
+| **Config** | |
+| `-e PLUGINS="..."` | **Space separated** list of [VDR Plugins](https://github.com/VDR4Arch/vdr4arch/tree/master/plugins) |
+| `-e LOG2FILE=true` | Write log to file in `/vdr/log` |
+| `-e PROTECT_CAMDATA=true` | Write protect `cam.data` to avoid unwanted changes |
+| `-e DISABLE_WEBINTERFACE=true` | Disable web interface (live plugin) |
+| `-e LOGO_COPY=false` | Use your own station logos in `/vdr/channellogos` |
 | `-v /vdr/channellogos` | TV and radio station logos |
 | `-v /vdr/log` | Logfiles if `LOG2FILE=true` |
 | `-v /vdr/timeshift` | VNSI Time-Shift buffer directory |
-| `-v /vdr/pkgbuild` | Build packages: [README](build/base/defaults/pkgbuild/README.md) |
-| `--device /dev/dvb` | Only needed if you want to pass through a DVB card to the container |
-| **Priority (optional)** | *The `SYS_NICE` capability is required* |
+| `-v /vdr/pkgbuild` | Path for custom build packages |
+| **VDR Priority** *(needs `SYS_NICE`)* | |
 | `-e NICE=-1` | Adjusted niceness via [renice](https://man.archlinux.org/man/renice.1) (default: `0`) |
 | `-e IONICE_CLASS=2` | I/O scheduling class via [ionice](https://man.archlinux.org/man/ionice.1) (default: `0`) |
 | `-e IONICE_PRIO=3` | I/O scheduling priority via [ionice](https://man.archlinux.org/man/ionice.1) (default: `0`) |
-| **Extras (optional)** |  |
-| `-e START_NALUDUMP=true` | *naludump:* start [naludump](https://www.udo-richter.de/vdr/naludump.html) every day at 4 am (via cron) [^3] |
-| `-e START_NALUDUMP_AT=0 4 * * *` | *naludump:* crontab schedule for the start of naludump ([examples](https://crontab.guru/)) |
-| `-e START_WEBSERVER=true` | *Web server:* provision of station logos, epg images, m3u channel list and xmltv file via http [^2] |
-| `-p 8099` | *Web server:* http port of the simple web server [^2] |
-| `-e START_XMLTV=true` | *XMLTV:* start m3u and [XMLTV](http://xmltv.org/) file generation to `/vdr/cache` every day at 12 am (via cron) [^4] |
-| `-e START_XMLTV_AT=0 6 * * *` | *XMLTV:* crontab schedule for starting the creation of m3u and xmltv files ([examples](https://crontab.guru/)) |
-| `-e XMLTV_DAYS=3` | *XMLTV:* number of days to be available in the xmltv file (default: `7`) |
-| `-e XMLTV_DOMAIN_NAME=example.com` | *XMLTV:* change the default domain name used in the m3u file (must be available within the container) |
-| `-e XMLTV_STREAM_PORT=4561` | *XMLTV:* video stream (streamdev http) port in m3u (default: `3000`) |
-| `-e XMLTV_LOGO_PORT=1654` | *XMLTV:* web server port for station logos in m3u (default: `8099`) |
-| `-e XMLTV_LOGO_URL=https://example.com/logos` | *XMLTV:* use external **png** station logos (filename ≙ lower case channel name) |
-
-#### *Hint*
-If you want to use VDRs `"SetSystemTime = 1"` use parameter `"--cap-add=SYS_TIME"` **(untested)**
-[^1]: Simple interface is avalable at `http://<your-ip>:3000`
-[^2]: When the server is running instructions available at: `http://<your-ip>:8099`
-[^3]: WARNING: The whole process has been designed to be as safe as possible! Nevertheless, there is no guarantee that the recordings will not be damaged during the cleanup.
-[^4]: Plugin `streamdev-server` is required for playback. The default server in m3u for channels and channel images is the [network alias](https://docs.docker.com/engine/reference/run/#network-settings) of the container. Currently, only the German language is fully supported when converting to XMLTV format.
+| **Extras** | |
+| `-e START_NALUDUMP=true` | Start [naludump](https://www.udo-richter.de/vdr/naludump.html) daily at 4 am [^3] |
+| `-e START_NALUDUMP_AT=...` | Crontab schedule for naludump (default: `0 4 * * *`) |
+| `-e START_WEBSERVER=true` | Provision of logos, EPG images, m3u and XMLTV via HTTP (port: `8099`) [^2] |
+| `-e START_XMLTV=true` | Generate m3u and [XMLTV](http://xmltv.org/) daily at 12 am [^4] |
+| `-e START_XMLTV_AT=...` | Crontab schedule for XMLTV creation (default: `0 0 * * *`) |
+| `-e XMLTV_DAYS=3` | Number of days in xmltv file (default: `7`) |
+| `-e XMLTV_DOMAIN_NAME=...` | Hostname/IP used in the m3u file (e.g. `vdr.example.com`) |
+| `-e XMLTV_STREAM_PORT=4561` | Video stream port in m3u (default: `3000`) |
+| `-e XMLTV_LOGO_PORT=1654` | Web server port for station logos in m3u (default: `8099`) |
+| `-e XMLTV_LOGO_URL=...` | URL for external **png** station logos (e.g. `https://example.com/logos`) |
+| **Not recommended** | |
+| `--cap-add=SYS_TIME` | **Warning:** Allows the container to change the Host's system clock [^5] |
 
 ### User / Group Identifiers
 When using volumes (`-v` flags) permissions issues can arise between the host OS and the container, we avoid this issue by allowing you to specify the user `PUID` and group `PGID`.
@@ -197,11 +214,11 @@ Standard paths and their Container counterpart.
 Command line parameters can be changed in `vdr/system/conf.d/00-vdr.conf` and  
 configuration files are located in `vdr/config/`.
 
-Webui ([live plugin](https://github.com/MarkusEh/vdr-plugin-live)) can be found at `http://<your-ip>:8008`.  
-Most VDR settings can be edited via the webui remote.
+WebUI ([live plugin](https://github.com/MarkusEh/vdr-plugin-live)) can be found at `http://<your-ip>:8008`.  
+Most VDR settings can be edited via the remote control in the WebUI.
 
 ### Plugins
-First, see if there is anything to adjust in the Webui / Remote section.
+First, see if there is anything to adjust in the "WebUI / Remote Control" section.
 
 Parameters are passed via the corresponding file in `vdr/system/conf.d/`.  
 Most other files related to plugins are located in `vdr/config/plugins/`.
@@ -224,6 +241,14 @@ The process is executed at container start and runs until everything is checked.
 The check is done via [vdr-checkts](https://github.com/vdr-projects/vdr-checkts) by [eTobi](http://e-tobi.net) and the basic script comes from [MarkusE](https://www.vdr-portal.de/forum/index.php?thread/134607-alte-aufzeichnungen-fehlerhaft/&postID=1342589#post1342589).
 
 
+## Support the VDR Project
+While VDR is free and open-source, the developers enjoy knowing how many people use their software.  
+If you enjoy using VDR, please consider registering at the official **[VDR User Counter](https://www.tvdr.de/counter.htm)**. 
+
+> "Developing a program is more fun if the programmers know that it is being used by a great many people."  
+> *Klaus Schmidinger*
+
+
 ## Thanks
 
 * **[Klaus Schmidinger (kls)](http://www.tvdr.de/)**
@@ -233,3 +258,11 @@ The check is done via [vdr-checkts](https://github.com/vdr-projects/vdr-checkts)
 * **[just-containers](https://github.com/just-containers)**
 * **[linuxserver.io](https://www.linuxserver.io/)**
 * **...and all the forgotten ones**
+
+
+[//]: # (Footnotes)
+[^1]: Simple interface is avalable at `http://<your-ip>:3000`
+[^2]: When the server is running instructions available at: `http://<your-ip>:8099`
+[^3]: WARNING: The whole process has been designed to be as safe as possible! Nevertheless, there is no guarantee that the recordings will not be damaged during the cleanup.
+[^4]: Plugin `streamdev-server` is required for playback. The default server in m3u for channels and channel images is the [network alias](https://docs.docker.com/engine/reference/run/#network-settings) of the container. Currently, only the German language is fully supported when converting to XMLTV format.
+[^5]: If you want to use VDRs `"SetSystemTime = 1"` use parameter `"--cap-add=SYS_TIME"` **(untested)**
