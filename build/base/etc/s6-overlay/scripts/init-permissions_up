@@ -2,24 +2,123 @@
 # shellcheck shell=bash
 
 
-function chmown {
-	local usr=$1
-	local grp=$2
-	local perm_dir=$3
-	local perm_file=$4
-	local path=$5
+# -----------------------------------------------------------------------------
+# Global Constants
+# -----------------------------------------------------------------------------
 
-	if [ -z "$usr" ] || [ -z "$grp" ] || [ -z "$perm_dir" ] || [ -z "$perm_file" ] || [ -z "$path" ]; then
-		echo "Incorrect use of the function!"
-		return 1
-	elif [ -d "$path" ]; then
-		echo "Reassign permissions: $path"
-		chown -HR "$usr":"$grp" "$path"
-		find -H "$path" -type d -exec chmod "$perm_dir" {} +
-		find -H "$path" -type f -exec chmod "$perm_file" {} +
-	fi
+# Select the fastest available temporary storage.
+if [[ -d "/dev/shm" ]]; then
+	_tmp_base="/dev/shm"
+else
+	_tmp_base="/tmp"
+fi
+
+# Declare the prefix as a global readonly constant.
+# We include the PID ($$) and timestamp for uniqueness.
+PERM_TMP_PREFIX="${_tmp_base}/init_perm_${$}_$(date +%s)"
+readonly PERM_TMP_PREFIX
+
+
+# -----------------------------------------------------------------------------
+# Functions
+# -----------------------------------------------------------------------------
+
+#######################################
+# Cleanup function to be called on exit or interruption.
+#######################################
+cleanup() {
+	local exit_code=$?
+	rm -f "${PERM_TMP_PREFIX}"* 2>/dev/null
+	exit "${exit_code}"
 }
 
+#######################################
+# Sets ownership and permissions efficiently while preserving execute bits.
+# Arguments:
+#   user: The owner user string.
+#   group: The owner group string.
+#   dir_mode: Octal mode for directories.
+#   file_mode: Octal mode for files.
+#   target_path: The filesystem path to process.
+#######################################
+chmown() {
+	local user="$1"
+	local group="$2"
+	local dir_mode="$3"
+	local file_mode="$4"
+	local target_path="$5"
+
+	# Argument validation.
+	if [[ -z "${user}" || -z "${group}" || -z "${dir_mode}" || -z "${file_mode}" || -z "${target_path}" ]]; then
+		printf 'Error: Missing arguments for path: %s\n' "${target_path}" >&2
+		return 1
+	fi
+
+	# Octal Validation (The regex ensures 3 or 4 digits, range 0-7).
+	if [[ ! "${dir_mode}" =~ ^[0-7]{3,4}$ || ! "${file_mode}" =~ ^[0-7]{3,4}$ ]]; then
+		printf 'Error: Invalid octal mode (dir: %s, file: %s) for %s\n' "${dir_mode}" "${file_mode}" "${target_path}" >&2
+		return 1
+	fi
+
+	# Resolve symlink start point if it exists.
+	if [[ -L "${target_path}" ]]; then
+		if [[ -e "${target_path}" ]]; then
+			target_path=$(readlink -f "${target_path}")
+		else
+			printf 'Warning: Skipping dangling symlink: %s\n' "${target_path}" >&2
+			return 0
+		fi
+	fi
+
+	# Skip if path does not exist.
+	[[ -d "${target_path}" ]] || return 0
+
+	printf 'Reassign permissions: %s\n' "${target_path}"
+
+	# 1. Ownership (Recursive).
+	chown -hR "${user}:${group}" "${target_path}"
+
+	# 2. Directory permissions (Bulk).
+	find "${target_path}" -type d -exec chmod "${dir_mode}" -- {} +
+
+	# 3. Identify execute bits in a single pass.
+	local ux_list gx_list ox_list
+	ux_list="${PERM_TMP_PREFIX}_ux.list"
+	gx_list="${PERM_TMP_PREFIX}_gx.list"
+	ox_list="${PERM_TMP_PREFIX}_ox.list"
+
+	# Use find's -fprint for high-performance list generation.
+	find "${target_path}" -type f ! -type l \( \
+		\( -perm /100 -fprint "${ux_list}" \) -o \
+		\( -perm /010 -fprint "${gx_list}" \) -o \
+		\( -perm /001 -fprint "${ox_list}" \) \
+	\)
+
+	# 4. Set base file permissions (clears all execute bits).
+	find "${target_path}" -type f -exec chmod "${file_mode}" {} +
+
+	# 5. Restore specific execute bits using mass chmod via xargs.
+	if [[ -s "${ux_list}" ]]; then
+		xargs -r -d '\n' -a "${ux_list}" chmod u+x --
+	fi
+	if [[ -s "${gx_list}" ]]; then
+		xargs -r -d '\n' -a "${gx_list}" chmod g+x --
+	fi
+	if [[ -s "${ox_list}" ]]; then
+		xargs -r -d '\n' -a "${ox_list}" chmod o+x --
+	fi
+
+	# Clean up specific lists for this run.
+	rm -f "${ux_list}" "${gx_list}" "${ox_list}"
+}
+
+
+# -----------------------------------------------------------------------------
+# Execution
+# -----------------------------------------------------------------------------
+
+# Trap signals for robust cleanup.
+trap cleanup EXIT INT TERM HUP
 
 ## directory & file permissions
 # dvb devices
@@ -41,3 +140,10 @@ chown -H root:users "/var/cache/paru"
 
 # syslogd-overlay
 chmown sysllog sysllog 775 664 "/vdr/log"
+
+# http
+chmown http http 755 644 "/srv/http"
+
+
+# vim: ts=4 sw=4 noet:
+# kate: space-indent off; indent-width 4; mixed-indent off;
