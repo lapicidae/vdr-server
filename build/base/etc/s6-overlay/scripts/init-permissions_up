@@ -128,12 +128,12 @@ chmown root video 755 660 "/dev/dvb"
 # default mount points (docker volumes)
 chown -H vdr:vdr "/vdr"
 chmown vdr vdr 755 664 "/etc/PKGBUILD.d"
-chmown vdr vdr 755 664 "/etc/vdr"
-chmown vdr vdr 755 664 "/srv/vdr"
-chmown vdr vdr 755 664 "/var/cache/vdr"
-chmown vdr vdr 755 664 "/var/lib/vdr"
-chmown vdr vdr 755 664 "/vdr/channellogos"
-chmown vdr vdr 755 664 "/vdr/timeshift"
+chmown vdr vdr 775 664 "/etc/vdr"			# /vdr/system
+chmown vdr vdr 775 664 "/srv/vdr"			# /vdr/recordings
+chmown vdr vdr 775 664 "/var/cache/vdr"		# /vdr/cache
+chmown vdr vdr 775 664 "/var/lib/vdr"		# /vdr/config
+chmown vdr vdr 775 664 "/vdr/channellogos"
+chmown vdr vdr 775 664 "/vdr/timeshift"
 
 # paru build
 chown -H root:users "/var/cache/paru"
