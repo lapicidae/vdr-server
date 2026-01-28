@@ -1,11 +1,33 @@
 #!/command/execlineb -P
+# shellcheck disable=all
 with-contenv
 importas -D "false" start START_WEBSERVER
 ifelse { eltest $start = false } {
-  foreground { s6-echo "Webserver (httpd) is not enabled via environment variable" }
-  foreground { s6-rmrf /etc/s6-overlay/s6-rc.d/user/contents.d/httpd }
-  s6-svc -d -O /run/s6-rc/servicedirs/httpd
+ foreground { s6-echo "Webserver (httpd) is not enabled via environment variable" }
+ foreground { s6-rmrf /etc/s6-overlay/s6-rc.d/user/contents.d/httpd }
+ s6-svc -d -O /run/s6-rc/servicedirs/httpd
+}
+define uidgid "http"
+define shm "/dev/shm"
+define tmp "/tmp"
+define subdir "httpd"
+define http_hls "/srv/http/hls"
+backtick -D "${http_hls}" shared {
+ ifelse { eltest -d ${shm} }
+  { s6-echo -n "${shm}/${subdir}" }
+ if { eltest -d ${tmp} } s6-echo -n "${tmp}/${subdir}"
+}
+importas -S shared
+ifthenelse { eltest \\${http_hls} = \\${shared} }
+ { 
+  foreground { if -n { eltest -d ${http_hls} } s6-mkdir -m 755 -p ${http_hls} }
+  s6-envuidgid ${uidgid} s6-chown -U ${http_hls}
  }
- s6-setuidgid http
- fdmove -c 2 1
- /usr/sbin/busybox httpd -f -p 8099
+ { 
+  foreground { s6-mkdir -m 755 -p ${shared} }
+  foreground { s6-envuidgid ${uidgid} s6-chown -U ${shared} }
+  s6-ln -sfn ${shared} ${http_hls}
+ }
+s6-setuidgid ${uidgid}
+fdmove -c 2 1
+/usr/sbin/httpd -f -p 8099
