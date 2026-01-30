@@ -1,0 +1,167 @@
+/* Local Font Import */
+@font-face {
+    font-family: 'Varela';
+    src: url('../font/Varela-Regular.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* Reset */
+html,body,div,span,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,article,aside,canvas,details,embed,figure,figcaption,footer,header,hgroup,menu,nav,section,main {
+    margin: 0; padding: 0; border: 0; font-size: 100%; font: inherit; vertical-align: baseline;
+}
+
+article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section,main { display: block; }
+body { line-height: 1; }
+ol,ul { list-style: none; }
+blockquote,q { quotes: none; }
+blockquote:before, blockquote:after, q:before, q:after { content: ''; content: none; }
+table { border-collapse: collapse; border-spacing: 0; }
+
+/* Global Styles */
+html, body { height: 100%; margin: 0; padding: 0; background: #000; color: #fff; overflow: hidden; user-select: none; }
+body { background: radial-gradient(circle at center, #111 0%, #000 100%) no-repeat fixed; }
+
+/* Scanline Overlay */
+body::before {
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.25) 50%), 
+                linear-gradient(90deg, rgba(255,0,0,0.06), rgba(0,255,0,0.02), rgba(0,0,118,0.06));
+    z-index: 2;
+    background-size: 100% 2px, 3px 100%;
+    pointer-events: none;
+}
+
+/* Layout Container */
+#container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    width: 100%;
+    position: relative;
+    z-index: 3;
+}
+
+#container::after {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: rgba(18,16,16,0.1);
+    opacity: 0;
+    z-index: 2;
+    pointer-events: none;
+    animation: flicker 0.15s infinite;
+}
+
+/* Error Code & Glitch Logic */
+.error-code {
+    font-family: 'Varela', sans-serif;
+    text-align: center;
+    font-size: 95px;
+    font-style: italic;
+    width: 150px;
+    height: 60px;
+    line-height: 60px;
+    margin: 0;
+    position: relative;
+    animation: noise 2s linear infinite;
+}
+
+.error-code:before,
+.error-code:after {
+    /* Universelle Lösung: Holt den Text aus dem HTML-Attribut 'data-text' */
+    content: attr(data-text); 
+    font-family: 'Varela', sans-serif;
+    font-size: 100px;
+    font-style: italic;
+    text-align: center;
+    width: 150px;
+    height: 60px;
+    line-height: 60px;
+    position: absolute;
+    top: 0; left: 0;
+    opacity: 0;
+}
+
+.error-code:after { color: blue; animation: noise-1 .2s linear infinite; }
+.error-code:before { color: red; animation: noise-2 .2s linear infinite; }
+
+.info {
+    font-family: 'Varela', sans-serif;
+    text-align: center;
+    font-size: 15px;
+    font-style: italic;
+    width: 200px;
+    height: 60px;
+    line-height: 60px;
+    margin-top: 20px;
+    position: relative;
+    animation: noise-3 1s linear infinite;
+}
+
+.back-link {
+    font-family: 'Varela', sans-serif;
+    text-decoration: none;
+    color: #fff;
+    border: 1px solid #fff;
+    padding: 10px 20px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 40px;
+    transition: all 0.2s;
+    opacity: 0.6;
+    position: relative;
+}
+
+.back-link:hover {
+    background: #fff;
+    color: #000;
+    opacity: 1;
+    box-shadow: 3px 0 red, -3px 0 blue;
+    animation: noise .5s linear infinite;
+}
+
+.back-link:active { transform: scale(0.95); box-shadow: 6px 0 red, -6px 0 blue; }
+
+/* Keyframes */
+@keyframes flicker {
+    0% { opacity: 0.1; }
+    50% { opacity: 0.2; }
+    100% { opacity: 0.1; }
+}
+
+@keyframes noise-1 {
+    0%,20%,40%,60%,70%,90%{opacity:0}
+    10%{opacity:.1}
+    50%{opacity:.5;left:-6px}
+    80%{opacity:.3}
+    100%{opacity:.6;left:2px}
+}
+
+@keyframes noise-2 {
+    0%,20%,40%,60%,70%,90%{opacity:0}
+    10%{opacity:.1}
+    50%{opacity:.5;left:6px}
+    80%{opacity:.3}
+    100%{opacity:.6;left:-2px}
+}
+
+@keyframes noise {
+    0%,3%,5%,42%,44%,100%{opacity:1;transform:scaleY(1)}
+    4.3%{opacity:1;transform:scaleY(1.7)}
+    43%{opacity:1;transform:scaleX(1.5)}
+}
+
+@keyframes noise-3 {
+    0%,3%,5%,42%,44%,100%{opacity:1;transform:scaleY(1)}
+    4.3%{opacity:1;transform:scaleY(4)}
+    43%{opacity:1;transform:scaleX(10) rotate(60deg)}
+}
