@@ -455,7 +455,7 @@ remux_ffmpeg() {
 	# ---------------------------------------------------------------------------
 	if [[ "${vc}" == 'copy' ]]; then
 		v_opts+=('-c:v' 'copy' '-flags:v' '+global_header')
-		[[ "${REMUX_VTYPE}" == '27' ]] && v_opts+=('-bsf:v' 'h264_mp4toannexb')
+		[[ "${REMUX_VTYPE}" == '27' ]] && v_opts+=('-bsf:v' 'h264_metadata=delete_filler=1,h264_mp4toannexb')
 		[[ "${REMUX_VTYPE}" == '36' ]] && v_opts+=('-bsf:v' 'hevc_mp4toannexb')
 	else
 		v_opts+=('-c:v' "${vc}")
