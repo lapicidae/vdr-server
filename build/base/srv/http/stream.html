@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Live TV Player | vdr-server @ docker</title>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="icon" type="image/svg+xml" href="/img/favicon.svg" sizes="any">
+		<link rel="shortcut icon" href="/favicon.ico" />
+		<link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png">
+		<link rel="manifest" href="/site.webmanifest">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@latest/dist/css/uikit.min.css">
+		<script src="https://cdn.jsdelivr.net/npm/uikit@latest/dist/js/uikit.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/uikit@latest/dist/js/uikit-icons.min.js"></script>
+		<script src="/js/uikit-extension.js"></script>
+		<script src="/js/additions.js"></script>
+		<script src="/js/stream.js"></script>
+		<style>
+			video { background: transparent !important; }
+		</style>
+	</head>
+	<body class="uk-background-muted">
+		<!-- Navigation & Off-Canvas -->
+		<header id="navigation-include" class="uk-position-top uk-height-max-small"></header>
+		<div class="uk-flex uk-flex-center uk-flex-middle" uk-height-placeholder="#navigation-include">
+			<div id="placeholder-spinner" uk-spinner="ratio: 1.5"></div>
+		</div>
+		<!-- Content -->
+		<main class="uk-section uk-section-muted" data-uk-height-viewport="expand: true">
+			<div class="uk-container">
+				<div class="uk-flex uk-flex-column uk-width-expand">
+
+					<div class="uk-margin">
+						<div class="uk-card uk-card-small uk-card-default uk-card-body uk-box-shadow-medium uk-border-rounded">
+
+							<div class="uk-flex uk-flex-middle uk-flex-between uk-margin-bottom">
+								<div class="uk-flex uk-flex-middle">
+									<h3 id="station-name" class="uk-card-title uk-margin-remove">Live TV Player</h3>
+									<button class="uk-button uk-button-link uk-text-primary uk-margin-small-left" uk-toggle="target: #help-modal" uk-icon="icon: info" uk-tooltip="Features & Help"></button>
+								</div>
+								<img id="currentChannelLogo" class="uk-object-contain uk-invisible" src="/img/favicon.svg" width="64" height="64" alt="Channel Logo" style="filter: drop-shadow(1px 1px 2px #333)">
+							</div>
+
+							<div class="uk-inline-clip uk-width-1-1 uk-background-secondary uk-flex uk-flex-center uk-flex-middle uk-border-rounded uk-transition-toggle uk-light" style="aspect-ratio: 16 / 9; overflow: hidden;" tabindex="0">
+								<video id="videoElement" class="uk-width-1-1 uk-height-1-1 uk-position-relative uk-object-contain" autoplay playsinline></video>
+								<div id="logoLayer" class="uk-position-cover uk-flex uk-flex-center uk-flex-middle uk-position-z-index-negative">
+										<img id="playerPlaceholderLogo" class="uk-width-1-3" src="/img/favicon.svg" alt="Placeholder" style="opacity: 0.1;">
+								</div>
+								<button data-action="videoFullscreen" class="uk-position-small uk-position-top-right uk-transition-fade uk-button uk-button-link uk-hidden@m" uk-icon="icon: expand; ratio: 1.2" uk-tooltip="Fullscreen" style="filter: drop-shadow(1px 1px 2px #333)"></button>
+								<button data-action="videoFullscreen" class="uk-position-small uk-position-top-right uk-transition-fade uk-button uk-button-link uk-visible@m uk-hidden@l" uk-icon="icon: expand; ratio: 1.5" uk-tooltip="Fullscreen" style="filter: drop-shadow(1px 1px 2px #333)"></button>
+								<button data-action="videoFullscreen" class="uk-position-small uk-position-top-right uk-transition-fade uk-button uk-button-link uk-visible@l" uk-icon="icon: expand; ratio: 1.8" uk-tooltip="Fullscreen" style="filter: drop-shadow(1px 1px 2px #333)"></button>
+							</div>
+
+							<div class="uk-grid-small uk-flex-middle uk-margin-top" uk-grid>
+
+								<div class="uk-flex uk-flex-middle uk-flex-center uk-flex-around uk-flex-between@s uk-flex-wrap uk-width-1-1 uk-width-auto@m" uk-margin>
+
+									<div class="uk-flex-inline uk-flex-middle uk-margin-small-right">
+										<button id="ctrlPlayPause" class="uk-icon-button uk-button-primary uk-margin-small-right" uk-icon="play" uk-tooltip="Play/Pause"></button>
+										<button id="stopBtn" class="uk-icon-button uk-button-danger" uk-icon="stop" uk-tooltip="Stop"></button>
+									</div>
+
+									<div class="uk-flex-inline uk-flex-middle">
+										<button id="ctrlMute" class="uk-icon-button uk-button-default uk-margin-xsmall-right" uk-icon="volume" uk-tooltip="Mute"></button>
+										<input id="ctrlVolume" class="uk-range uk-width-expand uk-width-small@s" type="range" value="1" min="0" max="1" step="0.05">
+										<!-- <input id="ctrlVolume" class="uk-range uk-width-small" type="range" value="1" min="0" max="1" step="0.05" uk-tooltip="100%"> -->
+										<span id="volumeDisplay" class="uk-text-meta uk-margin-xsmall-left" style="min-width: 40px;">100%</span>
+									</div>
+
+								</div>
+
+								<div class="uk-width-1-1 uk-width-expand@m" style="min-width: 150px;">
+									<select id="channelSelect" class="uk-select uk-width-expand uk-width-3-4@l">
+										<option>Loading Playlist...</option>
+									</select>
+								</div>
+
+								<div class="uk-width-1-1 uk-width-auto@m">
+									<div class="uk-flex uk-flex-middle uk-grid-small uk-flex-center uk-flex-left@s" uk-grid>
+										<div class="uk-width-expand uk-width-auto@m" style="min-width: 150px;">
+											<select id="qualitySelect" class="uk-select">
+												<option value="DEFAULT">Quality: Default</option>
+												<!-- <option value="LIVE" data-disable-deinterlace="true">Quality: Live</option> -->
+												<option value="H264SMART">Quality: H.264 Smart</option>
+												<option value="5G">Quality: 5G</option>
+												<option value="LTE">Quality: LTE</option>
+												<option value="MOBILESAFE">Quality: Mobile Safe</option>
+											</select>
+										</div>
+										<div class="uk-width-expand uk-width-auto@m" style="min-width: 150px;">
+											<select id="streamTypeSelect" class="uk-select">
+												<option value="hls">Mode: HLS</option>
+												<option value="ts">Mode: HTTP-TS</option>
+											</select>
+										</div>
+										<div class="uk-width-auto">
+											<span id="deinterlaceContainer" class="uk-flex-inline uk-flex-middle">
+												<label for="deinterlaceCheck">Deinterlace</label>
+												<input id="deinterlaceCheck" class="uk-checkbox uk-margin-remove-top uk-flex-none uk-flex-first@m uk-margin-xsmall-right uk-margin-xsmall-left" type="checkbox" name="deinterlace" value="1">
+											</span>
+										</div>
+									</div>
+								</div>
+
+							</div>
+
+							<div id="statusInfo" class="uk-alert uk-alert-primary uk-margin-small-top uk-text-small uk-padding-small">Initializing player...</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+		</main>
+		<!-- Totop -->
+		<div id="back-to-top" class="uk-position-fixed uk-position-bottom-right uk-position-large uk-light uk-position-z-index-highest" hidden>
+			<a href="#" class="uk-icon-link uk-border-circle uk-background-primary uk-box-shadow-hover-medium uk-flex-inline uk-flex-center uk-flex-middle" uk-icon="icon: chevron-up; ratio: 2.2" uk-scroll></a>
+		</div>
+		<!-- Info -->
+		<div id="help-modal" class="uk-modal-container" uk-modal>
+			<div class="uk-modal-dialog uk-modal-body uk-border-rounded">
+				<button class="uk-modal-close-default" type="button" uk-close></button>
+				<div class="uk-modal-header">
+					<h2 class="uk-modal-title">Player Guide</h2>
+				</div>
+				<div class="uk-modal-body uk-overflow-auto" uk-height-viewport="property: max-height; offset-bottom: 30%">
+					<h3 class="uk-heading-bullet">Quality Profiles</h3>
+					<p class="uk-text-small">Select a profile to see details regarding bitrate, resolution, and smart transcoding logic:</p>
+					<ul class="uk-child-width-1-1 uk-grid-small" uk-grid uk-accordion="multiple: false" uk-margin>
+						<li>
+							<a class="uk-accordion-title uk-link-reset" href>
+								<div class="uk-grid-small uk-flex-middle" uk-grid>
+									<div class="uk-h5 uk-width-expand uk-inline">
+										H.264 Smart
+										<span class="uk-position-absolute uk-badge uk-margin-small-left">Default</span>
+									</div>
+									<div class="uk-width-auto" uk-accordion-icon></div>
+								</div>
+							</a>
+							<div class="uk-accordion-content uk-padding-small uk-text-small">
+								<div>
+									<strong>Intelligent Transcoding:</strong> This profile detects if the source stream is already H.264. 
+									If so, it uses "Smart Copy" to preserve 100% quality without CPU load. 
+									If transcoding is required (due to scaling or deinterlacing), it uses high-quality <strong>CRF 23</strong> encoding.
+								</div>
+								<table class="uk-table uk-table-small uk-table-responsive uk-margin-small-top">
+									<tr><th class="uk-width-small">Video Logic</th><td>Smart Copy or CRF 23</td></tr>
+									<tr><th>Resolution</th><td>Original</td></tr>
+									<tr><th>Audio</th><td>AAC 192 kbps</td></tr>
+								</table>
+							</div>
+						</li>
+						<!-- <li>
+							<a class="uk-accordion-title uk-link-reset" href>
+								<div class="uk-grid-small uk-flex-middle" uk-grid>
+									<div class="uk-h5 uk-width-expand">Live</div>
+									<div class="uk-width-auto" uk-accordion-icon></div>
+								</div>
+							</a>
+							<div class="uk-accordion-content uk-padding-small uk-text-small">
+								<div>
+									High-efficiency mode: The video stream is passed through in its original state (Copy). Only the audio is transcoded for browser compatibility.
+								</div>
+								<table class="uk-table uk-table-small uk-table-responsive uk-margin-small-top">
+									<tr><th class="uk-width-small">Video</th><td>Original (Pass-through)</td></tr>
+									<tr><th>Audio</th><td>AAC 192 kbps</td></tr>
+									<tr><th>Deinterlace</th><td><span class="uk-text-danger">Not Available</span></td></tr>
+								</table>
+							</div>
+						</li> -->
+						<li>
+							<a class="uk-accordion-title uk-link-reset" href>
+								<div class="uk-grid-small uk-flex-middle" uk-grid>
+									<div class="uk-h5 uk-width-expand">5G</div>
+									<div class="uk-width-auto" uk-accordion-icon></div>
+								</div>
+							</a>
+							<div class="uk-accordion-content uk-padding-small uk-text-small">
+								<div>
+									Optimized for high-speed mobile connections. Forces Full-HD resolution at a high bitrate.
+								</div>
+								<table class="uk-table uk-table-small uk-table-responsive uk-margin-small-top">
+									<tr><th class="uk-width-small">Bitrate</th><td>8000 kbps (VBR)</td></tr>
+									<tr><th>Resolution</th><td>1920px (FHD)</td></tr>
+									<tr><th>Audio</th><td>AAC 160 kbps</td></tr>
+								</table>
+							</div>
+						</li>
+						<li>
+							<a class="uk-accordion-title uk-link-reset" href>
+								<div class="uk-grid-small uk-flex-middle" uk-grid>
+									<div class="uk-h5 uk-width-expand">LTE</div>
+									<div class="uk-width-auto" uk-accordion-icon></div>
+								</div>
+							</a>
+							<div class="uk-accordion-content uk-padding-small uk-text-small">
+								<div>
+									The mobile standard. Balanced ratio between HD image quality and data consumption.
+								</div>
+								<table class="uk-table uk-table-small uk-table-responsive uk-margin-small-top">
+									<tr><th class="uk-width-small">Bitrate</th><td>3500 kbps (VBR)</td></tr>
+									<tr><th>Resolution</th><td>1280px (HD)</td></tr>
+									<tr><th>Audio</th><td>AAC 128 kbps</td></tr>
+								</table>
+							</div>
+						</li>
+						<li>
+							<a class="uk-accordion-title uk-link-reset" href>
+								<div class="uk-grid-small uk-flex-middle" uk-grid>
+									<div class="uk-h5 uk-width-expand">Mobile Safe</div>
+									<div class="uk-width-auto" uk-accordion-icon></div>
+								</div>
+							</a>
+							<div class="uk-accordion-content uk-padding-small uk-text-small">
+								<div>
+									Maximum stability for weak signals or limited data plans. Uses significant compression and reduced resolution.
+								</div>
+								<table class="uk-table uk-table-small uk-table-responsive uk-margin-small-top">
+									<tr><th class="uk-width-small">Bitrate</th><td>1500 kbps (VBR)</td></tr>
+									<tr><th>Resolution</th><td>960px (SD)</td></tr>
+									<tr><th>Audio</th><td>AAC 96 kbps</td></tr>
+								</table>
+							</div>
+						</li>
+					</ul>
+					<h3 class="uk-heading-bullet uk-margin-medium-top">Streaming Modes</h3>
+					<p class="uk-text-small">Choose the delivery method that best fits your device and network:</p>
+					<ul class="uk-child-width-1-1 uk-grid-small" uk-grid uk-accordion="multiple: false" uk-margin>
+						<li>
+							<a class="uk-accordion-title uk-link-reset" href>
+								<div class="uk-grid-small uk-flex-middle" uk-grid>
+									<div class="uk-h5 uk-width-expand">HLS (HTTP Live Streaming)</div>
+									<div class="uk-width-auto" uk-accordion-icon></div>
+								</div>
+							</a>
+							<div class="uk-accordion-content uk-padding-small uk-text-small">
+								<div>
+									<strong>Segment-Based Streaming:</strong> The stream is broken into small chunks (segments). This allows the player to buffer ahead, making it extremely resilient against short signal drops or fluctuating mobile bandwidth.
+								</div>
+								<ul class="uk-list uk-list-disc uk-list-muted uk-text-meta">
+									<li><strong>Best for:</strong> Mobile devices (iOS/Android), 4G/5G, and unstable Wi-Fi.</li>
+									<li><strong>Tech:</strong> Output powered by <a href="https://github.com/video-dev/hls.js" target="_blank" class="uk-link-text uk-text-primary">HLS.js</a>. This player automatically detects your browser's capabilities. Apple devices (Safari, iPhone, iPad) will use Native HLS playback for maximum efficiency, while other browsers use the HLS.js engine to provide the same high-quality experience.</li>
+									<li><strong>Pro:</strong> Better stability; supports "Adaptive Bitrate" logic in the player to prevent complete stops.</li>
+								</ul>
+							</div>
+						</li>
+						<li>
+							<a class="uk-accordion-title uk-link-reset" href>
+								<div class="uk-grid-small uk-flex-middle" uk-grid>
+									<div class="uk-h5 uk-width-expand">HTTP-TS (MPEG-TS)</div>
+									<div class="uk-width-auto" uk-accordion-icon></div>
+								</div>
+							</a>
+							<div class="uk-accordion-content uk-padding-small uk-text-small">
+								<div>
+									<strong>Standard Low-Latency:</strong> This mode streams a continuous MPEG-TS container directly to the player. It offers the lowest possible delay between the broadcast and your screen.
+								</div>
+								<ul class="uk-list uk-list-disc uk-list-muted uk-text-meta">
+									<li><strong>Best for:</strong> Local networks (LAN/WLAN) and Desktop browsers.</li>
+									<li><strong>Tech:</strong> Output powered by <a href="https://xqq.im/mpegts.js/" target="_blank" class="uk-link-text uk-text-primary">mpegts.js</a>.</li>
+									<li><strong>Pro:</strong> Instant channel switching and minimal server-side buffering.</li>
+								</ul>
+							</div>
+						</li>
+					</ul>
+					<h3 class="uk-heading-bullet uk-margin-medium-top">Advanced Features</h3>
+					<ul class="uk-list uk-list-bullet uk-text-small">
+						<li><strong>Deinterlacing:</strong> Removes "combing" artifacts from interlaced TV signals (e.g., 1080i). <mark><span class="uk-text-warning">Note:</span> Enabling this forces a full transcode, disabling the "Smart Copy" feature.</mark></li>
+						<li><strong>Bitrate Monitor:</strong> Shows the actual rolling average of data throughput in Mbit/s.</li>
+						<li><strong>Auto-Reconnect:</strong> The player attempts to recover automatically if the stream is interrupted.</li>
+					</ul>
+					<hr>
+					<div class="uk-alert-warning" uk-alert>
+						<!-- <a href class="uk-alert-close" uk-close></a> -->
+						<h3 class="uk-margin-remove-bottom">System Requirements</h3>
+						<p class="uk-text-small uk-margin-small-top">
+							This interface requires the <a class="uk-text-bold uk-link-text" href="https://github.com/vdr-projects/vdr-plugin-streamdev">VDR Plugin Streamdev</a> to be active on the server.</br>
+							Specifically, all transcoding features (Quality Profiles) only function if the provided <span uk-tooltip="vdr/config/plugins/streamdev-server"><code>externremux.sh</code></span> script is present and correctly configured in your VDR environment.
+						</p>
+					</div>
+				</div>
+				<div class="uk-modal-footer uk-text-right">
+					<button class="uk-button uk-button-default uk-modal-close" type="button">Close</button>
+				</div>
+			</div>
+		</div>
+		<!-- Footer -->
+		<footer id="footer-include"></footer>
+	</body>
+</html>
+
+
+<!-- vim: ts=4 sw=4 noet: -->
+<!-- kate: space-indent off; indent-width 4; mixed-indent off; -->

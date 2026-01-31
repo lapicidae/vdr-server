@@ -1,105 +1,151 @@
 #!/bin/sh
-printf "Content-Type: text/html\r\n\r\n<!DOCTYPE html>\n<html lang='en'>\n"
+#
+# Generate a UIkit-based directory listing with Lightbox support.
 
-if [ ! -d "..${REQUEST_URI#"${SCRIPT_NAME}"}" ]; then
-cat << EOH
-  <head>
-	<meta http-equiv='Refresh' content='0.2; url=../error/404.html'>
-  </head>
-EOH
-else
-cat << EOH
-  <head>
-	<meta charset="utf-8">
-	<title>VDR Images Server (${REQUEST_URI})</title>
-	<link rel="icon" type="image/svg+xml" href="../favicon.svg" sizes="any">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
-	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en">
-	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.teal-red.min.css">
-	<style>
-		#git-link{position:fixed;display:block;right:0;bottom:0;margin-right:40px;margin-bottom:40px;z-index:900}
-		#filelist .mdl-list__item{padding:0 !important;min-height:30px !important}
-		.mdl-layout__tab-bar,.mdl-layout__tab-bar-button{background-color:#1A2669}
-		.ribbon{width:100%;height:40vh;background-color:#3F51B5;flex-shrink:0}
-		.main{margin-top:-35vh;flex-shrink:0;padding-bottom:100px}
-		.header .mdl-layout__header-row{padding-left:40px}
-		.container{max-width:1600px;width:calc(100% - 16px);margin:0 auto;min-height:600px}
-		.content{border-radius:2px;padding:80px 56px;margin-bottom:80px}
-		.layout.is-small-screen .content{padding:40px 28px}
-		.content h3{margin-top:48px}
-		.footer{padding-left:40px;position:absolute;bottom:0px;width:100%}
-		.footer .mdl-mini-footer--link-list a{font-size:13px}
-		.list-item {width: 300px}
-	</style>
-  </head>
-  <body>
-	<div class="layout mdl-layout mdl-layout--fixed-header mdl-js-layout mdl-color--grey-100">
-		<header class="header mdl-layout__header mdl-layout__header--scroll mdl-color--grey-100 mdl-color-text--grey-800">
-			<div class="mdl-layout__header-row">
-				<span class="mdl-layout-title">VDR Images Server</span>
-			</div>
-			<div class="mdl-layout__tab-bar mdl-js-ripple-effect">
-				<a href="../index.html" class="mdl-layout__tab">Home</a>
-				<a href="../channellogos/" class="mdl-layout__tab">Channel Logos</a>
-				<a href="../epgimages/" class="mdl-layout__tab">EPG Images</a>
-			</div>
-		</header>
-		<div class="ribbon"></div>
-		<main class="main mdl-layout__content">
-			<div class="container mdl-grid">
-				<div class="mdl-cell mdl-cell--2-col mdl-cell--hide-tablet mdl-cell--hide-phone"></div>
-				<div class="content mdl-color--white mdl-shadow--4dp content mdl-color-text--grey-800 mdl-cell mdl-cell--8-col">
-					<span class="material-icons">list</span>
-					<h3>Contents of the directory (${REQUEST_URI})</h3>
-					<ul id="filelist" class="mdl-list">
-EOH
+# Set the target directory relative to the script location.
+TARGET_DIR="..${REQUEST_URI#"${SCRIPT_NAME}"}"
 
-## create list (POSIX Shell Array)
-set -- '..'	# add 'one folder up'
-set -- "$@" "$(find "..${REQUEST_URI#"${SCRIPT_NAME}"}" -maxdepth 1 -mindepth 1 -type d \( -name 'cgi-bin' -o -name 'css' -o -name 'error' \) -prune -o -type d -printf '%f\n' | sort -bfiV)"	# directories first - ignore 'cgi-bin', 'css' and 'error'
-set -- "$@" "$(find -L "..${REQUEST_URI#"${SCRIPT_NAME}"}" -maxdepth 1 -mindepth 1 -type f -printf '%f\n' | sort -bfiV)"	# add files to array
-printf '%s\n' "$@" | while read -r line
-do
-if file -iL "..${REQUEST_URI#"${SCRIPT_NAME}"}$line" | grep -qE 'image|bitmap'; then
-ttid="tt-$line"
-cat << EOH
-						<li class="mdl-list__item">
-							<span class="mdl-list__item-primary-content">
-								<a href="$line" id="$ttid" class="mdl-list__item-primary-content">$line</a>
-								<span class="mdl-tooltip mdl-tooltip--left" for="$ttid"><img src="$line" width="150"></span>
-							</span>
-						</li>
-EOH
-elif test -n "$line"; then
-cat << EOH
-						<li class="mdl-list__item">
-							<span class="mdl-list__item-primary-content">
-								<a href="$line" class="mdl-list__item-primary-content">$line</a>
-							</span>
-						</li>
-EOH
-fi
+# Blacklisted directories
+BLACKLIST="css error font hls img js"
+
+for item in $BLACKLIST; do
+	case "$TARGET_DIR" in
+		*"$item"*)
+			printf "Status: 403 Forbidden\r\n"
+			printf "Content-Type: text/html\r\n\r\n"
+			printf '<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<meta http-equiv="Refresh" content="0.2; url=/error/403.html">\n\t</head>\n</html>\n'
+			exit 0
+			;;
+	esac
 done
 
-cat << EOF
+# Check if the requested directory exists.
+if [ ! -d "$TARGET_DIR" ]; then
+	printf "Status: 404 Not Found\r\n"
+	printf "Content-Type: text/html\r\n\r\n"
+	printf '<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<meta http-equiv="Refresh" content="0.2; url=/error/404.html">\n\t</head>\n</html>\n'
+	exit 0
+fi
+
+# Remove leading and trailing slashes
+TITLE="${REQUEST_URI#/}"
+TITLE="${TITLE%/}"
+
+printf "Content-Type: text/html\r\n\r\n"
+
+cat << EOH
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>${TITLE} | vdr-server @ docker</title>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="icon" type="image/svg+xml" href="/img/favicon.svg" sizes="any">
+		<link rel="shortcut icon" href="/favicon.ico" />
+		<link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png">
+		<link rel="manifest" href="/site.webmanifest">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@latest/dist/css/uikit.min.css">
+		<script src="https://cdn.jsdelivr.net/npm/uikit@latest/dist/js/uikit.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/uikit@latest/dist/js/uikit-icons.min.js"></script>
+		<script src="/js/uikit-extension.js"></script>
+		<script src="/js/additions.js"></script>
+	</head>
+	<body class="uk-background-muted">
+		<!-- Navigation & Off-Canvas -->
+		<header id="navigation-include" class="uk-position-top uk-height-max-small"></header>
+		<div class="uk-flex uk-flex-center uk-flex-middle" uk-height-placeholder="#navigation-include">
+			<div id="placeholder-spinner" uk-spinner="ratio: 1.5"></div>
+		</div>
+		<!-- Content -->
+		<main class="uk-section uk-section-muted" data-uk-height-viewport="expand: true">
+			<div class="uk-container">
+				<div class="uk-card uk-card-default uk-card-body uk-box-shadow-medium uk-border-rounded">
+					<h3 class="uk-card-title">
+						<span uk-icon="icon: folder; ratio: 1.5" class="uk-margin-small-right"></span>
+						Index of ${REQUEST_URI}
+					</h3>
+					<ul class="uk-list uk-list-divider uk-list-large" uk-lightbox="toggle: .lb-link; animation: slide">
+EOH
+
+# Count slashes
+SLASH_COUNT=$(printf '%s' "$REQUEST_URI" | tr -dc '/' | wc -c)
+
+# Show "Parent Directory" only if we are deeper than 2 slashes
+if [ "$SLASH_COUNT" -gt 2 ]; then
+	cat << EOH
+						<li>
+							<a href=".." class="uk-link-text uk-text-bold">
+								<span uk-icon="reply" class="uk-margin-small-right"></span>Parent Directory
+							</a>
+						</li>
+EOH
+fi
+
+# Process Directories
+find "$TARGET_DIR" -maxdepth 1 -mindepth 1 -type d \
+	\( -name 'cgi-bin' -o -name 'css' -o -name 'error' -o -name 'js' \) -prune -o \
+	-type d -printf '%f\n' | sort -bfiV | while read -r line; do
+	[ -z "$line" ] && continue
+	cat << EOD
+						<li>
+							<a href="${line}/" class="uk-link-toggle">
+								<span uk-icon="folder" class="uk-margin-small-right"></span>
+								<span class="uk-link-heading">${line}/</span>
+							</a>
+						</li>
+EOD
+done
+
+# Process Files
+find -L "$TARGET_DIR" -maxdepth 1 -mindepth 1 -type f -printf '%f\n' | sort -bfiV | while read -r line; do
+	[ -z "$line" ] && continue
+	
+	ext="${line##*.}"
+	filename="${line%.*}"
+	case "$ext" in
+		jpg|jpeg|png|gif|svg|webp|bmp|JPG|JPEG|PNG|SVG)
+			cat << EOF
+						<li>
+							<div class="uk-inline">
+								<a href="$line" class="uk-link-toggle lb-link" data-alt="${filename} Logo" data-caption="${filename}">
+									<span uk-icon="image" class="uk-margin-small-right"></span>
+									<span class="uk-link-heading">$line</span>
+								</a>
+								<div class="uk-hidden-touch uk-background-secondary" uk-dropdown="mode: hover; pos: right-center; delay-show: 300; delay-hide: 125; offset: 15">
+									<img src="$line" class="uk-width-small" alt="Preview">
+								</div>
+							</div>
+						</li>
+EOF
+			;;
+		*)
+			cat << EOF
+						<li>
+							<a href="$line" class="uk-link-toggle" target="_blank">
+								<span uk-icon="file" class="uk-margin-small-right"></span>
+								<span class="uk-link-heading">$line</span>
+							</a>
+						</li>
+EOF
+			;;
+	esac
+done
+
+cat << EOT
 					</ul>
 				</div>
 			</div>
-			<footer class="footer mdl-mini-footer">
-				<div class="mdl-mini-footer--left-section">
-					<ul class="mdl-mini-footer--link-list">
-						<li><a href="https://policies.google.com/">Privacy and Terms</a></li>
-						<li><a href="https://getmdl.io/">Material Design Lite</a></li>
-					</ul>
-				</div>
-			</footer>
 		</main>
-	</div>
-	<a href="https://github.com/lapicidae/vdr-server/" target="_blank" id="git-link" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color--accent mdl-color-text--accent-contrast">GitHub (vdr-server)</a>
-	<script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
-  </body>
-EOF
-fi
+		<!-- Totop -->
+		<div id="back-to-top" class="uk-position-fixed uk-position-bottom-right uk-position-large uk-light uk-position-z-index-highest" hidden>
+			<a href="#" class="uk-icon-link uk-border-circle uk-background-primary uk-box-shadow-hover-medium uk-flex-inline uk-flex-center uk-flex-middle" uk-icon="icon: chevron-up; ratio: 2.2" uk-scroll></a>
+		</div>
+		<!-- Footer -->
+		<footer id="footer-include"></footer>
+	</body>
+</html>
+EOT
 
-echo "</html>"
+
+# vim: ts=4 sw=4 noet:
+# kate: space-indent off; indent-width 4; mixed-indent off;

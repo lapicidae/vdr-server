@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Media Assets Usage | vdr-server @ docker</title>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="icon" type="image/svg+xml" href="/img/favicon.svg" sizes="any">
+		<link rel="shortcut icon" href="/favicon.ico" />
+		<link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png">
+		<link rel="manifest" href="/site.webmanifest">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@latest/dist/css/uikit.min.css">
+		<script src="https://cdn.jsdelivr.net/npm/uikit@latest/dist/js/uikit.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/uikit@latest/dist/js/uikit-icons.min.js"></script>
+		<script src="/js/uikit-extension.js"></script>
+		<script src="/js/additions.js"></script>
+	</head>
+	<body class="uk-background-muted">
+		<!-- Navigation & Off-Canvas -->
+		<header id="navigation-include" class="uk-position-top uk-height-max-small"></header>
+		<div class="uk-flex uk-flex-center uk-flex-middle" uk-height-placeholder="#navigation-include">
+			<div id="placeholder-spinner" uk-spinner="ratio: 1.5"></div>
+		</div>
+		<!-- Content -->
+		<main class="uk-section uk-section-muted" data-uk-height-viewport="expand: true">
+			<div class="uk-container">
+				<div class="uk-flex uk-flex-column uk-width-expand">
+
+					<div class="uk-margin">
+						<div class="uk-card uk-card-small uk-card-default uk-card-body uk-box-shadow-medium uk-border-rounded">
+							<h3 class="uk-card-title">
+								<a class="uk-link-heading" href="https://github.com/vdr-projects/vdr-plugin-streamdev">
+									<span class="uk-margin-small-right uk-text-emphasis" uk-icon="icon: play-circle; ratio: 1.2"></span>
+									IPTV via streamdev
+								</a>
+							</h3>
+							<div class="uk-margin-small-bottom">
+								VDR implementation of the VTP (Video Transfer Protocol) Version 0.0.3 and a basic HTTP Streaming Protocol.<br>
+							</div>
+							<div class="uk-alert-warning" uk-alert>
+								<h4 class="uk-margin-remove-bottom">System Requirements</h4>
+								<p class="uk-text-small uk-margin-small-top">
+									File creation must be enabled via the docker environment variable <code>START_XMLTV=true</code>!
+								</p>
+							</div>
+							<h4>Default M3U & XMLTV URLs:</h4>
+							<ul class="uk-list uk-list-circle url_replace">
+								<li>M3U: http://myHost:PORT/channels.m3u</li>
+								<li>XMLTV: http://myHost:PORT/epg.xmltv</li>
+							</ul>
+						</div>
+					</div>
+
+
+					<div class="uk-margin">
+						<div class="uk-card uk-card-small uk-card-default uk-card-body uk-box-shadow-medium uk-border-rounded">
+							<h3 class="uk-card-title">
+								<a class="uk-link-heading" href="https://github.com/pipelka/roboTV">
+									<span class="uk-margin-small-right uk-text-emphasis" uk-icon="icon: android-robot; ratio: 1.2"></span>
+									roboTV
+								</a>
+							</h3>
+							<div class="uk-margin-bottom">
+								roboTV is a Android TV based frontend for VDR...
+							</div>
+							<div class="uk-alert-warning" uk-alert>
+								<h4 class="uk-margin-remove-bottom">System Requirements</h4>
+								<p class="uk-text-small uk-margin-small-top uk-margin-remove-bottom">
+									The VDR plugin <strong>robotv</strong> must be enabled via the <code>PLUGINS</code> environment variable.
+								</p>
+								<div class="uk-text-meta uk-margin-small-top uk-margin-small-left" uk-overflow-fade>
+									Example: <code class="uk-text-emphasis">PLUGINS=robotv epgsearch live streamdev-server</code>
+								</div>
+							</div>
+							<h4>Edit "vdr/config/plugins/robotv/robotv.conf":</h4>
+							<ul class="uk-list uk-list-circle url_replace">
+								<li>PiconsURL = http://myHost:PORT/channellogos/picons</li>
+								<li>EpgImageUrl = http://myHost:PORT/epgimages/%d.jpg</li>
+							</ul>
+							<div class="uk-panel uk-background-muted uk-padding-small uk-margin-medium-top uk-border-rounded">
+								<p class="uk-text-small uk-margin-remove">
+									For some boxes (e.g. Chromecast with Google TV) it is also necessary to install the app <strong>"Live Channels"</strong> to view live tv.
+								</p>
+							</div>
+							<div class="uk-child-width-1-2@s uk-child-width-1-3@m uk-padding-small uk-flex-center" uk-grid>
+								<div>
+									<a class="uk-display-block uk-card uk-card-small uk-link-toggle" href="https://github.com/pipelka/roboTV/releases">
+										<div class="uk-card-body uk-padding-remove-bottom">
+											<h3 class="uk-card-title">roboTV</h3>
+										</div>
+										<div class="uk-card-media-bottom">
+											<img class="uk-child-width-expand" src="https://raw.githubusercontent.com/rubenpgrady/get-it-on-github/refs/heads/main/get-it-on-github.png" alt="Get it on GitHub">
+										</div>
+									</a>
+								</div>
+								<div>
+									<a class="uk-display-block uk-card uk-card-small uk-link-toggle" href="https://play.google.com/store/apps/details?id=com.google.android.tv">
+										<div class="uk-card-body uk-padding-remove-bottom">
+											<h3 class="uk-card-title">Live Channels</h3>
+										</div>
+										<div class="uk-card-media-bottom">
+											<img class="uk-child-width-expand" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play">
+										</div>
+									</a>
+								</div>
+							</div>
+						</div>
+					</div>
+
+				</div>
+			</div>
+		</main>
+		<!-- Totop -->
+		<div id="back-to-top" class="uk-position-fixed uk-position-bottom-right uk-position-large uk-light uk-position-z-index-highest" hidden>
+			<a href="#" class="uk-icon-link uk-border-circle uk-background-primary uk-box-shadow-hover-medium uk-flex-inline uk-flex-center uk-flex-middle" uk-icon="icon: chevron-up; ratio: 2.2" uk-scroll></a>
+		</div>
+		<!-- Footer -->
+		<footer id="footer-include"></footer>
+	</body>
+</html>
+
+
+<!-- vim: ts=4 sw=4 noet: -->
+<!-- kate: space-indent off; indent-width 4; mixed-indent off; -->

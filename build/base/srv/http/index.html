@@ -1,166 +1,86 @@
-<!doctype html>
-<!--
-  Material Design Lite
-  Copyright 2015 Google Inc. All rights reserved.
-
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-
-      https://www.apache.org/licenses/LICENSE-2.0
-
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License
--->
-<html lang="en">
-  <head>
-	<meta charset="utf-8">
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="description" content="Serve channel logos and epgimages for VDR.">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
-	<title>VDR Images Server</title>
-	<link rel="icon" type="image/svg+xml" href="favicon.svg" sizes="any">
-	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en">
-	<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-	<link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.teal-red.min.css">
-	<style>
-		#git-link{position:fixed;display:block;right:0;bottom:0;margin-right:40px;margin-bottom:40px;z-index:900}
-		.mdl-layout__tab-bar,.mdl-layout__tab-bar-button{background-color:#1A2669}
-		.ribbon{width:100%;height:40vh;background-color:#3F51B5;flex-shrink:0}
-		.main{margin-top:-35vh;flex-shrink:0;padding-bottom:100px}
-		.header .mdl-layout__header-row{padding-left:40px}
-		.container{max-width:1600px;width:calc(100% - 16px);margin:0 auto;min-height:600px}
-		.content{border-radius:2px;padding:80px 56px;margin-bottom:80px}
-		.layout.is-small-screen .content{padding:40px 28px}
-		.content h3{margin-top:48px}
-		.content h3 a{text-decoration:none}
-		.content h3 a:hover{color:#FF5252!important}
-		.footer{padding-left:40px;position:absolute;bottom:0px;width:100%}
-		.footer .mdl-mini-footer--link-list a{font-size:13px}
-		.list-item {width: 300px}
-		.playstore {display:flex;align-items:center;justify-content:center}
-		.playstore div {padding:20px}
-		.playstore div .left {flex: 0 0 65%}
-		.playstore div .right {flex: 1}
-		.playstore div h6 {margin-bottom:0px}
-		.playstore div a img {width:100%;max-width:250px}
-	</style>
-  </head>
-  <body>
-	<div class="layout mdl-layout mdl-layout--fixed-header mdl-js-layout mdl-color--grey-100">
-		<header class="header mdl-layout__header mdl-layout__header--scroll mdl-color--grey-100 mdl-color-text--grey-800">
-			<div class="mdl-layout__header-row">
-				<span class="mdl-layout-title">VDR Images Server</span>
-			</div>
-			<div class="mdl-layout__tab-bar mdl-js-ripple-effect">
-				<a href="./index.html" class="mdl-layout__tab is-active">Home</a>
-				<a href="./channellogos/" class="mdl-layout__tab">Channel Logos</a>
-				<a href="./epgimages/" class="mdl-layout__tab">EPG Images</a>
-			</div>
-		</header>
-		<div class="ribbon"></div>
-		<main class="main mdl-layout__content">
-			<div class="container mdl-grid">
-				<div class="mdl-cell mdl-cell--2-col mdl-cell--hide-tablet mdl-cell--hide-phone"></div>
-				<div class="content mdl-color--white mdl-shadow--4dp content mdl-color-text--grey-800 mdl-cell mdl-cell--8-col">
-					<span class="material-icons">home</span>
-					<h3><a class="mdl-color-text--grey-800" href="https://github.com/vdr-projects/vdr-plugin-streamdev">IPTV (streamdev)</a></h3>
-					<p>
-						VDR implementation of the VTP (Video Transfer Protocol) Version 0.0.3 and a basic HTTP Streaming Protocol.<br>File generation must be enabled!
-					</p>
-					<ul class="mdl-list">
-						<li>
-							<span class="material-icons">dataset</span>
-						</li>
-						<li class="mdl-list__item">
-							<span class="mdl-list__item-primary-content">
-								Default M3U &amp XMLTV URLs:
-							</span>
-						</li>
-						<li class="mdl-list__item">
-							<span class="url mdl-list__item-secondary-content">
-								M3U: http://myHost:PORT/channels.m3u
-							</span>
-						</li>
-						<li class="mdl-list__item">
-							<span class="url mdl-list__item-secondary-content">
-								XMLTV: http://myHost:PORT/epg.xmltv
-							</span>
-						</li>
-					</ul>
-					<h3><a class="mdl-color-text--grey-800" href="https://github.com/pipelka/roboTV">roboTV</a></h3>
-					<p>
-						roboTV is a Android TV based frontend for VDR. Now you can use your Android TV Box (or your TV running Android) to stream LiveTV channels from your VDR backend (robotv-plugin must be installed).
-					</p>
-					<ul class="mdl-list">
-						<li>
-							<span class="material-icons">mode_edit</span>
-						</li>
-						<li class="mdl-list__item">
-							<span class="mdl-list__item-primary-content">
-								Edit "vdr/config/plugins/robotv/robotv.conf":
-							</span>
-						</li>
-						<li class="mdl-list__item">
-							<span class="url mdl-list__item-secondary-content">
-								PiconsURL = http://myHost:PORT/channellogos/picons
-							</span>
-						</li>
-						<li class="mdl-list__item">
-							<span class="url mdl-list__item-secondary-content">
-								EpgImageUrl = http://myHost:PORT/epgimages/%d.jpg
-							</span>
-						</li>
-					</ul>
-					<p>
-						<br>
-						For some boxes (e.g. Chromecast with Google TV) it is also necessary to install the app "Live Channels" to view live tv.
-						<br>
-					</p>
-					<div class="playstore">
-						<div class="left">
-							<h6>roboTV:</h6>
-							<a href='https://play.google.com/store/apps/details?id=org.robotv.robotv'>
-								<img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png'/>
-							</a>
-						</div>
-						<div class="right">
-							<h6>Live Channels:</h6>
-							<a href='https://play.google.com/store/apps/details?id=com.google.android.tv'>
-								<img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png'/>
-							</a>
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>vdr-server @ docker</title>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="icon" type="image/svg+xml" href="/img/favicon.svg" sizes="any">
+		<link rel="shortcut icon" href="/favicon.ico" />
+		<link rel="apple-touch-icon" sizes="180x180" href="/img/apple-touch-icon.png">
+		<link rel="manifest" href="/site.webmanifest">
+		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@latest/dist/css/uikit.min.css">
+		<script src="https://cdn.jsdelivr.net/npm/uikit@latest/dist/js/uikit.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/uikit@latest/dist/js/uikit-icons.min.js"></script>
+		<script src="/js/uikit-extension.js"></script>
+		<script src="/js/additions.js"></script>
+	</head>
+	<body class="uk-background-muted">
+		<!-- Navigation & Off-Canvas -->
+		<header id="navigation-include" class="uk-position-top uk-height-max-small"></header>
+		<div class="uk-flex uk-flex-center uk-flex-middle" uk-height-placeholder="#navigation-include">
+			<div id="placeholder-spinner" uk-spinner="ratio: 1.5"></div>
+		</div>
+		<!-- Content -->
+		<main class="uk-section uk-section-muted" data-uk-height-viewport="expand: true">
+			<div class="uk-container">
+				
+				<div class="uk-grid-match uk-child-width-1-2@m" uk-grid>
+					
+					<div>
+						<div class="uk-card uk-card-default uk-card-hover uk-card-body uk-border-rounded uk-flex uk-flex-column">
+							<div class="uk-flex-middle uk-grid-small" uk-grid>
+								<div class="uk-width-auto">
+									<span uk-icon="icon: tv; ratio: 2" class="uk-text-primary"></span>
+								</div>
+								<div class="uk-width-expand">
+									<h3 class="uk-card-title uk-margin-remove">LiveTV WebStreaming</h3>
+								</div>
+							</div>
+							<p class="uk-flex-1">
+								Simple DVB playback directly in the browser. Powered by <strong>hls.js</strong> or <strong>mpegts.js</strong> for streaming using modern web standards.
+							</p>
+							<div class="uk-margin-top">
+								<a href="stream.html" class="uk-button uk-button-primary uk-border-rounded">Live TV Player</a>
+							</div>
 						</div>
 					</div>
+
+					<div>
+						<div class="uk-card uk-card-default uk-card-hover uk-card-body uk-border-rounded uk-flex uk-flex-column">
+							<div class="uk-flex-middle uk-grid-small" uk-grid>
+								<div class="uk-width-auto">
+									<span uk-icon="icon: database; ratio: 2" class="uk-text-primary"></span>
+								</div>
+								<div class="uk-width-expand">
+									<h3 class="uk-card-title uk-margin-remove">Media Assets</h3>
+								</div>
+							</div>
+							<p class="uk-flex-1">Centralized distribution of TV metadata and assets for external clients such as KODi, Jellyfin or remote VDR instances:</p>
+								<ul class="uk-list uk-list-bullet uk-text-small">
+									<li>High-quality PNG Channel Logos (Picons)</li>
+									<li>EPG Event Thumbnails (epgimages)</li>
+									<li>Dynamic <strong>XMLTV</strong> EPG generation</li>
+									<li>Auto-generated <strong>IPTV M3U</strong> playlists</li>
+								</ul>
+							<div class="uk-margin-top">
+								<a href="assets_usage.html" class="uk-button uk-button-default uk-border-rounded">Read Usage</a>
+							</div>
+						</div>
+					</div>
+
 				</div>
+
 			</div>
-			<footer class="footer mdl-mini-footer">
-				<div class="mdl-mini-footer--left-section">
-					<ul class="mdl-mini-footer--link-list">
-						<li><a href="https://policies.google.com/">Privacy and Terms</a></li>
-						<li><a href="https://getmdl.io/">Material Design Lite</a></li>
-					</ul>
-				</div>
-			</footer>
 		</main>
-	</div>
-	<a href="https://github.com/lapicidae/vdr-server/" target="_blank" id="git-link" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color--accent mdl-color-text--accent-contrast">GitHub (vdr-server)</a>
-	<script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
-	<script>
-		document.addEventListener("DOMContentLoaded", function(event) {
-			let items = document.getElementsByClassName ("url");
-			let numItems = items.length;
-			let oldHost = "myHost:PORT";
-			let newHost = window.location.host;
-			if (newHost) {
-				for (let i=0; i<numItems; i++) {
-					let this_host = items[i].innerHTML.replace(oldHost, newHost);
-					items[i].innerHTML = this_host;
-				}
-			}
-		});
-	</script>
-  </body>
+		<!-- Totop -->
+		<div id="back-to-top" class="uk-position-fixed uk-position-bottom-right uk-position-large uk-light uk-position-z-index-highest" hidden>
+			<a href="#" class="uk-icon-link uk-border-circle uk-background-primary uk-box-shadow-hover-medium uk-flex-inline uk-flex-center uk-flex-middle" uk-icon="icon: chevron-up; ratio: 2.2" uk-scroll></a>
+		</div>
+		<!-- Footer -->
+		<footer id="footer-include"></footer>
+	</body>
 </html>
+
+
+<!-- vim: ts=4 sw=4 noet: -->
+<!-- kate: space-indent off; indent-width 4; mixed-indent off; -->

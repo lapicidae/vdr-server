@@ -154,7 +154,7 @@ For example, `-p 8080:80` would expose port `80` from inside the container to be
 | `-p 6419/udp` | SVDRP Peering |
 | `-p 2004` | Streamdev Server (VDR-to-VDR Streaming) |
 | `-p 34890` | [Kodi](https://kodi.wiki/view/Add-on:VDR_VNSI_Client) VDR-Network-Streaming-Interface (VNSI) |
-| `-p 8099` | HTTP port for the simple web server [^2] |
+| `-p 8099` | HTTP port for the simple Web Interface [^2] |
 | **Config** | |
 | `-e PLUGINS="..."` | **Space separated** list of [VDR Plugins](https://github.com/VDR4Arch/vdr4arch/tree/master/plugins) |
 | `-e LOG2FILE=true` | Write log to file in `/vdr/log` |
@@ -172,7 +172,7 @@ For example, `-p 8080:80` would expose port `80` from inside the container to be
 | **Extras** | |
 | `-e START_NALUDUMP=true` | Start [naludump](https://www.udo-richter.de/vdr/naludump.html) daily at 4 am [^3] |
 | `-e START_NALUDUMP_AT=...` | Crontab schedule for naludump (default: `0 4 * * *`) |
-| `-e START_WEBSERVER=true` | Provision of logos, EPG images, m3u and XMLTV via HTTP (port: `8099`) [^2] |
+| `-e START_WEBSERVER=true` | Web interface with support for live streaming and asset delivery (port: `8099`) [^2] |
 | `-e START_XMLTV=true` | Generate m3u and [XMLTV](http://xmltv.org/) daily at 12 am [^4] |
 | `-e START_XMLTV_AT=...` | Crontab schedule for XMLTV creation (default: `0 0 * * *`) |
 | `-e XMLTV_DAYS=3` | Number of days in xmltv file (default: `7`) |
@@ -262,7 +262,7 @@ If you enjoy using VDR, please consider registering at the official **[VDR User 
 
 [//]: # (Footnotes)
 [^1]: Simple interface is avalable at `http://<your-ip>:3000`
-[^2]: When the server is running instructions available at: `http://<your-ip>:8099`
+[^2]: When the web interface is running, you will find instructions on how to use media assets (xmltv, epgimages, iptv) at: `http://<your-ip>:8099/assets_usage.html`
 [^3]: WARNING: The whole process has been designed to be as safe as possible! Nevertheless, there is no guarantee that the recordings will not be damaged during the cleanup.
 [^4]: Plugin `streamdev-server` is required for playback. The default server in m3u for channels and channel images is the [network alias](https://docs.docker.com/engine/reference/run/#network-settings) of the container. Currently, only the German language is fully supported when converting to XMLTV format.
 [^5]: If you want to use VDRs `"SetSystemTime = 1"` use parameter `"--cap-add=SYS_TIME"` **(untested)**

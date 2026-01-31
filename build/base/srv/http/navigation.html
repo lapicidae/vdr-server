@@ -1,0 +1,67 @@
+<div id="navbar" class="uk-light" uk-sticky>
+	<div class="uk-background-primary">
+		
+		<div class="uk-container">
+			
+			<nav class="uk-navbar" uk-navbar="mode: click">
+				
+				<div class="uk-navbar-left">
+					<a class="uk-navbar-item uk-logo uk-flex uk-flex-middle" href="/index.html" aria-label="Back to Home">
+						<img class="uk-margin-xsmall-right uk-hidden@s" src="/img/logo.svg" alt="VDR-Server @ Docker Logo" style="max-height:50px">
+						<img class="uk-margin-small-right uk-visible@s" src="/img/logo.svg" alt="VDR-Server @ Docker Logo" style="max-height:60px">
+						<span class="uk-text-nowrap uk-visible@s">VDR-Server @ Docker</span>
+						<!-- <span class="uk-margin-small-right" uk-icon="icon: tv; ratio: 2"></span>VDR-Server @ Docker -->
+					</a>
+				</div>
+
+				<div class="uk-navbar-right">
+					<div class="uk-navbar-item">
+						<ul class="uk-navbar-nav uk-visible@m">
+							<li><a href="/index.html" class="uk-icon-link" uk-icon="home" aria-label="Back to Home"></a></li>
+							<li><a href="/stream.html">Live TV Player</a></li>
+							<li>
+								<a href="#">Media Assets <span uk-navbar-parent-icon></span></a>
+								<div class="uk-navbar-dropdown">
+									<ul class="uk-nav uk-navbar-dropdown-nav">
+										<li><a href="/channellogos/">Channel Logos</a></li>
+										<li><a href="/epgimages/">EPG Images</a></li>
+										<li class="uk-nav-divider"></li>
+										<li><a href="/assets_usage.html">Usage</a></li>
+									</ul>
+								</div>
+							</li>
+						</ul>
+						<a class="uk-navbar-toggle uk-hidden@m" uk-navbar-toggle-icon uk-toggle href="#off-canvas"></a>
+					</div>
+				</div>
+
+			</nav>
+		</div>
+	</div>
+</div>
+
+<div id="off-canvas" uk-offcanvas="flip: true; overlay: true">
+	<div class="uk-offcanvas-bar uk-flex uk-flex-column">
+		<button class="uk-offcanvas-close uk-close-large uk-margin-top uk-margin-right" type="button" uk-close></button>
+		<ul class="uk-nav-primary uk-nav-center uk-margin-auto-vertical" uk-nav>
+			<li><a href="/index.html">Home</a></li>
+			<li><a href="/stream.html">Live TV Player</a></li>
+			<li class="uk-nav-divider"></li>
+			<li class="uk-parent">
+				<a href="#">Media Assets <span uk-nav-parent-icon></span></a>
+				<ul class="uk-nav-sub">
+					<li><a href="/channellogos/">Channel Logos</a></li>
+					<li><a href="/epgimages/">EPG Images</a></li>
+					<li><a href="/assets_usage.html">Usage</a></li>
+				</ul>
+			</li>
+		</ul>
+		<div class="uk-text-center uk-margin-top">
+			<img src="/img/logo_light.svg" alt="VDR-Server @ Docker Logo" style="max-height:50px">
+		</div>
+	</div>
+</div>
+
+
+<!-- vim: ts=4 sw=4 noet: -->
+<!-- kate: space-indent off; indent-width 4; mixed-indent off; -->
