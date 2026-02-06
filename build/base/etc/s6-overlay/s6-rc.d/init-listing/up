@@ -14,87 +14,97 @@ foreground {
  pipeline { sed "s/$/ ${group}/" }
  xargs printf "%-26s%s (%s)\n" "Group ID:"
 }
-foreground { pipeline { printcontenv LANG } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Lang:" }
-foreground { pipeline { printcontenv LANGUAGE } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Language:" }
-foreground { pipeline { realpath --relative-to /usr/share/zoneinfo /etc/localtime } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Timezone:" }
+foreground { pipeline { printcontenv LANG } pipeline { s6-quote-filter } pipeline { tr -d "\n" } xargs printf "%-26s%s\n" "Lang:" }
+foreground { pipeline { printcontenv LANGUAGE } pipeline { s6-quote-filter } pipeline { tr -d "\n" } xargs printf "%-26s%s\n" "Language:" }
+foreground { pipeline { realpath --relative-to /usr/share/zoneinfo /etc/localtime } pipeline { s6-quote-filter } pipeline { tr -d "\n" } xargs printf "%-26s%s\n" "Timezone:" }
 foreground {
  if { eltest -v PLUGINS }
-  pipeline { printcontenv PLUGINS } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "VDR Plugins:"
+  pipeline { printcontenv PLUGINS } pipeline { s6-quote-filter } pipeline { tr -d "\n" } xargs printf "%-26s%s\n" "VDR Plugins:"
 }
 foreground {
  if { eltest -v NICE }
-  pipeline { printcontenv NICE } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "VDR Niceness:"
+  pipeline { printcontenv NICE } pipeline { s6-quote-filter } pipeline { tr -d "\n" } xargs printf "%-26s%s\n" "VDR Niceness:"
 }
 foreground {
- ifelse { eltest -v IONICE_CLASS -a IONICE_PRIO }
-  { pipeline { foreground { printcontenv IONICE_CLASS } printcontenv IONICE_PRIO } pipeline { s6-quote-filter } xargs printf "%-26sclass %s, prio %s\n" "VDR I/O scheduling:" }
- ifelse { eltest -v IONICE_CLASS }
-  { pipeline { printcontenv IONICE_CLASS } pipeline { s6-quote-filter } xargs printf "%-26sclass %s\n" "VDR I/O scheduling:" }
+ ifelse { eltest -v IONICE_CLASS -a -v IONICE_PRIO } {
+  backtick class { pipeline { printcontenv IONICE_CLASS } tr -d "\n" }
+  importas -u -S class
+  backtick prio { pipeline { printcontenv IONICE_PRIO } tr -d "\n" }
+  importas -u -S prio
+  printf "%-26sclass %s, prio %s\n" "VDR I/O scheduling:" "${class}" "${prio}"
+ }
+ ifelse { eltest -v IONICE_CLASS } {
+  backtick class { pipeline { printcontenv IONICE_CLASS } tr -d "\n" }
+  importas -u -S class
+  printf "%-26sclass %s\n" "VDR I/O scheduling:" "${class}"
+ }
  if { eltest -v IONICE_PRIO }
-  pipeline { printcontenv IONICE_PRIO } pipeline { s6-quote-filter } xargs printf "%-26sprio %s\n" "VDR I/O scheduling:"
+  backtick prio { pipeline { printcontenv IONICE_PRIO } tr -d "\n" }
+  importas -u -S prio
+  printf "%-26sprio %s\n" "VDR I/O scheduling:" "${prio}"
 }
 foreground {
  if { eltest -v START_WEBSERVER }
-  pipeline { printcontenv START_WEBSERVER } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Enable Webserver:"
+  pipeline { printcontenv START_WEBSERVER } pipeline { s6-quote-filter } pipeline { tr -d "\n" } xargs printf "%-26s%s\n" "Enable Webserver:"
 }
 foreground {
  if { eltest -v START_CROND }
-  pipeline { printcontenv START_CROND } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Enable Cron-Daemon:"
+  pipeline { printcontenv START_CROND } pipeline { s6-quote-filter } pipeline { tr -d "\n" } xargs printf "%-26s%s\n" "Enable Cron-Daemon:"
 }
 foreground {
  if { eltest -v START_NALUDUMP }
-  pipeline { printcontenv START_NALUDUMP } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Naludump Cron:"
+  pipeline { printcontenv START_NALUDUMP } pipeline { s6-quote-filter } pipeline { tr -d "\n" } xargs printf "%-26s%s\n" "Naludump Cron:"
 }
 foreground {
  if { eltest -v START_NALUDUMP_AT }
-  pipeline { printcontenv START_NALUDUMP_AT } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Naludump Cron at:"
+  pipeline { printcontenv START_NALUDUMP_AT } pipeline { s6-quote-filter } pipeline { tr -d "\n" } xargs printf "%-26s%s\n" "Naludump Cron at:"
 }
 foreground {
  if { eltest -v START_XMLTV }
-  pipeline { printcontenv START_XMLTV } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "XMLTV Cron:"
+  pipeline { printcontenv START_XMLTV } pipeline { s6-quote-filter } pipeline { tr -d "\n" } xargs printf "%-26s%s\n" "XMLTV Cron:"
 }
 foreground {
  if { eltest -v START_XMLTV_AT }
-  pipeline { printcontenv START_XMLTV_AT } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "XMLTV Cron at:"
+  pipeline { printcontenv START_XMLTV_AT } pipeline { s6-quote-filter } pipeline { tr -d "\n" } xargs printf "%-26s%s\n" "XMLTV Cron at:"
 }
 foreground {
  if { eltest -v XMLTV_DAYS }
-  pipeline { printcontenv XMLTV_DAYS } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "XMLTV Days:"
+  pipeline { printcontenv XMLTV_DAYS } pipeline { s6-quote-filter } pipeline { tr -d "\n" } xargs printf "%-26s%s\n" "XMLTV Days:"
 }
 foreground {
  if { eltest -v XMLTV_DOMAIN_NAME }
-  pipeline { printcontenv XMLTV_DOMAIN_NAME } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "XMLTV Domain Name:"
+  pipeline { printcontenv XMLTV_DOMAIN_NAME } pipeline { s6-quote-filter } pipeline { tr -d "\n" } xargs printf "%-26s%s\n" "XMLTV Domain Name:"
 }
 foreground {
  if { eltest -v XMLTV_STREAM_PORT }
-  pipeline { printcontenv XMLTV_STREAM_PORT } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "XMLTV Stream Port:"
+  pipeline { printcontenv XMLTV_STREAM_PORT } pipeline { s6-quote-filter } pipeline { tr -d "\n" } xargs printf "%-26s%s\n" "XMLTV Stream Port:"
 }
 foreground {
  if { eltest -v XMLTV_LOGO_PORT }
-  pipeline { printcontenv XMLTV_LOGO_PORT } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "XMLTV Logo Port:"
+  pipeline { printcontenv XMLTV_LOGO_PORT } pipeline { s6-quote-filter } pipeline { tr -d "\n" } xargs printf "%-26s%s\n" "XMLTV Logo Port:"
 }
 foreground {
  if { eltest -v XMLTV_LOGO_URL }
-  pipeline { printcontenv XMLTV_LOGO_URL } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "XMLTV Logo URL:"
+  pipeline { printcontenv XMLTV_LOGO_URL } pipeline { s6-quote-filter } pipeline { tr -d "\n" } xargs printf "%-26s%s\n" "XMLTV Logo URL:"
 }
 foreground {
  if { eltest -v LOG2FILE }
-  pipeline { printcontenv LOG2FILE } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Log2File:"
+  pipeline { printcontenv LOG2FILE } pipeline { s6-quote-filter } pipeline { tr -d "\n" } xargs printf "%-26s%s\n" "Log2File:"
 }
 foreground {
  if { eltest -v PROTECT_CAMDATA }
-  pipeline { printcontenv PROTECT_CAMDATA } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Protect cam.data:"
+  pipeline { printcontenv PROTECT_CAMDATA } pipeline { s6-quote-filter } pipeline { tr -d "\n" } xargs printf "%-26s%s\n" "Protect cam.data:"
 }
 foreground {
  if { eltest -v DISABLE_WEBINTERFACE }
-  pipeline { printcontenv DISABLE_WEBINTERFACE } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Disable Webinterface:"
+  pipeline { printcontenv DISABLE_WEBINTERFACE } pipeline { s6-quote-filter } pipeline { tr -d "\n" } xargs printf "%-26s%s\n" "Disable Webinterface:"
 }
 foreground {
  if { eltest -v LOGO_COPY }
-  pipeline { printcontenv LOGO_COPY } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "Default Channel Logos:"
+  pipeline { printcontenv LOGO_COPY } pipeline { s6-quote-filter } pipeline { tr -d "\n" } xargs printf "%-26s%s\n" "Default Channel Logos:"
 }
 foreground {
  if { eltest -v NO_INET }
-  pipeline { printcontenv NO_INET } pipeline { s6-quote-filter } xargs printf "%-26s%s\n" "No Internet Connection:"
+  pipeline { printcontenv NO_INET } pipeline { s6-quote-filter } pipeline { tr -d "\n" } xargs printf "%-26s%s\n" "No Internet Connection:"
 }
 s6-echo "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄"
