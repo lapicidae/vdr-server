@@ -142,8 +142,15 @@ _ntfy 'install dependencies & tools'
 $pacinst \
     busybox \
     libdvbcsa \
-    ttf-vdrsymbols \
     naludump
+
+cd $buildDir || exit 1
+git clone 'https://aur.archlinux.org/ttf-vdrsymbols.git' ttf-vdrsymbols
+sed -i 's|http://andreas.vdr-developer.org|https://web.archive.org/web/http://andreas.vdr-developer.org|g' ttf-vdrsymbols/PKGBUILD
+chown -R builduser:users ttf-vdrsymbols
+cd ttf-vdrsymbols || exit 1
+$pacbuild --skipchecksums
+
 if [ "$miniVers" != 'true' ]; then
     $pacinst libva-headless
     $pacinst ffmpeg-headless
