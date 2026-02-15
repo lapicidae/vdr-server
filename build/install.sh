@@ -300,7 +300,8 @@ if [ "$buildOptimize" = "true" ]; then
 fi
 rm -rf \
     /tmp/* \
-    /var/tmp/*
+    /var/tmp/* \
+    /var/cache/pacman/pkg/download-*
 _uninst \
     argon2 \
     base \
