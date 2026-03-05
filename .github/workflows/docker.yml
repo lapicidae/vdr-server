@@ -47,7 +47,7 @@ jobs:
           printf 'VDR Revision:\t\t%s\n' "${{ steps.get_arg.outputs.vdrRevision }}"
           printf 'Base Image Digest:\t%s\n' "${{ steps.get_arg.outputs.baseDigest }}"
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Login to DockerHub
