@@ -149,6 +149,7 @@ git clone 'https://aur.archlinux.org/ttf-vdrsymbols.git' ttf-vdrsymbols
 sed -i 's|http://andreas.vdr-developer.org|https://web.archive.org/web/http://andreas.vdr-developer.org|g' ttf-vdrsymbols/PKGBUILD
 chown -R builduser:users ttf-vdrsymbols
 cd ttf-vdrsymbols || exit 1
+curl -L -A "Mozilla/5.0" --retry 5 --retry-delay 15 --retry-all-errors -O "https://web.archive.org/web/http://andreas.vdr-developer.org/fonts/download/vdrsymbols-ttf-20100612.tgz"
 $pacbuild --skipchecksums
 
 if [ "$miniVers" != 'true' ]; then
