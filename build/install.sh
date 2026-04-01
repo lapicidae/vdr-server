@@ -184,8 +184,15 @@ $pacbuild
 
 if [ "$miniVers" != 'true' ]; then
     _ntfy 'install VDR plugin live'
+
+	# Workaround for the build error "Some files have been locally modified"
+	cd "$buildDir" || exit 1
+	$pacdown cxxtools
+	cd cxxtools || exit 1
+	sed -i 's/^\([[:space:]]*\)autoreconf -i$/\1autoreconf -fi/' PKGBUILD
+	$pacbuild
+
     $pacinst \
-        cxxtools \
         tntnet
     $pacinst --mflags --skipinteg vdr-live
 fi
