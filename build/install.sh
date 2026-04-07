@@ -154,7 +154,7 @@ $pacbuild --skipchecksums
 
 if [ "$miniVers" != 'true' ]; then
     $pacinst libva-headless
-    $pacinst ffmpeg-headless
+    $pacinst ffmpeg-headless --assume-installed ffmpeg --assume-installed libva
 fi
 
 _ntfy 'install VDR'
