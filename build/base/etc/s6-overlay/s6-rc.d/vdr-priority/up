@@ -1,7 +1,12 @@
 #!/command/execlineb -P
 with-contenv
 s6-sleep 5
-backtick -E pid { pgrep vdr }
+backtick -E pid {
+ pipeline { pgrep vdr }
+ s6-head -n 1 -S
+}
+ifelse { eltest -z "${pid}" }
+ { s6-echo "VDR process not found!" }
 backtick -E vdr_nice {
  pipeline { ps --no-headers -o ni ${pid} }
  tr -d [:blank:]
@@ -38,10 +43,10 @@ ifelse -Xn {
  { fdswap 1 2 s6-echo "WARNING: The process priority cannot be changed! The SYS_NICE capability is missing." }
  foreground {
   if -t { eltest ${nice} -ne ${vdr_nice} }
-   foreground { s6-echo "Change the process priority of vdr to ${nice}" }
+   foreground { s6-echo "Change the process priority of VDR to ${nice}" }
    redirfd -w 1 /dev/null renice -n ${nice} --pid ${pid}
  }
  if -t { eltest ${ionice_prio} -ne ${vdr_ionice_prio} -o ${ionice_class} -ne ${vdr_ionice_class} }
   ifelse -X { redirfd -w 1 /dev/null fdswap 2 1 ionice -c ${ionice_class} -n ${ionice_prio} -p ${pid} }
-   { s6-echo "Change the IO priority of vdr to ${ionice_prio} and the class to ${ionice_class}" }
+   { s6-echo "Change the IO priority of VDR to ${ionice_prio} and the class to ${ionice_class}" }
    fdswap 1 2 s6-echo "ERROR: Changing the IO priority failed!"
