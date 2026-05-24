@@ -4,11 +4,12 @@ ARG inVM="true" \
     LANGUAGE="en_US:en_GB:en" \
     authors="A. Hemmerle <github.com/lapicidae>" \
     miniVers="false" \
-    S6VER="3.2.2.0" \
     baseDigest \
     dateTime \
     vdrRevision \
     vdrVersion
+
+ARG S6VER="3.2.2.0"
 
 ENV PATH="$PATH:/command:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl"
 ENV LANG="en_US.UTF-8" \
