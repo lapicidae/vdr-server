@@ -31,7 +31,7 @@ jobs:
 
       - name: Keep Workflow Alive
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.ACTIONS_TOKEN }}
         run: |
           # Extract the workflow filename (e.g., updatecli.yml) from the environment reference
           WORKFLOW_FILE=$(basename "${GITHUB_WORKFLOW_REF%%@*}")
