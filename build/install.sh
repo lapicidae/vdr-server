@@ -66,7 +66,7 @@ sed -i 's|!usr/share/\*locales/en_??|!usr/share/\*locales/*|g' /etc/pacman.conf
 sed -i '/^#DisableSandbox$/ s/^#//' '/etc/pacman.conf'
 if [ "$buildOptimize" = "true" ]; then
     # shellcheck disable=SC2016
-	sed -i '/^#MAKEFLAGS=.*/a MAKEFLAGS="-j$(nproc)"' '/etc/makepkg.conf'
+    sed -i '/^#MAKEFLAGS=.*/a MAKEFLAGS="-j$(nproc)"' '/etc/makepkg.conf'
 fi
 sed -i "/^#PACKAGER=.*/a PACKAGER=\"$maintainer\"" '/etc/makepkg.conf'
 pacman-key --init
@@ -184,9 +184,23 @@ $pacbuild
 
 if [ "$miniVers" != 'true' ]; then
     _ntfy 'install VDR plugin live'
-    $pacinst \
-        cxxtools \
-        tntnet
+    # $pacinst \
+    #     cxxtools \
+    #     tntnet
+
+    # Fix cxxtools C++20 compatibility
+    # https://github.com/VDR4Arch/vdr4arch/pull/268
+    cd $buildDir || exit 1
+    curl -L https://patch-diff.githubusercontent.com/raw/VDR4Arch/vdr4arch/pull/268.patch -o /tmp/cxxtools_build_fix.patch
+    $pacdown cxxtools
+    if patch -p2 --dry-run < /tmp/cxxtools_build_fix.patch >/dev/null 2>&1; then
+        patch -p2 < /tmp/cxxtools_build_fix.patch
+    fi
+    cd cxxtools || exit 1
+    $pacbuild
+
+    $pacinst tntnet
+
     $pacinst --mflags --skipinteg vdr-live
 fi
 
