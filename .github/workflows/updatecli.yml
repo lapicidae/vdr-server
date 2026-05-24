@@ -1,0 +1,29 @@
+name: Updatecli
+
+on:
+  push:
+    branches: [test]
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
+
+permissions:
+  contents: "write"
+  pull-requests: "write"
+
+jobs:
+  updatecli:
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Updatecli
+        uses: updatecli/updatecli-action@v2
+
+      - name: Run Updatecli
+        run: "updatecli pipeline apply --config ./.updatecli/updatecli.d --values ./.updatecli/values.yml"
+        env:
+          UPDATECLI_GITHUB_USERNAME: "${{ github.actor }}"
+          UPDATECLI_GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          UPDATECLI_GITHUB_OWNER: "${{ github.repository_owner }}"

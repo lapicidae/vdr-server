@@ -1,0 +1,52 @@
+# .updatecli/updatecli.d/s6-overlay.yml
+
+name: "Track and update s6-overlay version"
+
+scms:
+  default:
+    kind: github
+    spec:
+      user: '{{ .github.user }}'
+      email: '{{ .github.email }}'
+      owner: '{{ requiredEnv "UPDATECLI_GITHUB_OWNER" }}'
+      repository: '{{ .github.repository }}'
+      token: '{{ requiredEnv "UPDATECLI_GITHUB_TOKEN" }}'
+      username: '{{ requiredEnv "UPDATECLI_GITHUB_OWNER" }}'
+      branch: '{{ .github.branch }}'
+
+sources:
+  s6-overlay:
+    name: Get latest s6-overlay release version
+    kind: githubrelease
+    spec:
+      owner: "just-containers"
+      repository: "s6-overlay"
+      token: '{{ requiredEnv "UPDATECLI_GITHUB_TOKEN" }}'
+      username: '{{ requiredEnv "UPDATECLI_GITHUB_OWNER" }}'
+      versionfilter:
+        kind: "latest"
+    transformers:
+      - trimprefix: "v"
+
+targets:
+  dockerfile:
+    name: Update Dockerfile ARG S6VER
+    kind: dockerfile
+    scmid: default
+    sourceid: s6-overlay
+    spec:
+      file: Dockerfile
+      instruction:
+        keyword: ARG
+        matcher: S6VER
+
+actions:
+  default:
+    kind: github/pullrequest
+    scmid: default
+    title: 'chore: Bump s6-overlay version to {{ source "s6-overlay" }}'
+    spec:
+      merge:
+        strategy: auto
+      labels:
+        - "s6-overlay"

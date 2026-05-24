@@ -1,0 +1,6 @@
+# .updatecli/values.yml
+github:
+  branch: "test"
+  email: "bots@udpatecli.io"
+  repository: "vdr-server"
+  user: "updatecli"
