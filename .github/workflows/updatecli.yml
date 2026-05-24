@@ -2,7 +2,8 @@ name: Updatecli
 
 on:
   push:
-    branches: [test]
+    branches:
+      - test
   workflow_dispatch:
   schedule:
     - cron: "0 0 * * *"
@@ -27,3 +28,17 @@ jobs:
           UPDATECLI_GITHUB_USERNAME: "${{ github.actor }}"
           UPDATECLI_GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           UPDATECLI_GITHUB_OWNER: "${{ github.repository_owner }}"
+
+      - name: Keep Workflow Alive
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Extract the workflow filename (e.g., updatecli.yml) from the environment reference
+          WORKFLOW_FILE=$(basename "${GITHUB_WORKFLOW_REF%%@*}")
+          
+          printf "Keeping workflow active: %s\n" "$WORKFLOW_FILE"
+          
+          # Send the PUT request to the GitHub API to reset the 60-day inactivity timer
+          gh api -X PUT "repos/${GITHUB_REPOSITORY}/actions/workflows/${WORKFLOW_FILE}/enable"
+          
+          printf "Workflow successfully kept alive.\n"
