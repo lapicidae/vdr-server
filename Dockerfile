@@ -9,7 +9,7 @@ ARG inVM="true" \
     vdrRevision \
     vdrVersion
 
-ARG S6VER=3.2.3.1
+ARG S6VER=3.2.3.2
 
 ENV PATH="$PATH:/command:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl"
 ENV LANG="en_US.UTF-8" \
