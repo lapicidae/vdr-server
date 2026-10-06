@@ -130,6 +130,13 @@ tar -C / -Jxpf /tmp/syslogd-overlay-noarch.tar.xz
 patch /etc/s6-overlay/s6-rc.d/syslogd-log/run /tmp/syslogd-log_run.patch
 useradd --system --no-create-home --shell /bin/false syslog
 useradd --system --no-create-home --shell /bin/false sysllog
+# Move incorrectly placed files
+if [ -d /etc/s6-overlay/s6-rc.d/user ]; then
+    mkdir -p /etc/s6-overlay/user-bundles.d/user/
+    cp -a /etc/s6-overlay/s6-rc.d/user/. /etc/s6-overlay/user-bundles.d/user/ || true
+    rm -rf /etc/s6-overlay/s6-rc.d/user
+fi
+rm -rf /etc/s6-overlay/s6-rc.d/user2
 
 _ntfy "detect envivroment"
 $pacinst virt-what
