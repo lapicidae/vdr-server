@@ -185,7 +185,10 @@ cd $buildDir || exit 1
 git clone 'https://github.com/lmaresch/vdr-ciplus.git' vdr-ciplus
 sed -i "s/vdr-api=/vdr-api>=/g" vdr-ciplus/PKGBUILD
 cp /tmp/addlib.patch $buildDir/vdr-ciplus
-awk '1;/prepare()/{c=2}c&&!--c{print "  patch -p1 < ../../addlib.patch"}' vdr-ciplus/PKGBUILD > tmp && mv tmp vdr-ciplus/PKGBUILD
+awk '1;/prepare()/{c=2}c&&!--c{
+    print "  patch -p1 < ../../addlib.patch"
+    print "  sed -i '\''s/subject = X509_get_subject_name(cert);/subject = const_cast<X509_NAME *>(X509_get_subject_name(cert));/'\'' cCiPlusCredentials.c"
+}' vdr-ciplus/PKGBUILD > tmp && mv tmp vdr-ciplus/PKGBUILD
 chown -R builduser:users vdr-ciplus
 cd vdr-ciplus || exit 1
 $pacbuild
