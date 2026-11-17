@@ -199,18 +199,23 @@ if [ "$miniVers" != 'true' ]; then
     #     cxxtools \
     #     tntnet
 
-    # Fix cxxtools C++20 compatibility
-    # https://github.com/VDR4Arch/vdr4arch/pull/268
-    cd $buildDir || exit 1
-    curl -L https://patch-diff.githubusercontent.com/raw/VDR4Arch/vdr4arch/pull/268.patch -o /tmp/cxxtools_build_fix.patch
+    # Update cxxtools (5.0) and tntnet (4.2) - #269
+    # https://github.com/VDR4Arch/vdr4arch/pull/269
+    cd "${buildDir}" || exit 1
+    curl -sL https://patch-diff.githubusercontent.com/raw/VDR4Arch/vdr4arch/pull/269.patch -o /tmp/pr269.patch
+
     $pacdown cxxtools
-    if patch -p2 --dry-run < /tmp/cxxtools_build_fix.patch >/dev/null 2>&1; then
-        patch -p2 < /tmp/cxxtools_build_fix.patch
+    $pacdown tntnet
+
+    if patch -p2 -N --dry-run < /tmp/pr269.patch >/dev/null 2>&1; then
+        patch -p2 -N < /tmp/pr269.patch
     fi
-    cd cxxtools || exit 1
+
+    cd "${buildDir}/cxxtools" || exit 1
     $pacbuild
 
-    $pacinst tntnet
+    cd "${buildDir}/tntnet" || exit 1
+    $pacbuild
 
     $pacinst --mflags --skipinteg vdr-live
 fi
